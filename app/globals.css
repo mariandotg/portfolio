@@ -23,3 +23,17 @@ body {
 ::-webkit-scrollbar-thumb {
   @apply bg-primary;
 }
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary border-transparent font-bold text-light dark:hover:bg-dark-primary-hover dark:active:bg-dark-primary-pressed active:bg-light-primary-pressed hover:bg-light-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border-primary underline underline-offset-2 font-bold text-primary dark:hover:bg-dark-primary-hover/25 dark:active:bg-dark-primary-pressed/25 active:bg-light-primary-pressed/25 hover:bg-light-primary-hover/25;
+  }
+
+  .btn-tertiary {
+    @apply bg-tertiary border-transparent text-light dark:hover:bg-dark-tertiary-hover dark:active:bg-dark-tertiary-pressed active:bg-light-tertiary-pressed hover:bg-light-tertiary-hover;
+  }
+}

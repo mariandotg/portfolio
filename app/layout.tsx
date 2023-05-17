@@ -15,8 +15,27 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const codeToRunOnClient = `
+  (function initTheme() {
+    const theme =
+      typeof window !== 'undefined'
+        ? localStorage.theme !== undefined
+          ? localStorage.theme
+          : 'dark'
+        : 'dark';
+          document
+        .querySelector('html')
+        .classList.replace(theme === 'dark' ? 'light' : 'dark', theme);
+  })();`;
+
   return (
-    <html lang='en'>
+    <html lang='en' className='dark'>
+      <head>
+        <script
+          id='theme-init'
+          dangerouslySetInnerHTML={{ __html: codeToRunOnClient }}
+        />
+      </head>
       <body className={inter.className}>
         <PageLayout>
           <ContentLayout>{children}</ContentLayout>

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 
 interface Props {
   children: ReactNode;
@@ -8,13 +8,13 @@ interface Props {
 }
 
 const Navlink = ({ children, href }: Props) => {
-  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <Link
       href={href}
       className={`${
-        href === router.asPath && 'px-2 bg-primary'
+        href === pathname && 'px-2 bg-primary'
       } italic w-fit font-medium text-secondary font-monospace cursor-pointer dark:hover:text-primary hover:text-primary dark:text-dark-headlines text-light-headlines`}
     >
       {children}

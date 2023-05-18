@@ -1,8 +1,7 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import ContentLayout from './components/ContentLayout';
-import PageLayout from './components/PageLayout';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -38,10 +37,12 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <PageLayout>
+        <div className='flex flex-col gap-y-[160px] justify-center'>
           <Navbar />
-          <ContentLayout>{children}</ContentLayout>
-        </PageLayout>
+          {children}
+          // {/* @ts-expect-error Async Server Component */}
+          <Footer />
+        </div>
       </body>
     </html>
   );

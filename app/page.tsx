@@ -2,6 +2,7 @@ import Image from 'next/image';
 import PageLayout from './components/PageLayout';
 import AboutSection from './components/AboutSection';
 import FeaturedProjectsSection from './components/FeaturedProjectsSection';
+import SkillsSection from './components/SkillsSection';
 
 const HomePage = async () => {
   return (
@@ -19,10 +20,12 @@ const HomePage = async () => {
         </div>
       </div>
       <PageLayout>
-        // {/* @ts-expect-error Async Server Component */}
+        {/* @ts-expect-error Async Server Component */}
         <AboutSection />
-        // {/* @ts-expect-error Async Server Component */}
+        {/* @ts-expect-error Async Server Component */}
         <FeaturedProjectsSection />
+        {/* @ts-expect-error Async Server Component */}
+        <SkillsSection />
       </PageLayout>
     </>
   );

@@ -85,7 +85,7 @@ const LatestArticlesSection = async () => {
                     index === 0 ? 'mobile:h-[135px]' : 'mobile:h-[100px]'
                   } tablet:h-[135px] rounded`}
                 >
-                  <h3 className='absolute z-20 font-medium bottom-2 left-2 text-article dark:text-dark-headlines font-display text-light-headlines'>
+                  <h3 className='absolute z-20 font-medium bottom-2 left-2 text-article text-dark-headlines font-display'>
                     {article.name}
                   </h3>
                   <div className='absolute top-0 left-0 z-10 flex items-end justify-center w-full h-full p-4 opacity-100 tablet:opacity-0 group-hover:opacity-100 tablet:bg-dark/25'>

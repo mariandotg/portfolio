@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import PageLayout from './components/PageLayout';
 import AboutSection from './components/AboutSection';
+import FeaturedProjectsSection from './components/FeaturedProjectsSection';
 
 const HomePage = async () => {
   return (
@@ -20,6 +21,8 @@ const HomePage = async () => {
       <PageLayout>
         // {/* @ts-expect-error Async Server Component */}
         <AboutSection />
+        // {/* @ts-expect-error Async Server Component */}
+        <FeaturedProjectsSection />
       </PageLayout>
     </>
   );

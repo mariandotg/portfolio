@@ -93,12 +93,12 @@ const ProjectCard = (props: Props) => {
 
   return (
     <Link
-      className={`${props.className} tablet:grid mobile:col-span-2 tablet:grid-cols-3 tablet:col-span-3 mobile:gap-4`}
+      className={`${props.className} group tablet:grid mobile:col-span-2 tablet:grid-cols-3 tablet:col-span-3 mobile:gap-4`}
       href='/projects/[path]'
       as={`/projects/${props.project.path}`}
     >
       <div
-        className={`flex flex-col tablet:col-span-1 tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover cursor-pointer justify-between border border-transparent gap-y-4 tablet:p-4 group rounded dark:text-dark-text text-light-text`}
+        className={`flex flex-col tablet:col-span-1 tablet:group-hover:border-light-primary-hover tablet:group-hover:dark:border-dark-primary-hover cursor-pointer justify-between border border-transparent gap-y-4 tablet:p-4 group rounded dark:text-dark-text text-light-text`}
       >
         <div className='flex flex-col gap-y-2'>
           <div className='relative w-full h-[135px] mobile:h-[100px] tablet:hidden'>
@@ -133,7 +133,7 @@ const ProjectCard = (props: Props) => {
           )}
         </div>
       </div>
-      <div className='relative hidden rounded cursor-pointer mobile:col-span-1 tablet:col-span-2 group mobile:overflow-hidden tablet:flex'>
+      <div className='relative hidden rounded cursor-pointer tablet:border tablet:border-transparent tablet:group-hover:border-primary mobile:col-span-1 tablet:col-span-2 group mobile:overflow-hidden tablet:flex'>
         <Image
           src={props.project.image}
           alt={`${props.project.name} image`}

@@ -1,5 +1,7 @@
+import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
 import PageLayout from '@/app/components/PageLayout';
-import { getNotionSinglePage } from '@/services/notion';
+import { getNotionSinglePage, queryNotionDatabase } from '@/services/notion';
+import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 
@@ -7,6 +9,29 @@ interface Props {
   params: {
     path: string;
   };
+}
+
+export async function generateMetadata(
+  { params }: Props,
+  parent?: ResolvingMetadata
+): Promise<Metadata> {
+  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+
+  const seoResponse = await queryNotionDatabase({
+    databaseId,
+    filter: {
+      property: 'SeoPath',
+      formula: {
+        string: {
+          equals: params.path,
+        },
+      },
+    },
+  });
+
+  const seo = pageSeoAdapter(seoResponse[0]);
+
+  return { ...seo };
 }
 
 const ProjectPage = async ({ params }: Props) => {

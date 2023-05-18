@@ -1,9 +1,10 @@
+import { cache } from 'react';
 import { Params } from '@/models/contentful/GetContentfulData';
 import { RawData } from '@/models/contentful/RawData';
 
 const contentful = require('contentful');
 
-export const getContentfulData = async <T>({
+export const getContentfulData = cache(async <T>({
   type,
   locale = 'en-US',
 }: Params): Promise<Array<T>> => {
@@ -19,4 +20,4 @@ export const getContentfulData = async <T>({
     })
     .then((response: RawData<T>) => response.items)
     .catch((error: object) => console.log(error));
-};
+})

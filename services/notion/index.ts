@@ -43,7 +43,6 @@ export const getNotionSinglePage = async ({
   const mdblocks = await n2m.pageToMarkdown(page.id);
   const mdString = n2m.toMarkdownString(mdblocks);
 
-  console.log('mdString', mdString);
   return {
     markdown: mdString,
   };

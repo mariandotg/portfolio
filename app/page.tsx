@@ -3,6 +3,7 @@ import PageLayout from './components/PageLayout';
 import AboutSection from './components/AboutSection';
 import FeaturedProjectsSection from './components/FeaturedProjectsSection';
 import SkillsSection from './components/SkillsSection';
+import JobExperienceSection from './components/JobExperienceSection';
 
 const HomePage = async () => {
   return (
@@ -26,6 +27,8 @@ const HomePage = async () => {
         <FeaturedProjectsSection />
         {/* @ts-expect-error Async Server Component */}
         <SkillsSection />
+        {/* @ts-expect-error Async Server Component */}
+        <JobExperienceSection />
       </PageLayout>
     </>
   );

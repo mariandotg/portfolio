@@ -13,8 +13,8 @@ import useScroll from '@/hooks/useScroll';
 import useIsMounted from '@/hooks/useIsMounted';
 
 import Button from './Button';
-import Navlink from './Navlink';
 import Image from 'next/image';
+import NavLink from './NavLink';
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -22,12 +22,18 @@ const Navbar = () => {
   const isMounted = useIsMounted();
 
   return (
-    <nav className='border-b-[1px] border-primary bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
-      <div className='relative flex items-center w-screen tablet:max-w-[800px] justify-between gap-16'>
+    <header className='border-b-[1px] border-primary bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
+      <nav className='relative flex items-center w-screen tablet:max-w-[800px] justify-between gap-16'>
         <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
-          <Navlink href='/'>Portfolio</Navlink>
-          <Navlink href='/projects'>Proyectos</Navlink>
-          <Navlink href='/blog'>Blog</Navlink>
+          <NavLink href='/en' exact>
+            Portfolio
+          </NavLink>
+          <NavLink href='/en/projects' exact>
+            Proyectos
+          </NavLink>
+          <NavLink href='/en/blog' exact>
+            Blog
+          </NavLink>
         </div>
         <Image
           src='/mlogolight.svg'
@@ -81,8 +87,8 @@ const Navbar = () => {
             <MdKeyboardArrowUp className='duration-[0ms] w-[18px] h-[18px] ' />
           </Button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 };
 

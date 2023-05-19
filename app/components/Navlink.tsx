@@ -1,25 +1,28 @@
+'use client';
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 interface Props {
-  children: ReactNode;
   href: string;
+  exact: boolean;
+  children: ReactNode;
+  className?: string;
 }
 
-const Navlink = ({ children, href }: Props) => {
+const NavLink = ({ href, exact, children, ...props }: Props) => {
   const pathname = usePathname();
+  const isActive = exact ? pathname === href : pathname.startsWith(href);
+  const active = isActive ? ' px-2 bg-primary' : '';
 
   return (
     <Link
       href={href}
-      className={`${
-        href === pathname && 'px-2 bg-primary'
-      } italic w-fit font-medium text-secondary font-monospace cursor-pointer dark:hover:text-primary hover:text-primary dark:text-dark-headlines text-light-headlines`}
+      className={`italic font-medium cursor-pointer w-fit text-secondary font-monospace dark:hover:text-primary hover:text-primary dark:text-dark-headlines text-light-headlines${active}`}
     >
       {children}
     </Link>
   );
 };
 
-export default Navlink;
+export default NavLink;

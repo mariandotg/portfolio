@@ -19,6 +19,13 @@ const nextConfig = {
     defaultLocale: 'en',
     localeDetection: false
   },
+  exportPathMap: function () {
+    return {
+      '/en': { page: '/[lang]' },
+      '/en/blog/nextjs': { page: '/[lang]/blog/[path]/' },
+      '/en/projects/nextjs': { page: '/[lang]/projects/[path]/' },
+    }
+  },
 }
 
 module.exports = nextConfig

@@ -171,6 +171,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                 className={
                   index === 0 ? 'mobile:col-span-2' : 'mobile:col-span-1'
                 }
+                locale={lang}
               />
             ))}
           </div>

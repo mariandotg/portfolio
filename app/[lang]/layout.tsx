@@ -1,5 +1,5 @@
 import './globals.css';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export async function generateStaticParams() {
-  return [{ lang: 'en-US' }, { lang: 'de' }];
+  return [{ lang: 'en' }, { lang: 'es' }];
 }
 
 export default function RootLayout({
@@ -43,7 +43,7 @@ export default function RootLayout({
       </head>
       <body>
         <div className='flex flex-col gap-y-[160px] justify-center'>
-          <Navbar />
+          <Navbar locale={params.lang} />
           {children}
           {/* @ts-expect-error Async Server Component */}
           <Footer />

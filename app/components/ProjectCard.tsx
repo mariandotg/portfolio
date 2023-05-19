@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation';
 interface Props {
   project: Project;
   className?: string;
+  locale: string;
 }
 
 const ProjectCard = (props: Props) => {
@@ -22,7 +23,6 @@ const ProjectCard = (props: Props) => {
   const [displayedTags, setDisplayedTags] = useState<Tag[]>(props.project.tags);
   const pathname = usePathname();
 
-  console.log('path', pathname);
   const truncateString = (string: string, maxLength: number) => {
     if (string.length >= maxLength) {
       return string.slice(0, maxLength - 3) + '...';
@@ -97,7 +97,8 @@ const ProjectCard = (props: Props) => {
   return (
     <Link
       className={`${props.className} group tablet:grid mobile:col-span-2 tablet:grid-cols-3 tablet:col-span-3 mobile:gap-4`}
-      href={`${pathname}/projects/${props.project.path}`}
+      href={`${props.locale}/projects/${props.project.path}`}
+      locale={props.locale}
     >
       <div
         className={`flex flex-col tablet:col-span-1 tablet:group-hover:border-light-primary-hover tablet:group-hover:dark:border-dark-primary-hover cursor-pointer justify-between border border-transparent gap-y-4 tablet:p-4 group rounded dark:text-dark-text text-light-text`}

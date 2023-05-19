@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import React from 'react';
-import PageLayout from '../../components/PageLayout';
+import PageLayout from '../../../components/PageLayout';
 
 const ProjectsPage = () => {
   return (

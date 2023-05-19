@@ -1,20 +1,20 @@
 import Image from 'next/image';
-import PageLayout from '../components/PageLayout';
+import PageLayout from '../../components/PageLayout';
 
 import { MdArrowOutward } from 'react-icons/md';
-import Button from '../components/Button';
-import Icon from '../components/Icon';
-import Section from '../components/Section';
+import Button from '../../components/Button';
+import Icon from '../../components/Icon';
+import Section from '../../components/Section';
 import { pageConstantsAdapter } from '@/adapters/pageConstantsAdapter';
 import { pageContentAdapter } from '@/adapters/pageContentAdapter';
 import { IPage, IConstants } from '@/models/contentful/generated/contentful';
 import { getContentfulData } from '@/services/contentful';
-import ProjectCard from '../components/ProjectCard';
-import SectionTitle from '../components/SectionTitle';
+import ProjectCard from '../../components/ProjectCard';
+import SectionTitle from '../../components/SectionTitle';
 import { CompoundFilterObj } from '@/models/notion/Filters';
 import { projectsAdapter } from '@/adapters/projectsAdapter';
 import { queryNotionDatabase } from '@/services/notion';
-import SkillItem from '../components/SkillItem';
+import SkillItem from '../../components/SkillItem';
 import Link from 'next/link';
 import { articlesAdapter } from '@/adapters/articlesAdapter';
 

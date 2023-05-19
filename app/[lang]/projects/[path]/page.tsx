@@ -1,5 +1,5 @@
 import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
-import PageLayout from '@/app/components/PageLayout';
+import PageLayout from '@/components/PageLayout';
 import { getNotionSinglePage, queryNotionDatabase } from '@/services/notion';
 import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';

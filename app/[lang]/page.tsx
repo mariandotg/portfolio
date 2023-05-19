@@ -1,12 +1,6 @@
 import Image from 'next/image';
 import PageLayout from '../components/PageLayout';
 
-import AboutSection from '../components/AboutSection';
-import FeaturedProjectsSection from '../components/FeaturedProjectsSection';
-import SkillsSection from '../components/SkillsSection';
-import JobExperienceSection from '../components/JobExperienceSection';
-import LatestArticlesSection from '../components/LatestArticlesSection';
-
 import { MdArrowOutward } from 'react-icons/md';
 import Button from '../components/Button';
 import Icon from '../components/Icon';

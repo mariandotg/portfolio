@@ -25,10 +25,13 @@ const Footer = async () => {
               href={constants.text.email.url}
               target='_blank'
               rel='noopener noreferrer'
-              className='flex relative text-title w-fit before:content-[""] before:h-[1px] before:w-full before:left-0 before:bottom-1 before:absolute before:bg-primary items-center font-medium gap-x-1 font-display text-primary'
+              className='relative flex items-center italic font-medium underline gap-x-1 group underline-offset-2 text-title w-fit font-monospace text-primary'
             >
               {constants.text.email.text}
-              <MdArrowOutward />
+              <MdArrowOutward
+                fontStyle={'italic'}
+                className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1'
+              />
             </a>
           </div>
           <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'></div>
@@ -51,11 +54,13 @@ const Footer = async () => {
               </li>
             ))}
           </ul>
-          <div className='flex flex-col items-center w-full italic h-fit gap-y-2 font-monospace text-light-headlines dark:text-dark-headlines'>
-            <p className='flex items-center gap-x-2 text-secondary'>
+          <div className='flex flex-col items-center w-full italic h-fit gap-y-2 font-monospace'>
+            <p className='flex items-center gap-x-2 text-secondary text-light-headlines dark:text-dark-headlines'>
               Made in Buenos Aires, Argentina
             </p>
-            <span className='text-secondary '>2023 © Mariano Guillaume</span>
+            <span className='text-secondary text-light-headlines dark:text-dark-headlines'>
+              2023 © Mariano Guillaume
+            </span>
           </div>
         </div>
       </PageLayout>

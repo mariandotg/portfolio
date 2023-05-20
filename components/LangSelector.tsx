@@ -53,7 +53,7 @@ const LangSelector = ({ locale }: Props) => {
   return (
     <div className='flex flex-col justify-center select-none'>
       <Button
-        variant='secondary'
+        variant='primary'
         className='flex items-center h-8 gap-2 not-italic'
         onClick={handleLangChange}
         icon

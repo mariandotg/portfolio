@@ -49,7 +49,7 @@ const NavBar = ({ locale }: Props) => {
           height={23}
         />
         <Button
-          variant='secondary'
+          variant='primary'
           className='flex mobile:hidden'
           icon
           ariaLabel='Hamburger menu'
@@ -61,7 +61,7 @@ const NavBar = ({ locale }: Props) => {
             <LangSelector locale={locale} />
           </div>
           <Button
-            variant='secondary'
+            variant='primary'
             onClick={toggleTheme}
             icon
             disabled={!isMounted}
@@ -78,7 +78,7 @@ const NavBar = ({ locale }: Props) => {
             )}
           </Button>
           <Button
-            variant='secondary'
+            variant='primary'
             onClick={scrollToTop}
             className='flex'
             icon

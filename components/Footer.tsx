@@ -25,12 +25,12 @@ const Footer = async () => {
               href={constants.text.email.url}
               target='_blank'
               rel='noopener noreferrer'
-              className='relative flex items-center italic font-medium underline gap-x-1 group underline-offset-2 text-title w-fit font-monospace text-primary'
+              className='relative flex items-center italic font-medium underline rounded dark:hover:text-primary hover:text-primary decoration-primary group underline-offset-4 text-title w-fit font-monospace dark:text-dark-headlines text-light-headlines'
             >
               {constants.text.email.text}
               <MdArrowOutward
                 fontStyle={'italic'}
-                className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1'
+                className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary'
               />
             </a>
           </div>

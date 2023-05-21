@@ -21,6 +21,7 @@ interface Props {
 const LangSelector = ({ locale }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const path = usePathname();
 
   const langsList: Array<Lang> = [
     {
@@ -46,7 +47,8 @@ const LangSelector = ({ locale }: Props) => {
   };
 
   const changeLanguage = (lang: string) => {
-    router.push(`/${lang}`);
+    const restPath = path.replace(locale, lang);
+    router.push(restPath);
     handleLangChange();
   };
 

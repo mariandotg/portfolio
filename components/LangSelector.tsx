@@ -79,7 +79,7 @@ const LangSelector = ({ locale }: Props) => {
                     item.value === locale
                       ? 'cursor-not-allowed text-dark-tertiary-pressed'
                       : 'cursor-pointer text-light-headlines dark:text-dark-headlines dark:hover:text-dark-primary-hover hover:text-light-primary-hover'
-                  } flex items-center px-2 py-1 w-fill`}
+                  } flex text-secondary items-center p-2 w-fill`}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && item.value !== locale)
                       return changeLanguage(item.value);

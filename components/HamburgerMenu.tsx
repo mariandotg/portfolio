@@ -28,20 +28,31 @@ const HamburgerMenu = ({ locale }: Props) => {
         )}
       </Button>
       <div className='relative text-light-headlines dark:text-dark-headlines'>
-        {isOpen && (
-          <ul className='absolute flex justify-between z-20 w-screen px-4 py-3 -left-4 top-[13px] bg-light dark:bg-dark '>
-            <li className='w-fit' onClick={() => setIsOpen((prev) => !prev)}>
-              <NavLink href={`/${locale}`}>Portfolio</NavLink>
-            </li>
-            <li className='w-fit' onClick={() => setIsOpen((prev) => !prev)}>
-              <NavLink href={`/${locale}/projects`}>Proyectos</NavLink>
-            </li>
-            <li className='w-fit' onClick={() => setIsOpen((prev) => !prev)}>
-              <NavLink href={`/${locale}/blog`}>Blog</NavLink>
-            </li>
-            <LangSelector locale={locale} />
-          </ul>
-        )}
+        <ul
+          className={`absolute ${
+            isOpen ? 'flex mobile:hidden' : 'hidden'
+          } border-b-[1px] border-primary justify-between z-20 w-screen px-4 py-3 -left-4 top-[13px] bg-light dark:bg-dark`}
+        >
+          <li
+            className='flex items-center'
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            <NavLink href={`/${locale}`}>Portfolio</NavLink>
+          </li>
+          <li
+            className='flex items-center'
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            <NavLink href={`/${locale}/projects`}>Proyectos</NavLink>
+          </li>
+          <li
+            className='flex items-center'
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            <NavLink href={`/${locale}/blog`}>Blog</NavLink>
+          </li>
+          <LangSelector locale={locale} />
+        </ul>
       </div>
     </div>
   );

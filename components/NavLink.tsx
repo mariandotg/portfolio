@@ -15,13 +15,13 @@ const NavLink = ({ href, children }: Props) => {
 
   const isActive = isMounted && pathname === href;
   const active = isActive
-    ? ' text-dark-headlines mobile:bg-primary dark:hover:bg-dark-primary-hover hover:bg-light-primary-hover rounded-[2px]'
+    ? ' text-dark-headlines underline font-medium underline-offset-2 decoration-2 text-primary decoration-primary dark:hover:text-dark-primary-hover hover:text-light-primary-hover'
     : ' dark:text-dark-headlines text-light-headlines dark:hover:text-primary hover:text-primary';
 
   return (
     <Link
       href={href}
-      className={`italic font-medium cursor-pointer mobile:px-2 w-fit text-secondary font-monospace${active}`}
+      className={`italic font-light cursor-pointer w-fit text-secondary font-monospace${active}`}
     >
       {children}
     </Link>

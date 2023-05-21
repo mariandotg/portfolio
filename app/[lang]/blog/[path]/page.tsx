@@ -31,7 +31,33 @@ export async function generateMetadata(
 
   const seo = pageSeoAdapter(seoResponse[0]);
 
-  return { ...seo };
+  return {
+    title: seo.title,
+    category: 'technology',
+    description: seo.description,
+    twitter: {
+      card: 'summary_large_image',
+      site: '@site',
+      creator: '@creator',
+      images: {
+        url: seo.image,
+        alt: seo.imageAlt,
+      },
+    },
+    openGraph: {
+      title: seo.title,
+      description: seo.description,
+      url: seo.url,
+      siteName: seo.title,
+      type: 'website',
+      images: [
+        {
+          url: seo.image,
+          alt: seo.imageAlt,
+        },
+      ],
+    },
+  };
 }
 
 const ArticlePage = async ({ params }: Props) => {

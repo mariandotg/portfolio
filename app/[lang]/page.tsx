@@ -90,7 +90,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
         <div className='flex flex-col gap-8 mt-[57px]'>
           <div className='relative h-64'>
             <Image
-              src='/header-web.webp'
+              src='/public/header-web.webp'
               alt='page header'
               className='absolute object-cover'
               fill={true}

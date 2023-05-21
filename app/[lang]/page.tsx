@@ -267,7 +267,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                   }`}
                 >
                   <Link
-                    href={`${lang}/projects/${article.path}`}
+                    href={`${lang}/blog/${article.path}`}
                     className='flex flex-col gap-y-2'
                   >
                     <span className='font-light text-secondary text-light-text dark:text-dark-text'>

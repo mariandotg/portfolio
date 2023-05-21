@@ -16,6 +16,7 @@ import Button from './Button';
 import Image from 'next/image';
 import NavLink from './NavLink';
 import LangSelector from './LangSelector';
+import HamburgerMenu from './HamburgerMenu';
 
 interface Props {
   locale: string;
@@ -35,27 +36,20 @@ const NavBar = ({ locale }: Props) => {
           <NavLink href={`/${locale}/blog`}>Blog</NavLink>
         </div>
         <Image
-          src='/mlogolight.svg'
+          src='/marianoGuillaume.svg'
           alt='brand marianoGuillaume logo'
-          className='absolute left-2/4 -translate-x-1/2 hidden tablet:dark:flex tablet:flex tablet:dark:brightness-[200] w-[164px]'
+          className='absolute left-2/4 -translate-x-1/2 flex mobile:hidden tablet:dark:flex tablet:flex dark:brightness-[200] w-[164px]'
           width={164}
           height={14}
         />
         <Image
-          src='/mdg_logo.svg'
+          src='/mdg.svg'
           alt='brand mdg logo'
-          className='absolute flex -translate-x-1/2 left-2/4 tablet:hidden'
+          className='absolute hidden -translate-x-1/2 mobile:flex left-2/4 tablet:hidden dark:brightness-[200]'
           width={50}
           height={23}
         />
-        <Button
-          variant='primary'
-          className='flex mobile:hidden'
-          icon
-          ariaLabel='Hamburger menu'
-        >
-          <MdMenu className='duration-[0ms] w-[18px] h-[18px]' />
-        </Button>
+        <HamburgerMenu locale={locale} />
         <div className='relative flex items-center gap-2'>
           <div className='hidden mobile:flex'>
             <LangSelector locale={locale} />

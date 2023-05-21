@@ -6,10 +6,15 @@ import Icon from './Icon';
 import { IConstants } from '@/models/contentful/generated/contentful';
 import { getContentfulData } from '@/services/contentful';
 import { pageConstantsAdapter } from '@/adapters/pageConstantsAdapter';
+import NavLink from './NavLink';
 
-const Footer = async () => {
+interface Props {
+  locale: string;
+}
+
+const Footer = async ({ locale }: Props) => {
   const constants = await getContentfulData<IConstants>({
-    locale: 'en',
+    locale,
     type: 'constants',
   }).then((data) => pageConstantsAdapter(data[0].fields));
 
@@ -34,7 +39,11 @@ const Footer = async () => {
               />
             </a>
           </div>
-          <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'></div>
+          <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'>
+            <NavLink href={`/${locale}`}>Portfolio</NavLink>
+            <NavLink href={`/${locale}/projects`}>Proyectos</NavLink>
+            <NavLink href={`/${locale}/blog`}>Blog</NavLink>
+          </div>
         </div>
         <div className='flex flex-col items-center gap-y-8'>
           <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>

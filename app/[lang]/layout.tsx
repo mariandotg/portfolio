@@ -42,7 +42,7 @@ export default function RootLayout({
           <Navbar locale={params.lang} />
           {children}
           {/* @ts-expect-error Async Server Component */}
-          <Footer />
+          <Footer locale={params.lang} />
         </div>
       </body>
     </html>

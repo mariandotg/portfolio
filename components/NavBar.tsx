@@ -36,14 +36,14 @@ const NavBar = ({ locale }: Props) => {
           <NavLink href={`/${locale}/blog`}>Blog</NavLink>
         </div>
         <Image
-          src='/marianoGuillaume.svg'
+          src='/public/marianoGuillaume.svg'
           alt='brand marianoGuillaume logo'
           className='absolute left-2/4 -translate-x-1/2 flex mobile:hidden tablet:dark:flex tablet:flex dark:brightness-[200] w-[164px]'
           width={164}
           height={14}
         />
         <Image
-          src='/mdg.svg'
+          src='/public/mdg.svg'
           alt='brand mdg logo'
           className='absolute hidden -translate-x-1/2 mobile:flex left-2/4 tablet:hidden dark:brightness-[200]'
           width={50}

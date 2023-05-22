@@ -1,37 +1,13 @@
-import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
-import PageLayout from '@/components/PageLayout';
-import { getNotionSinglePage, queryNotionDatabase } from '@/services/notion';
-import { Metadata, ResolvingMetadata } from 'next';
 import React from 'react';
+import Image from 'next/image';
+import PageLayout from '@/components/PageLayout';
+import { getNotionSinglePage } from '@/services/notion';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 
 interface Props {
   params: {
     path: string;
   };
-}
-
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
-
-  const seoResponse = await queryNotionDatabase({
-    databaseId,
-    filter: {
-      property: 'SeoPath',
-      formula: {
-        string: {
-          equals: params.path,
-        },
-      },
-    },
-  });
-
-  const seo = pageSeoAdapter(seoResponse[0]);
-
-  return { ...seo };
 }
 
 const ProjectPage = async ({ params }: Props) => {
@@ -51,7 +27,7 @@ const ProjectPage = async ({ params }: Props) => {
 
   return (
     <>
-      <div className='relative h-64'></div>
+      <div className='relative h-64 bg-primary'></div>
       <PageLayout>
         <div className='flex flex-col gap-y-4'>
           <ReactMarkdown
@@ -70,6 +46,15 @@ const ProjectPage = async ({ params }: Props) => {
               ),
               p: ({ node, ...props }) => (
                 <p className='dark:text-dark-text text-light-text' {...props} />
+              ),
+              img: ({ node, src, alt, width, height }) => (
+                <Image
+                  className='dark:text-dark-text text-light-text'
+                  src={src!}
+                  alt={alt!}
+                  width={100}
+                  height={50}
+                />
               ),
             }}
           >

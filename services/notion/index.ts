@@ -2,6 +2,7 @@ import { notionDataAdapter } from '@/adapters/notionDataAdapter';
 import { FilterObj, CompoundFilterObj } from '@/models/notion/Filters';
 import { NotionClientQueryResponse } from '@/models/notion/NotionClientQueryResponse';
 import { NotionResponse } from '@/models/notion/NotionResponse';
+import { cache } from 'react';
 
 const { Client } = require('@notionhq/client');
 
@@ -18,7 +19,7 @@ interface Props {
   filter: FilterObj<{ [key: string]: unknown }> | CompoundFilterObj;
 }
 
-export const queryNotionDatabase = async ({
+export const queryNotionDatabase = cache(async ({
   databaseId,
   filter,
 }: Props): Promise<Array<NotionResponse>> => {
@@ -28,7 +29,7 @@ export const queryNotionDatabase = async ({
   });
 
   return notionDataAdapter(response);
-};
+})
 
 export const getNotionSinglePage = async ({
   databaseId,

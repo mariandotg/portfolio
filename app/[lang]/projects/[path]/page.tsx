@@ -87,14 +87,17 @@ const ProjectPage = async ({ params }: Props) => {
                 />
               ),
               img: ({ node, src, alt, width, height }) => (
-                <div className='relative h-64'>
-                  <Image
-                    src={src!}
-                    alt={alt!}
-                    fill={true}
-                    className='absolute object-cover rounded'
-                  />
-                </div>
+                <>
+                  <div className='relative h-64 mb-2'>
+                    <Image
+                      src={src!}
+                      alt={alt!}
+                      fill={true}
+                      className='absolute object-cover rounded'
+                    />
+                  </div>
+                  <p className='text-secondary'>{alt}</p>
+                </>
               ),
             }}
           >

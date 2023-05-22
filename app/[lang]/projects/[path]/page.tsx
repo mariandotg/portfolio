@@ -1,8 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
 import PageLayout from '@/components/PageLayout';
-import { getNotionSinglePage } from '@/services/notion';
+import { getNotionSinglePage, queryNotionDatabase } from '@/services/notion';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
+import { projectsAdapter } from '@/adapters/projectsAdapter';
+import SkillItem from '@/components/SkillItem';
 
 interface Props {
   params: {
@@ -25,10 +27,50 @@ const ProjectPage = async ({ params }: Props) => {
     },
   });
 
+  const blogMetadata = projectsAdapter(
+    await queryNotionDatabase({
+      databaseId,
+      filter: {
+        property: 'SeoPath',
+        formula: {
+          string: {
+            equals: params.path,
+          },
+        },
+      },
+    })
+  );
+
   return (
-    <>
-      <div className='relative h-64 bg-primary'></div>
-      <PageLayout>
+    <PageLayout>
+      <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text'>
+        <div className='flex flex-col gap-y-2'>
+          <div className='relative h-64 mt-20'>
+            <Image
+              src={blogMetadata[0].image}
+              alt='page header'
+              className='absolute object-cover rounded'
+              fill={true}
+              priority
+              quality={90}
+            />
+          </div>
+          <div className='flex flex-col gap-y-4'>
+            <div className='flex flex-col gap-y-2'>
+              <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
+                {blogMetadata[0].name}
+              </h1>
+              <p>{blogMetadata[0].description}</p>
+            </div>
+            <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
+              {blogMetadata[0].tags.map((tag, index) => (
+                <li>
+                  <SkillItem key={tag.id} skill={tag.name} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
         <div className='flex flex-col gap-y-4'>
           <ReactMarkdown
             components={{
@@ -44,25 +86,23 @@ const ProjectPage = async ({ params }: Props) => {
                   {...props}
                 />
               ),
-              p: ({ node, ...props }) => (
-                <p className='dark:text-dark-text text-light-text' {...props} />
-              ),
               img: ({ node, src, alt, width, height }) => (
-                <Image
-                  className='dark:text-dark-text text-light-text'
-                  src={src!}
-                  alt={alt!}
-                  width={100}
-                  height={50}
-                />
+                <div className='relative h-64'>
+                  <Image
+                    src={src!}
+                    alt={alt!}
+                    fill={true}
+                    className='absolute object-cover rounded'
+                  />
+                </div>
               ),
             }}
           >
             {blogResponse?.markdown.parent}
           </ReactMarkdown>
         </div>
-      </PageLayout>
-    </>
+      </div>
+    </PageLayout>
   );
 };
 

@@ -5,6 +5,7 @@ import { articlesAdapter } from '@/adapters/articlesAdapter';
 import PageLayout from '@/components/PageLayout';
 import SkillItem from '@/components/SkillItem';
 import Markdown from '@/components/Markdown';
+import PageIndex from '@/components/PageIndex';
 
 interface Props {
   params: {
@@ -43,9 +44,9 @@ const ArticlePage = async ({ params }: Props) => {
 
   return (
     <PageLayout>
-      <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text'>
-        <div className='flex flex-col gap-y-2'>
-          <div className='relative h-64 mt-20'>
+      <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
+        <div className='flex flex-col col-span-3 gap-y-2'>
+          <div className='relative h-64 mt-20 tablet:col-span-3'>
             <Image
               src={blogMetadata[0].image}
               alt='page header'
@@ -55,6 +56,8 @@ const ArticlePage = async ({ params }: Props) => {
               quality={90}
             />
           </div>
+        </div>
+        <div className='flex flex-col gap-y-4 tablet:col-span-2'>
           <div className='flex flex-col gap-y-4'>
             <div className='flex flex-col gap-y-2'>
               <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
@@ -69,10 +72,9 @@ const ArticlePage = async ({ params }: Props) => {
               ))}
             </ul>
           </div>
-        </div>
-        <div className='flex flex-col gap-y-4'>
           <Markdown>{blogResponse?.markdown.parent}</Markdown>
         </div>
+        <PageIndex />
       </div>
     </PageLayout>
   );

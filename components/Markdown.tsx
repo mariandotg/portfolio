@@ -8,6 +8,7 @@ import dark from '@/syntaxTheme';
 interface Props {
   children: string;
 }
+
 const Markdown = ({ children }: Props) => {
   return (
     <ReactMarkdown
@@ -18,12 +19,21 @@ const Markdown = ({ children }: Props) => {
             {...props}
           />
         ),
-        h2: ({ node, ...props }) => (
-          <h2
-            className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'
-            {...props}
-          />
-        ),
+        h2: ({ node, ...props }) => {
+          const index = props.children[0]!.toString()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replaceAll(' ', '-');
+
+          return (
+            <h2
+              className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'
+              id={index}
+              {...props}
+            />
+          );
+        },
         img: ({ node, src, alt, width, height }) => (
           <>
             <div className='relative h-64 mb-2'>

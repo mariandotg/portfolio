@@ -40,7 +40,6 @@ const ProjectPage = async ({ params }: Props) => {
       },
     })
   );
-
   return (
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text'>

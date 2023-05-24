@@ -1,11 +1,13 @@
+'use client';
 import React from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
+import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import dark from '@/syntaxTheme';
 
 interface Props {
   children: string;
 }
-
 const Markdown = ({ children }: Props) => {
   return (
     <ReactMarkdown
@@ -38,8 +40,13 @@ const Markdown = ({ children }: Props) => {
         ul: ({ node, ...props }) => (
           <ul className='ml-4 list-disc' {...props} />
         ),
-        pre: ({ node, children, ...props }) => (
-          <pre className='text-primary' {...props} />
+        code: ({ node, children, style, ...props }) => (
+          <SyntaxHighlighter
+            language='tsx'
+            style={dark}
+            children={children[0]!.toString()}
+            {...props}
+          />
         ),
       }}
     >

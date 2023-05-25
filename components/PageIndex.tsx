@@ -21,7 +21,7 @@ const PageIndex = () => {
   };
 
   return (
-    <div className='flex flex-col col-span-1 gap-y-2'>
+    <div className='hidden col-span-1 mobile:flex mobile:flex-col gap-y-2'>
       {headingsWithIds.map((heading, index) => (
         <span
           key={index}

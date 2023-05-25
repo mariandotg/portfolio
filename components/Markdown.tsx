@@ -54,6 +54,7 @@ const Markdown = ({ children }: Props) => {
           <SyntaxHighlighter
             language='tsx'
             style={dark}
+            wrapLongLines={true}
             children={children[0]!.toString()}
             {...props}
           />

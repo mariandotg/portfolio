@@ -19,7 +19,7 @@ interface HomeData extends PageContentSections {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/en/api/projects/home`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/pages/home`,
     { cache: 'no-cache' }
   );
 

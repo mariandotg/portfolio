@@ -17,7 +17,7 @@ interface ArticleData {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/en/api/articles/projects`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/projects`,
     { cache: 'no-cache' }
   );
 

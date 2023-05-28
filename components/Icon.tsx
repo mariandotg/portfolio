@@ -1,4 +1,5 @@
 import { DiJava } from 'react-icons/di';
+import { AiOutlineLink } from 'react-icons/ai';
 import {
   MdBuild,
   MdCode,
@@ -41,6 +42,8 @@ import {
   SiMedium,
   SiInstagram,
   SiTiktok,
+  SiFacebook,
+  SiReddit,
 } from 'react-icons/si';
 
 interface Icons {
@@ -62,6 +65,7 @@ const icons: Icons = {
   cypress: SiCypress,
   express: SiExpress,
   figma: SiFigma,
+  facebook: SiFacebook,
   git: SiGit,
   github: SiGithub,
   html5: SiHtml5,
@@ -80,11 +84,13 @@ const icons: Icons = {
   postman: SiPostman,
   react: SiReact,
   redux: SiRedux,
+  reddit: SiReddit,
   'spring boot': SiSpringboot,
   strapi: SiStrapi,
   'styled-components': SiStyledcomponents,
   tailwindcss: SiTailwindcss,
   typescript: SiTypescript,
+  url: AiOutlineLink,
   yarn: SiYarn,
   'front end': MdCode,
   'back end': MdSettings,

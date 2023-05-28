@@ -25,11 +25,11 @@ interface ArticleData {
 
 const ArticlePage = async ({ params }: Props) => {
   const articleFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/en/api/articles/${params.path}`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/${params.path}`,
     { cache: 'no-cache' }
   );
   const latestArticlesFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/en/api/articles/latest`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/latest`,
     { cache: 'no-cache' }
   );
 

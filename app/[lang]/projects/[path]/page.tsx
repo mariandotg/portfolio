@@ -20,7 +20,7 @@ interface ProjectData {
 
 const ProjectPage = async ({ params }: Props) => {
   const projectFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/en/api/articles/${params.path}`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/${params.path}`,
     { cache: 'no-cache' }
   );
 

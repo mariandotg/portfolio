@@ -16,19 +16,19 @@ import { Project } from '@/models/domain/Project';
 
 const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
   const dataFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/${lang}/api/pages/home`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/pages/home`
   );
   const socialFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/${lang}/api/social`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/social`
   );
   const articlesFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/${lang}/api/articles/latest`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/latest`,
     {
       cache: 'no-cache',
     }
   );
   const projectsFetch = await fetch(
-    `${process.env.BASE_FETCH_URL}/${lang}/api/projects/featured`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/projects/featured`
   );
 
   const data: PageContentSections = await dataFetch.json();

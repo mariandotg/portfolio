@@ -1,10 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
-import { getNotionSinglePage, queryNotionDatabase } from '@/services/notion';
-import { projectsAdapter } from '@/adapters/projectsAdapter';
 import PageLayout from '@/components/PageLayout';
 import SkillItem from '@/components/SkillItem';
 import Markdown from '@/components/Markdown';
+import { PageSeo } from '@/models/PageSeo';
+import { Project } from '@/models/domain/Project';
 
 interface Props {
   params: {
@@ -12,41 +12,26 @@ interface Props {
   };
 }
 
+interface ProjectData {
+  content: { parent: string };
+  seo: Omit<PageSeo, 'loading'>;
+  properties: Project;
+}
+
 const ProjectPage = async ({ params }: Props) => {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
-
-  const blogResponse = await getNotionSinglePage({
-    databaseId,
-    filter: {
-      property: 'SeoPath',
-      formula: {
-        string: {
-          equals: params.path,
-        },
-      },
-    },
-  });
-
-  const blogMetadata = projectsAdapter(
-    await queryNotionDatabase({
-      databaseId,
-      filter: {
-        property: 'SeoPath',
-        formula: {
-          string: {
-            equals: params.path,
-          },
-        },
-      },
-    })
+  const projectFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/en/api/articles/${params.path}`,
+    { cache: 'no-cache' }
   );
+
+  const projectResponse: ProjectData = await projectFetch.json();
   return (
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>
           <div className='relative h-64 mt-20'>
             <Image
-              src={blogMetadata[0].image}
+              src={projectResponse.properties.image}
               alt='page header'
               className='absolute object-cover rounded'
               fill={true}
@@ -57,12 +42,12 @@ const ProjectPage = async ({ params }: Props) => {
           <div className='flex flex-col gap-y-4'>
             <div className='flex flex-col gap-y-2'>
               <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
-                {blogMetadata[0].name}
+                {projectResponse.properties.name}
               </h1>
-              <p>{blogMetadata[0].description}</p>
+              <p>{projectResponse.properties.description}</p>
             </div>
             <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
-              {blogMetadata[0].tags.map((tag, index) => (
+              {projectResponse.properties.tags.map((tag, index) => (
                 <li>
                   <SkillItem key={tag.id} skill={tag.name} />
                 </li>
@@ -71,7 +56,7 @@ const ProjectPage = async ({ params }: Props) => {
           </div>
         </div>
         <div className='flex flex-col gap-y-4'>
-          <Markdown>{blogResponse?.markdown.parent}</Markdown>
+          <Markdown>{projectResponse.content.parent}</Markdown>
         </div>
       </div>
     </PageLayout>

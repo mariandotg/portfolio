@@ -1,4 +1,4 @@
-import { articlesAdapter } from '@/adapters/articlesAdapter';
+import { projectsAdapter } from '@/adapters/projectsAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
 import { queryDatabase } from '@/services/notion';
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
   const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
 
-  const articlesFilter: CompoundFilterObj = {
+  const projectsFilter: CompoundFilterObj = {
     and: [
       {
         property: 'Stage',
@@ -18,18 +18,18 @@ export async function GET(request: NextRequest) {
       {
         property: 'Database',
         select: {
-          equals: 'Articles Database',
+          equals: 'Projects Database',
         },
       },
     ],
   };
 
-  const articlesResponse = await queryDatabase({
+  const projectsResponse = await queryDatabase({
     databaseId,
-    filter: articlesFilter,
+    filter: projectsFilter,
   });
 
-  const articles = articlesAdapter(articlesResponse);
+  const projects = projectsAdapter(projectsResponse);
 
-  return NextResponse.json({ articles });
+  return NextResponse.json({ projects });
 }

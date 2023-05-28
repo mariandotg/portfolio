@@ -1,13 +1,13 @@
 import { articlesAdapter } from '@/adapters/articlesAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
-import { queryNotionDatabase } from '@/services/notion';
+import { queryDatabase } from '@/services/notion';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
   const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
 
-  const articlesFilter: CompoundFilterObj = {
+  const latestArticlesFilter: CompoundFilterObj = {
     and: [
       {
         property: 'Stage',
@@ -30,12 +30,12 @@ export async function GET(request: NextRequest) {
     ],
   };
 
-  const articlesResponse = await queryNotionDatabase({
+  const articlesResponse = await queryDatabase({
     databaseId,
-    filter: articlesFilter,
+    filter: latestArticlesFilter,
   });
 
   const articles = articlesAdapter(articlesResponse);
 
-  return NextResponse.json({ articles });
+  return NextResponse.json([...articles]);
 }

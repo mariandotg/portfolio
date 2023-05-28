@@ -1,9 +1,10 @@
 import './globals.css';
 import Navbar from '../../components/NavBar';
 import Footer from '../../components/Footer';
-import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
-import { queryNotionDatabase } from '@/services/notion';
 import { Metadata } from 'next';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { PageSeo } from '@/models/PageSeo';
+import { PageContentSections } from '@/models/PageContentSections';
 
 interface Props {
   params: {
@@ -12,50 +13,19 @@ interface Props {
   };
 }
 
+interface HomeData extends PageContentSections {
+  seo: Omit<PageSeo, 'loading'>;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+  const homeFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/en/api/projects/home`,
+    { cache: 'no-cache' }
+  );
 
-  const seoResponse = await queryNotionDatabase({
-    databaseId,
-    filter: {
-      property: 'SeoPath',
-      formula: {
-        string: {
-          equals: 'home',
-        },
-      },
-    },
-  });
+  const homeResponse: HomeData = await homeFetch.json();
 
-  const seo = pageSeoAdapter(seoResponse[0]);
-
-  return {
-    title: seo.title,
-    category: 'technology',
-    description: seo.description,
-    twitter: {
-      card: 'summary_large_image',
-      site: '@site',
-      creator: '@creator',
-      images: {
-        url: seo.image,
-        alt: seo.imageAlt,
-      },
-    },
-    openGraph: {
-      title: seo.title,
-      description: seo.description,
-      url: seo.url,
-      siteName: seo.title,
-      type: 'website',
-      images: [
-        {
-          url: seo.image,
-          alt: seo.imageAlt,
-        },
-      ],
-    },
-  };
+  return metadataAdapter(homeResponse.seo);
 }
 
 export default function RootLayout({

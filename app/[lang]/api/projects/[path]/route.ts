@@ -1,5 +1,7 @@
+import { articlesAdapter } from '@/adapters/articlesAdapter';
+import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
-import { getPageData } from '@/services/notion';
+import { getPageData, queryDatabase } from '@/services/notion';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -7,14 +9,8 @@ export async function GET(request: NextRequest) {
   const path = request.nextUrl.pathname.split('/').filter(Boolean)[3];
   const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
 
-  const articleFilter: CompoundFilterObj = {
+  const projectFilter: CompoundFilterObj = {
     and: [
-      {
-        property: 'Stage',
-        select: {
-          equals: 'Published',
-        },
-      },
       {
         property: 'SeoPath',
         formula: {
@@ -23,22 +19,16 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      {
-        property: 'Database',
-        select: {
-          equals: 'Articles Database',
-        },
-      },
     ],
   };
 
-  const articleResponse = await getPageData(
+  const projectResponse = await getPageData(
     {
       databaseId,
-      filter: articleFilter,
+      filter: projectFilter,
     },
     { seo: true, properties: true, content: true }
   );
 
-  return NextResponse.json(articleResponse);
+  return NextResponse.json(projectResponse);
 }

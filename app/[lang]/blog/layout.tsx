@@ -1,7 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
-import { queryNotionDatabase } from '@/services/notion';
+import { PageSeo } from '@/models/PageSeo';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Article } from '@/models/domain/Article';
 
 interface Props {
   params: {
@@ -9,50 +10,20 @@ interface Props {
   };
 }
 
+interface ArticleData {
+  markdown: { parent: string };
+  seo: Omit<PageSeo, 'loading'>;
+  metadata: Article;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+  const articleFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/en/api/articles/blog`
+  );
 
-  const seoResponse = await queryNotionDatabase({
-    databaseId,
-    filter: {
-      property: 'SeoPath',
-      formula: {
-        string: {
-          equals: 'blog',
-        },
-      },
-    },
-  });
+  const articleResponse: ArticleData = await articleFetch.json();
 
-  const seo = pageSeoAdapter(seoResponse[0]);
-
-  return {
-    title: seo.title,
-    category: 'technology',
-    description: seo.description,
-    twitter: {
-      card: 'summary_large_image',
-      site: '@site',
-      creator: '@creator',
-      images: {
-        url: seo.image,
-        alt: seo.imageAlt,
-      },
-    },
-    openGraph: {
-      title: seo.title,
-      description: seo.description,
-      url: seo.url,
-      siteName: seo.title,
-      type: 'website',
-      images: [
-        {
-          url: seo.image,
-          alt: seo.imageAlt,
-        },
-      ],
-    },
-  };
+  return metadataAdapter(articleResponse.seo);
 }
 
 const BlogLayout = ({

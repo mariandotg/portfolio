@@ -3,20 +3,19 @@ import { MdArrowOutward } from 'react-icons/md';
 
 import PageLayout from './PageLayout';
 import Icon from './Icon';
-import { IConstants } from '@/models/contentful/generated/contentful';
-import { getContentfulData } from '@/services/contentful';
-import { pageConstantsAdapter } from '@/adapters/pageConstantsAdapter';
 import NavLink from './NavLink';
+import { PageConstants } from '@/models/PageConstants';
 
 interface Props {
   locale: string;
 }
 
 const Footer = async ({ locale }: Props) => {
-  const constants = await getContentfulData<IConstants>({
-    locale,
-    type: 'constants',
-  }).then((data) => pageConstantsAdapter(data[0].fields));
+  const socialFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/${locale}/api/social`
+  );
+
+  const constants: PageConstants = await socialFetch.json();
 
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>

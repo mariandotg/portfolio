@@ -5,85 +5,39 @@ import { MdArrowOutward } from 'react-icons/md';
 import Button from '../../components/Button';
 import Icon from '../../components/Icon';
 import Section from '../../components/Section';
-import { pageConstantsAdapter } from '@/adapters/pageConstantsAdapter';
-import { pageContentAdapter } from '@/adapters/pageContentAdapter';
-import { IPage, IConstants } from '@/models/contentful/generated/contentful';
-import { getContentfulData } from '@/services/contentful';
 import ProjectCard from '../../components/ProjectCard';
 import SectionTitle from '../../components/SectionTitle';
-import { CompoundFilterObj } from '@/models/notion/Filters';
-import { projectsAdapter } from '@/adapters/projectsAdapter';
-import { queryNotionDatabase } from '@/services/notion';
 import SkillItem from '../../components/SkillItem';
 import Link from 'next/link';
-import { articlesAdapter } from '@/adapters/articlesAdapter';
+import { PageContentSections } from '@/models/PageContentSections';
+import { PageConstants } from '@/models/PageConstants';
+import { Article } from '@/models/domain/Article';
+import { Project } from '@/models/domain/Project';
 
 const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+  const dataFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/${lang}/api/pages/home`
+  );
+  const socialFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/${lang}/api/social`
+  );
+  const articlesFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/${lang}/api/articles/latest`,
+    {
+      cache: 'no-cache',
+    }
+  );
+  const projectsFetch = await fetch(
+    `${process.env.BASE_FETCH_URL}/${lang}/api/projects/featured`
+  );
 
-  const data = await getContentfulData<IPage>({
-    locale: lang,
-    type: 'page',
-  }).then((data) => pageContentAdapter(data[0].fields.sections));
+  const data: PageContentSections = await dataFetch.json();
+  const social: PageConstants = await socialFetch.json();
+  const articles: Article[] = await articlesFetch.json();
+  const projects: Project[] = await projectsFetch.json();
 
-  const social = await getContentfulData<IConstants>({
-    locale: lang,
-    type: 'constants',
-  }).then((data) => pageConstantsAdapter(data[0].fields));
-
-  const projectsFilter: CompoundFilterObj = {
-    and: [
-      {
-        property: 'Stage',
-        select: {
-          equals: 'Published',
-        },
-      },
-      {
-        property: 'Database',
-        select: {
-          equals: 'Projects Database',
-        },
-      },
-    ],
-  };
-
-  const articlesFilter: CompoundFilterObj = {
-    and: [
-      {
-        property: 'Stage',
-        select: {
-          equals: 'Published',
-        },
-      },
-      {
-        property: 'LatestArticle',
-        checkbox: {
-          equals: true,
-        },
-      },
-      {
-        property: 'Database',
-        select: {
-          equals: 'Articles Database',
-        },
-      },
-    ],
-  };
-
-  const projectsResponse = await queryNotionDatabase({
-    databaseId,
-    filter: projectsFilter,
-  });
-
-  const articlesResponse = await queryNotionDatabase({
-    databaseId,
-    filter: articlesFilter,
-  });
-
-  data.featuredProjects.content.projects = projectsAdapter(projectsResponse);
-  data.latestArticles.content.articles = articlesAdapter(articlesResponse);
-
+  data.featuredProjects.content.projects = projects;
+  data.latestArticles.content.articles = articles;
   return (
     <>
       <PageLayout>

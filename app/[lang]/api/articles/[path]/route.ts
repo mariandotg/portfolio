@@ -23,12 +23,6 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      {
-        property: 'Database',
-        select: {
-          equals: 'Articles Database',
-        },
-      },
     ],
   };
 

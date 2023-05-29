@@ -40,7 +40,7 @@ const ArticlePage = async ({ params }: Props) => {
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
         <div className='flex flex-col col-span-3 gap-y-2'>
-          <div className='relative h-64 mt-20 tablet:col-span-3'>
+          <div className='relative h-64 tablet:col-span-3'>
             <Image
               src={articleResponse.properties.image}
               alt='page header'

@@ -32,10 +32,7 @@ const Footer = async ({ locale }: Props) => {
               className='relative flex items-center italic font-medium underline rounded dark:hover:text-primary hover:text-primary decoration-primary group underline-offset-4 text-title w-fit font-monospace dark:text-dark-headlines text-light-headlines'
             >
               {constants.text.email.text}
-              <MdArrowOutward
-                fontStyle={'italic'}
-                className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary'
-              />
+              <MdArrowOutward className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary' />
             </a>
           </div>
           <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'>

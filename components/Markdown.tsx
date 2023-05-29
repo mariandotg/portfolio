@@ -4,6 +4,7 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import dark from '@/syntaxTheme';
+import { MdArrowOutward } from 'react-icons/md';
 
 interface Props {
   children: string;
@@ -34,6 +35,18 @@ const Markdown = ({ children }: Props) => {
             />
           );
         },
+        a: ({ node, children, ...props }) => (
+          <a
+            className='flex items-center group duration-[10ms] px-2 py-1 gap-x-1 rounded cursor-pointer w-fit bg-light-tertiary-pressed/10 dark:bg-light-tertiary-pressed/20 italic underline text-primary font-monospace text-secondary hover:dark:text-dark-primary-hover underline-offset-2 hover:text-light-primary-hover'
+            {...props}
+          >
+            {children}
+            <MdArrowOutward className='fill-primary group-hover:dark:fill-dark-primary-hover group-hover:fill-light-primary-hover group-hover:-translate-y-[2px] group-hover:translate-x-[2px]' />
+          </a>
+        ),
+        p: ({ node, ...props }) => (
+          <p className='dark:text-dark-text text-light-text' {...props} />
+        ),
         img: ({ node, src, alt, width, height }) => (
           <>
             <div className='relative h-64 mb-2'>

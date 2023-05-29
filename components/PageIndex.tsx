@@ -8,7 +8,9 @@ const PageIndex = () => {
   const headingsWithIdsRef = useRef<Element[]>([]);
   const navbarHeight = 64;
   const [headingsWithIds, setHeadingsWithIds] = useState<Element[]>([]);
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const path = usePathname();
+  const pageUrl = `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}${path}`;
 
   useEffect(() => {
     const headingsWithIds = Array.from(document.querySelectorAll('h2[id]'));
@@ -17,10 +19,19 @@ const PageIndex = () => {
   }, []);
 
   const scrollToHeading = (index: number) => {
+    if (isScrolling) {
+      return;
+    }
+
+    setIsScrolling((prev) => !prev);
     const heading = headingsWithIdsRef.current[index];
+    console.log('heading', heading);
     if (heading instanceof HTMLElement) {
       const topOffset = heading.offsetTop - navbarHeight;
+      console.log('topOffset', topOffset);
       window.scrollTo({ top: topOffset, behavior: 'smooth' });
+
+      setTimeout(() => setIsScrolling((prev) => !prev), 500);
     }
   };
 
@@ -68,6 +79,10 @@ const PageIndex = () => {
     return socialMediaLinks;
   }
 
+  const copyToClipboard = (string: string) => {
+    navigator.clipboard.writeText(string);
+  };
+
   return (
     <div className='sticky hidden col-span-1 top-[73px] h-fit mobile:flex mobile:flex-col gap-y-4'>
       <div className='flex flex-col p-4 border rounded gap-y-2 border-primary'>
@@ -78,17 +93,20 @@ const PageIndex = () => {
           <span
             key={index}
             className='italic font-medium underline cursor-pointer text-secondary font-monospace text-primary underline-offset-2 w-fit'
-            onClick={() => scrollToHeading(index)}
+            onClick={() => {
+              scrollToHeading(index);
+            }}
           >
             {heading.textContent}
           </span>
         ))}
       </div>
-      <div className='flex justify-between p-4 border rounded gap-x-2 border-primary'>
+      <div className='flex flex-col p-4 border rounded gap-y-2 border-primary'>
+        <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
+          Share it!
+        </h3>
         <ul className='flex gap-x-2'>
-          {generateSocialMediaLinks(
-            `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}${path}`
-          ).map((social) => (
+          {generateSocialMediaLinks(pageUrl).map((social) => (
             <li key={social.id} className='flex'>
               <a
                 href={social.url}
@@ -98,16 +116,21 @@ const PageIndex = () => {
               >
                 <Icon
                   value={social.icon.toLocaleLowerCase()}
-                  className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
+                  className='duration-[0ms] w-5 h-5 fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
                 />
               </a>
             </li>
           ))}
+          <li
+            className='cursor-pointer'
+            onClick={() => copyToClipboard(pageUrl)}
+          >
+            <Icon
+              value='url'
+              className='duration-[0ms] w-5 h-5 fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
+            />
+          </li>
         </ul>
-        <Icon
-          value='url'
-          className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
-        />
       </div>
     </div>
   );

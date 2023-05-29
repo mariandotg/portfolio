@@ -47,6 +47,12 @@ const Markdown = ({ children }: Props) => {
         p: ({ node, ...props }) => (
           <p className='dark:text-dark-text text-light-text' {...props} />
         ),
+        blockquote: ({ node, ...props }) => (
+          <blockquote
+            className='before:content-[""] before:w-1 italic before:bg-primary before:h-full relative before:absolute before:top-0 left-4 before:-translate-x-4'
+            {...props}
+          />
+        ),
         img: ({ node, src, alt, width, height }) => (
           <>
             <div className='relative h-64 mb-2'>

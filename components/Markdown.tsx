@@ -45,7 +45,10 @@ const Markdown = ({ children }: Props) => {
           </a>
         ),
         p: ({ node, ...props }) => (
-          <p className='flex dark:text-dark-text text-light-text' {...props} />
+          <p
+            className='flex gap-x-2 dark:text-dark-text text-light-text'
+            {...props}
+          />
         ),
         blockquote: ({ node, ...props }) => (
           <blockquote

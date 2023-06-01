@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import PageLayout from '../../components/PageLayout';
 
-import { MdArrowOutward } from 'react-icons/md';
+import { MdArrowForward, MdArrowOutward } from 'react-icons/md';
 import Button from '../../components/Button';
 import Icon from '../../components/Icon';
 import Section from '../../components/Section';
@@ -236,7 +236,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                         {article.name}
                       </h3>
                       <div className='absolute top-0 left-0 z-10 flex items-end justify-center w-full h-full p-4 opacity-100 tablet:opacity-0 group-hover:opacity-100 tablet:bg-dark/25'>
-                        <MdArrowOutward className='absolute w-5 h-5 opacity-100 tablet:opacity-0 right-2 top-2 text-dark-headlines group-hover:opacity-100' />
+                        <MdArrowForward className='absolute w-5 h-5 opacity-100 tablet:opacity-0 right-2 top-2 text-dark-headlines group-hover:opacity-100' />
                       </div>
                       <Image
                         src={article.image}

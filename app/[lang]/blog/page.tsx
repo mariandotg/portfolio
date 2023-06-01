@@ -5,7 +5,7 @@ import { PageSeo } from '@/models/PageSeo';
 import { Article } from '@/models/domain/Article';
 import PageIndex from '@/components/PageIndex';
 import Link from 'next/link';
-import { MdArrowOutward } from 'react-icons/md';
+import { MdArrowForward } from 'react-icons/md';
 import SkillItem from '@/components/SkillItem';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
@@ -57,7 +57,7 @@ const BlogPage = async () => {
                           {article.name}
                         </h3>
                         <div className='absolute top-0 left-0 z-10 flex items-end justify-center w-full h-full p-4 opacity-100 tablet:opacity-0 group-hover:opacity-100 tablet:bg-dark/25'>
-                          <MdArrowOutward className='absolute w-5 h-5 opacity-100 tablet:opacity-0 right-2 top-2 text-dark-headlines group-hover:opacity-100' />
+                          <MdArrowForward className='absolute w-5 h-5 opacity-100 tablet:opacity-0 right-2 top-2 text-dark-headlines group-hover:opacity-100' />
                         </div>
                         <Image
                           src={article.image}

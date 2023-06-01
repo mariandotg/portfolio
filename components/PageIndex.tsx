@@ -84,8 +84,8 @@ const PageIndex = () => {
   };
 
   return (
-    <div className='sticky hidden col-span-1 top-[73px] h-fit mobile:flex mobile:flex-col gap-y-4'>
-      <div className='flex flex-col p-4 border rounded gap-y-2 border-primary'>
+    <div className='sticky hidden col-span-1 top-[73px] h-fit tablet:flex tablet:flex-col gap-y-4'>
+      <div className='flex flex-col gap-y-2'>
         <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
           Content
         </h3>
@@ -101,7 +101,7 @@ const PageIndex = () => {
           </span>
         ))}
       </div>
-      <div className='flex flex-col p-4 border rounded gap-y-2 border-primary'>
+      <div className='flex flex-col gap-y-2'>
         <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
           Share it!
         </h3>

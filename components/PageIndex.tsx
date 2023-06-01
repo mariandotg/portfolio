@@ -6,7 +6,7 @@ import Icon from './Icon';
 
 const PageIndex = () => {
   const headingsWithIdsRef = useRef<Element[]>([]);
-  const navbarHeight = 64;
+  const navbarHeight = 73;
   const [headingsWithIds, setHeadingsWithIds] = useState<Element[]>([]);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const path = usePathname();

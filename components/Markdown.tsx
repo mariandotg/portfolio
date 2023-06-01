@@ -29,7 +29,7 @@ const Markdown = ({ children }: Props) => {
 
           return (
             <h2
-              className='italic font-medium scroll-mt-[73px] font-monospace dark:text-dark-headlines text-light-headlines'
+              className='italic font-medium scroll-mt-[82px] font-monospace dark:text-dark-headlines text-light-headlines'
               id={index}
               {...props}
             />

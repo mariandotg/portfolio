@@ -59,19 +59,17 @@ const Markdown = ({ children }: Props) => {
           />
         ),
         img: ({ node, src, alt, width, height }) => (
-          <>
-            <div className='relative h-64 mb-2'>
-              <Image
-                src={src!}
-                alt={alt!}
-                fill={true}
-                className='absolute object-cover rounded'
-              />
-            </div>
-            <p className='text-secondary'>{alt}</p>
-          </>
+          <picture className='relative flex flex-col w-full h-64 mb-6'>
+            <Image
+              src={src!}
+              alt={alt!}
+              fill={true}
+              className='absolute object-cover mb-2 rounded'
+            />
+            <span className='absolute -bottom-6 text-secondary'>{alt}</span>
+          </picture>
         ),
-        ul: ({ node, ...props }) => (
+        ul: ({ node, ordered, ...props }) => (
           <ul className='ml-4 list-disc' {...props} />
         ),
         code: ({ node, children, style, ...props }) => (

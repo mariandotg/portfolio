@@ -35,9 +35,11 @@ const Markdown = ({ children }: Props) => {
             />
           );
         },
-        a: ({ node, children, ...props }) => (
+        a: ({ node, children, target, rel, ...props }) => (
           <a
             className='flex items-center group duration-[10ms] px-2 py-1 gap-x-1 rounded cursor-pointer w-fit bg-light-tertiary-pressed/10 dark:bg-light-tertiary-pressed/20 italic underline text-primary font-monospace text-secondary hover:dark:text-dark-primary-hover underline-offset-2 hover:text-light-primary-hover'
+            target='_blank'
+            rel='noreferrer'
             {...props}
           >
             {children}

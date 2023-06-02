@@ -34,7 +34,7 @@ const ProjectPage = async ({ params }: Props) => {
           <div className='relative h-64 tablet:col-span-3'>
             <Image
               src={projectResponse.properties.image}
-              alt='page header'
+              alt={projectResponse.properties.imageAlt}
               className='absolute object-cover rounded'
               fill={true}
               priority
@@ -47,7 +47,7 @@ const ProjectPage = async ({ params }: Props) => {
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {projectResponse.properties.name}
             </h1>
-            <p>{projectResponse.seo.description}</p>
+            <p>{projectResponse.properties.description}</p>
             <Button
               variant='secondary'
               url={projectResponse.properties.repository}

@@ -4,8 +4,9 @@ export interface Project {
   id: string;
   path: string;
   image: string;
-  name: string;
+  imageAlt: string;
   tags: Array<Tag>;
+  name: string;
   description: string;
   repository: string;
   live: string;

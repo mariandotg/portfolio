@@ -6,6 +6,8 @@ export interface Article {
   path: string;
   date: Date;
   image: string;
-  name: string;
+  imageAlt: string;
   tags: Array<Tag>;
+  name: string;
+  description: string;
 }

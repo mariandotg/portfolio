@@ -57,7 +57,7 @@ const ArticlePage = async ({ params }: Props) => {
                 {articleResponse.properties.name}
               </h1>
             </div>
-            <p>{articleResponse.seo.description}</p>
+            <p>{articleResponse.properties.description}</p>
             <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
               {articleResponse.properties.tags.map((tag, index) => (
                 <li>

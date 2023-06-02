@@ -32,9 +32,11 @@ export const queryDatabase = cache(
 );
 
 interface NotionPageConfigObject {
-  seo: boolean;
-  content: boolean;
-  properties: boolean;
+  seo?: boolean;
+  content?: boolean;
+  properties?: {
+    adapter: (props: any[]) => any[];
+  };
 }
 
 export const getPageData = async (
@@ -63,7 +65,7 @@ export const getPageData = async (
   }
 
   if (properties) {
-    const propertiesResponse = articlesAdapter(page)[0];
+    const propertiesResponse = properties.adapter(page)[0];
     resultado.properties = propertiesResponse;
   }
 

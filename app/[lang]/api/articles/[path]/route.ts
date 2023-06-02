@@ -1,3 +1,4 @@
+import { articlesAdapter } from '@/adapters/articlesAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
 import { getPageData } from '@/services/notion';
 import { NextRequest, NextResponse } from 'next/server';
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       databaseId,
       filter: articleFilter,
     },
-    { seo: true, properties: true, content: true }
+    { seo: true, properties: { adapter: articlesAdapter }, content: true }
   );
 
   return NextResponse.json(articleResponse);

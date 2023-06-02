@@ -1,7 +1,6 @@
-import { articlesAdapter } from '@/adapters/articlesAdapter';
-import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
+import { projectsAdapter } from '@/adapters/projectsAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
-import { getPageData, queryDatabase } from '@/services/notion';
+import { getPageData } from '@/services/notion';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
       databaseId,
       filter: projectFilter,
     },
-    { seo: true, properties: true, content: true }
+    { seo: true, properties: { adapter: projectsAdapter }, content: true }
   );
 
   return NextResponse.json(projectResponse);

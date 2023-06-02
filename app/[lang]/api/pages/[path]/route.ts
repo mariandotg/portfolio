@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         },
       },
     },
-    { seo: true, properties: false, content: false }
+    { seo: true }
   );
 
   return NextResponse.json({ ...data, ...seo });

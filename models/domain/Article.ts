@@ -10,4 +10,6 @@ export interface Article {
   tags: Array<Tag>;
   name: string;
   description: string;
+  categories: Array<any>;
+  locale: string;
 }

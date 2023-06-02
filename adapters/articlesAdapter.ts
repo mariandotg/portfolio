@@ -14,6 +14,9 @@ export const articlesAdapter = (post: any[]): Array<Article> => {
       tags: notionTagsAdapter(p?.properties?.Tags?.multi_select) || '',
       name: p?.properties?.Name?.title[0]?.plain_text || '',
       description: p?.properties?.Description?.rich_text[0]?.plain_text || '',
+      categories:
+        notionTagsAdapter(p?.properties?.Categories?.multi_select) || '',
+      locale: p?.properties?.Locale?.select?.name || '',
     };
   });
 };

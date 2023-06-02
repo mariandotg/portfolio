@@ -6,6 +6,7 @@ import Markdown from '@/components/Markdown';
 import { PageSeo } from '@/models/PageSeo';
 import { Project } from '@/models/domain/Project';
 import PageIndex from '@/components/PageIndex';
+import Button from '@/components/Button';
 
 interface Props {
   params: {
@@ -21,7 +22,7 @@ interface ProjectData {
 
 const ProjectPage = async ({ params }: Props) => {
   const projectFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/${params.path}`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/projects/${params.path}`,
     { cache: 'no-cache' }
   );
 
@@ -46,7 +47,16 @@ const ProjectPage = async ({ params }: Props) => {
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {projectResponse.properties.name}
             </h1>
-            <p>{projectResponse.properties.description}</p>
+            <p>{projectResponse.seo.description}</p>
+            <Button
+              variant='secondary'
+              url={projectResponse.properties.repository}
+            >
+              repo
+            </Button>
+            <Button variant='primary' url={projectResponse.properties.live}>
+              live
+            </Button>
           </div>
           <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
             {projectResponse.properties.tags.map((tag, index) => (

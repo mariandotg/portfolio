@@ -220,7 +220,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                       : 'mobile:col-span-1'
                   }`}
                 >
-                  <ArticleCard article={article} />
+                  <ArticleCard article={article} locale={lang} />
                 </li>
               ))}
             </ul>

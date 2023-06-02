@@ -13,6 +13,7 @@ import ArticleCard from '@/components/ArticleCard';
 interface Props {
   params: {
     path: string;
+    lang: string;
   };
 }
 
@@ -24,11 +25,11 @@ interface ArticleData {
 
 const ArticlePage = async ({ params }: Props) => {
   const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/${params.path}`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
     { cache: 'no-cache' }
   );
   const latestArticlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/latest`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
     { cache: 'no-cache' }
   );
 
@@ -83,7 +84,7 @@ const ArticlePage = async ({ params }: Props) => {
                     : 'mobile:col-span-1'
                 }`}
               >
-                <ArticleCard article={article} />
+                <ArticleCard article={article} locale={params.lang} />
               </li>
             ))}
           </ul>

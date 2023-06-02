@@ -7,6 +7,7 @@ import { Article } from '@/models/domain/Article';
 interface Props {
   params: {
     path: string;
+    lang: string;
   };
 }
 interface ArticleData {
@@ -17,7 +18,7 @@ interface ArticleData {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles/projects`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/projects`,
     { cache: 'no-cache' }
   );
 

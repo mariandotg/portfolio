@@ -6,9 +6,15 @@ import { Project } from '@/models/domain/Project';
 import SectionTitle from '@/components/SectionTitle';
 import Section from '@/components/Section';
 
-const ProjectsPage = async () => {
+interface Props {
+  params: {
+    path: string;
+    lang: string;
+  };
+}
+const ProjectsPage = async ({ params }: Props) => {
   const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/projects`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects`,
     { cache: 'no-cache' }
   );
 

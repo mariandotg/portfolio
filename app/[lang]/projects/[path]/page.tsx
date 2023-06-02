@@ -11,6 +11,7 @@ import Button from '@/components/Button';
 interface Props {
   params: {
     path: string;
+    lang: string;
   };
 }
 
@@ -22,7 +23,7 @@ interface ProjectData {
 
 const ProjectPage = async ({ params }: Props) => {
   const projectFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/projects/${params.path}`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/${params.path}`,
     { cache: 'no-cache' }
   );
 

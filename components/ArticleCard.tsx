@@ -8,15 +8,19 @@ import useDate from '@/hooks/useDate';
 
 interface Props {
   article: Article;
+  locale: string;
 }
 
-const ArticleCard = ({ article }: Props) => {
+const ArticleCard = ({ article, locale }: Props) => {
   const { formattedDate } = useDate(new Date(article.date.start!));
 
   return (
-    <Link href={`en/blog/${article.path}`} className='flex flex-col gap-y-2'>
+    <Link
+      href={`${locale}/blog/${article.path}`}
+      className='flex flex-col gap-y-2'
+    >
       <span className='font-light text-secondary text-light-text dark:text-dark-text'>
-        {formattedDate['es']}
+        {formattedDate[locale]}
       </span>
       <div className='relative flex w-full overflow-hidden h-[135px] tablet:h-[135px] rounded'>
         <h3 className='absolute z-20 font-medium bottom-2 left-2 text-article text-dark-headlines font-display'>

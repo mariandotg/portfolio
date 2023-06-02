@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const path = request.nextUrl.pathname.split('/').filter(Boolean)[3];
   const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
 
+  console.log('lang blog article', lang, 'path', path);
   const articleFilter: CompoundFilterObj = {
     and: [
       {
@@ -22,6 +23,12 @@ export async function GET(request: NextRequest) {
           string: {
             equals: path,
           },
+        },
+      },
+      {
+        property: 'Locale',
+        select: {
+          equals: lang,
         },
       },
     ],

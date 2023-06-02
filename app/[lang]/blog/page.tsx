@@ -6,13 +6,18 @@ import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
 import ArticleCard from '@/components/ArticleCard';
 
+interface Props {
+  params: {
+    lang: string;
+  };
+}
 interface ArticleData {
   content: { parent: string };
   seo: Omit<PageSeo, 'loading'>;
   properties: Article;
 }
 
-const BlogPage = async () => {
+const BlogPage = async ({ params }: Props) => {
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles`,
     { cache: 'no-cache' }
@@ -37,7 +42,7 @@ const BlogPage = async () => {
                         : 'mobile:col-span-1'
                     }`}
                   >
-                    <ArticleCard article={article} />
+                    <ArticleCard article={article} locale={params.lang} />
                   </li>
                 ))}
               </ul>

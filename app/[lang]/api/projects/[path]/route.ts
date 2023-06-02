@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      {
+        property: 'Locale',
+        select: {
+          equals: lang,
+        },
+      },
     ],
   };
 

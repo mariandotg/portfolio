@@ -21,6 +21,12 @@ export async function GET(request: NextRequest) {
           equals: 'Projects Database',
         },
       },
+      {
+        property: 'Locale',
+        select: {
+          equals: lang,
+        },
+      },
     ],
   };
 

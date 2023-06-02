@@ -20,12 +20,22 @@ export async function GET(request: NextRequest) {
     {
       databaseId,
       filter: {
-        property: 'SeoPath',
-        formula: {
-          string: {
-            equals: path,
+        and: [
+          {
+            property: 'SeoPath',
+            formula: {
+              string: {
+                equals: path,
+              },
+            },
           },
-        },
+          {
+            property: 'Locale',
+            select: {
+              equals: lang,
+            },
+          },
+        ],
       },
     },
     { seo: true }

@@ -27,6 +27,12 @@ export async function GET(request: NextRequest) {
           equals: 'Articles Database',
         },
       },
+      {
+        property: 'Locale',
+        select: {
+          equals: lang,
+        },
+      },
     ],
   };
 

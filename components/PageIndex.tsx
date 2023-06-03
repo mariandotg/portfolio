@@ -84,7 +84,7 @@ const PageIndex = () => {
   };
 
   return (
-    <div className='sticky hidden col-span-1 top-[73px] h-fit tablet:flex tablet:flex-col gap-y-4'>
+    <div className='hidden tablet:flex tablet:flex-col sticky top-[73px] gap-y-4'>
       <div className='flex flex-col gap-y-2'>
         <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
           Content

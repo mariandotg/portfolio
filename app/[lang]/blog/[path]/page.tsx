@@ -9,6 +9,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { Article } from '@/models/domain/Article';
 import { PageSeo } from '@/models/PageSeo';
 import ArticleCard from '@/components/ArticleCard';
+import useDate from '@/hooks/useDate';
 
 interface Props {
   params: {
@@ -36,6 +37,10 @@ const ArticlePage = async ({ params }: Props) => {
   const articleResponse: ArticleData = await articleFetch.json();
   const latestArticlesResponse: Article[] = await latestArticlesFetch.json();
 
+  const { formattedDate } = useDate(
+    new Date(articleResponse.properties.date.start!)
+  );
+
   return (
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
@@ -57,8 +62,23 @@ const ArticlePage = async ({ params }: Props) => {
               <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
                 {articleResponse.properties.name}
               </h1>
+              {articleResponse.properties.categories.map((tag, index) => (
+                <span className='flex px-2 italic font-medium rounded font-monospace text-dark-headlines bg-dark-tertiary-hover dark:bg-light-tertiary-hover w-fit'>
+                  {(tag.name as String).toLocaleUpperCase()}
+                </span>
+              ))}
             </div>
-            <p>{articleResponse.properties.description}</p>
+            <p className='dark:text-dark-text text-light-text'>
+              {articleResponse.properties.description}
+            </p>
+          </div>
+          <Markdown>{articleResponse.content.parent}</Markdown>
+        </div>
+        <div className='relative flex flex-col col-span-1 gap-y-4'>
+          <div className='flex flex-col gap-y-2'>
+            <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
+              Tags:
+            </h3>
             <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
               {articleResponse.properties.tags.map((tag, index) => (
                 <li>
@@ -67,9 +87,9 @@ const ArticlePage = async ({ params }: Props) => {
               ))}
             </ul>
           </div>
-          <Markdown>{articleResponse.content.parent}</Markdown>
+          <PageIndex />
         </div>
-        <PageIndex />
+        <p>Published: {formattedDate[params.lang]}</p>
       </div>
       <Section>
         <SectionTitle emoji='article'>Latest Articles</SectionTitle>

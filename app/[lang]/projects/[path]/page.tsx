@@ -48,7 +48,11 @@ const ProjectPage = async ({ params }: Props) => {
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {projectResponse.properties.name}
             </h1>
-            <p>{projectResponse.properties.description}</p>
+            <p className='dark:text-dark-text text-light-text'>
+              {projectResponse.properties.description}
+            </p>
+          </div>
+          <div className='flex flex-row gap-x-4'>
             <Button
               variant='secondary'
               url={projectResponse.properties.repository}
@@ -59,18 +63,25 @@ const ProjectPage = async ({ params }: Props) => {
               live
             </Button>
           </div>
-          <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
-            {projectResponse.properties.tags.map((tag, index) => (
-              <li>
-                <SkillItem key={tag.id} skill={tag.name} />
-              </li>
-            ))}
-          </ul>
           <div className='flex flex-col gap-y-4'>
             <Markdown>{projectResponse.content.parent}</Markdown>
           </div>
         </div>
-        <PageIndex />
+        <div className='relative flex flex-col col-span-1 gap-y-4'>
+          <div className='flex flex-col gap-y-2'>
+            <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
+              Tags:
+            </h3>
+            <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
+              {projectResponse.properties.tags.map((tag, index) => (
+                <li>
+                  <SkillItem key={tag.id} skill={tag.name} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <PageIndex />
+        </div>
       </div>
     </PageLayout>
   );

@@ -37,7 +37,9 @@ const ArticleCard = ({ article, locale }: Props) => {
         />
       </div>
       <div className='flex flex-row items-center w-full gap-2'>
-        <SkillItem key={article.tags[0].id} skill={article.tags[0].name} />
+        <span className='flex px-2 py-1 italic font-medium rounded text-secondary font-monospace text-dark-headlines bg-dark-tertiary-hover dark:bg-light-tertiary-hover w-fit'>
+          {article.categories[0].name.toLocaleUpperCase()}
+        </span>
       </div>
     </Link>
   );

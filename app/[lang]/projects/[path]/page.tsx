@@ -41,7 +41,7 @@ const ProjectPage = async ({ params }: Props) => {
               priority
               quality={90}
               placeholder='blur'
-              blurDataURL='https://img.freepik.com/free-vector/red-diagonal-geometric-shape-with-halftone-detailed-background_1409-2103.jpg'
+              blurDataURL='https://images.unsplash.com/photo-1685729015964-31b42a6318a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=387&q=80'
             />
           </div>
         </div>

@@ -41,12 +41,12 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
   return (
     <>
       <PageLayout>
-        <div className='flex flex-col gap-8 mt-[57px]'>
+        <div className='flex flex-col gap-8'>
           <div className='relative h-64'>
             <Image
               src='/public/header-web.webp'
               alt='page header'
-              className='absolute object-cover'
+              className='absolute object-cover rounded'
               fill={true}
               priority
               quality={90}

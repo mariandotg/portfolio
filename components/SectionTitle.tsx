@@ -5,11 +5,10 @@ import Emoji from './Emoji';
 
 interface Props {
   children: ReactNode;
-  button?: ButtonModel;
   emoji?: string;
 }
 
-const SectionTitle = ({ children, button, emoji }: Props) => {
+const SectionTitle = ({ children, emoji }: Props) => {
   return (
     <div className='flex justify-between tablet:col-span-3'>
       <h2

@@ -1,15 +1,12 @@
 import React from 'react';
-import Image from 'next/image';
-import PageLayout from '@/components/PageLayout';
 import SkillItem from '@/components/SkillItem';
 import Markdown from '@/components/Markdown';
 import PageIndex from '@/components/PageIndex';
-import Section from '@/components/Section';
-import SectionTitle from '@/components/SectionTitle';
 import { Article } from '@/models/domain/Article';
 import { PageSeo } from '@/models/PageSeo';
-import ArticleCard from '@/components/ArticleCard';
 import useDate from '@/hooks/useDate';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Metadata } from 'next';
 
 interface Props {
   params: {
@@ -22,6 +19,17 @@ interface ArticleData {
   content: { parent: string };
   seo: Omit<PageSeo, 'loading'>;
   properties: Article;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const articleFetch = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
+    { cache: 'no-cache' }
+  );
+
+  const articleResponse: ArticleData = await articleFetch.json();
+
+  return metadataAdapter(articleResponse.seo);
 }
 
 const ArticlePage = async ({ params }: Props) => {

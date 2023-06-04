@@ -1,10 +1,13 @@
-import Image from 'next/image';
 import React from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/models/domain/Project';
 import SectionTitle from '@/components/SectionTitle';
 import Section from '@/components/Section';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Metadata } from 'next';
+import { PageSeo } from '@/models/PageSeo';
+import { Article } from '@/models/domain/Article';
 
 interface Props {
   params: {
@@ -12,6 +15,24 @@ interface Props {
     lang: string;
   };
 }
+
+interface ArticleData {
+  markdown: { parent: string };
+  seo: Omit<PageSeo, 'loading'>;
+  metadata: Article;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const articleFetch = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/projects`,
+    { cache: 'no-cache' }
+  );
+
+  const articleResponse: ArticleData = await articleFetch.json();
+
+  return metadataAdapter(articleResponse.seo);
+}
+
 const ProjectsPage = async ({ params }: Props) => {
   const projectsFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects`,

@@ -7,6 +7,8 @@ import { PageSeo } from '@/models/PageSeo';
 import { Project } from '@/models/domain/Project';
 import PageIndex from '@/components/PageIndex';
 import Button from '@/components/Button';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Metadata } from 'next';
 
 interface Props {
   params: {
@@ -19,6 +21,17 @@ interface ProjectData {
   content: { parent: string };
   seo: Omit<PageSeo, 'loading'>;
   properties: Project;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const projectFetch = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/${params.path}`,
+    { cache: 'no-cache' }
+  );
+
+  const projectResponse: ProjectData = await projectFetch.json();
+
+  return metadataAdapter(projectResponse.seo);
 }
 
 const ProjectPage = async ({ params }: Props) => {

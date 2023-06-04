@@ -14,21 +14,48 @@ import { Article } from '@/models/domain/Article';
 import { Project } from '@/models/domain/Project';
 import ArticleCard from '@/components/ArticleCard';
 
-const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
+import headerPic from '../[lang]/../../public/public/header-web.webp';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { PageSeo } from '@/models/PageSeo';
+import { Metadata } from 'next';
+
+interface Props {
+  params: {
+    lang: string;
+    path: string;
+  };
+}
+
+interface HomeData extends PageContentSections {
+  seo: Omit<PageSeo, 'loading'>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const homeFetch = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
+    { cache: 'no-cache' }
+  );
+
+  const homeResponse: HomeData = await homeFetch.json();
+
+  return metadataAdapter(homeResponse.seo);
+}
+
+const HomePage = async ({ params }: Props) => {
   const dataFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/pages/home`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`
   );
   const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/social`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`
   );
   const articlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/latest`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
     {
       cache: 'no-cache',
     }
   );
   const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/projects/featured`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`
   );
 
   const data: PageContentSections = await dataFetch.json();
@@ -44,12 +71,13 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
         <div className='flex flex-col gap-8'>
           <div className='relative h-64'>
             <Image
-              src='/public/header-web.webp'
+              src={headerPic}
               alt='page header'
               className='absolute object-cover rounded'
               fill={true}
               priority
               quality={90}
+              placeholder='blur'
             />
           </div>
         </div>
@@ -119,7 +147,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                 className={
                   index === 0 ? 'mobile:col-span-2' : 'mobile:col-span-1'
                 }
-                locale={lang}
+                locale={params.lang}
               />
             ))}
           </div>
@@ -220,7 +248,7 @@ const HomePage = async ({ params: { lang } }: { params: { lang: string } }) => {
                       : 'mobile:col-span-1'
                   }`}
                 >
-                  <ArticleCard article={article} locale={lang} />
+                  <ArticleCard article={article} locale={params.lang} />
                 </li>
               ))}
             </ul>

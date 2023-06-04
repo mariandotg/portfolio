@@ -5,6 +5,8 @@ import { Article } from '@/models/domain/Article';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
 import ArticleCard from '@/components/ArticleCard';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Metadata } from 'next';
 
 interface Props {
   params: {
@@ -15,6 +17,16 @@ interface ArticleData {
   content: { parent: string };
   seo: Omit<PageSeo, 'loading'>;
   properties: Article;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const articleFetch = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/blog`
+  );
+
+  const articleResponse: ArticleData = await articleFetch.json();
+
+  return metadataAdapter(articleResponse.seo);
 }
 
 const BlogPage = async ({ params }: Props) => {

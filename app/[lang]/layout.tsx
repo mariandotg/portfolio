@@ -1,33 +1,12 @@
 import './globals.css';
 import Navbar from '../../components/NavBar';
 import Footer from '../../components/Footer';
-import { Metadata } from 'next';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { PageSeo } from '@/models/PageSeo';
-import { PageContentSections } from '@/models/PageContentSections';
 
-interface Props {
-  params: {
-    lang: string;
-    path: string;
-  };
-}
-
-interface HomeData extends PageContentSections {
-  seo: Omit<PageSeo, 'loading'>;
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const homeFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'no-cache' }
-  );
-
-  const homeResponse: HomeData = await homeFetch.json();
-
-  return metadataAdapter(homeResponse.seo);
-}
-
+export const metadata = {
+  icons: {
+    icon: '/public/favicon.ico',
+  },
+};
 export default function RootLayout({
   children,
   params,

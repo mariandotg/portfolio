@@ -1,7 +1,5 @@
 import React from 'react';
-import { Metadata } from 'next';
 import { PageSeo } from '@/models/PageSeo';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Article } from '@/models/domain/Article';
 import ArticleCard from '@/components/ArticleCard';
 import PageLayout from '@/components/PageLayout';
@@ -9,28 +7,10 @@ import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
 import Image from 'next/image';
 
-interface Props {
-  params: {
-    path: string;
-    lang: string;
-  };
-}
-
 interface ArticleData {
   content: { parent: string };
   seo: Omit<PageSeo, 'loading'>;
   properties: Article;
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
-    { cache: 'no-cache' }
-  );
-
-  const articleResponse: ArticleData = await articleFetch.json();
-
-  return metadataAdapter(articleResponse.seo);
 }
 
 const ArticleLayout = async ({

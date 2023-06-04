@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const BlogPage = async ({ params }: Props) => {
   const articlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/en/api/articles`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles`,
     { cache: 'no-cache' }
   );
 

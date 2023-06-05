@@ -36,4 +36,16 @@ body {
   .btn-tertiary {
     @apply bg-tertiary border-transparent text-light dark:hover:bg-dark-tertiary-hover dark:active:bg-dark-tertiary-pressed active:bg-light-tertiary-pressed hover:bg-light-tertiary-hover;
   }
+
+  .sidebar {
+    @apply relative flex flex-col col-span-1 gap-y-4;
+  }
+
+  .sidebar-group {
+    @apply flex flex-col gap-y-2;
+  }
+
+  .sidebar-group-title {
+    @apply italic font-medium font-monospace dark:text-dark-headlines text-light-headlines;
+  }
 }

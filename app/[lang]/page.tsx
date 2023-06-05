@@ -9,7 +9,7 @@ import ProjectCard from '../../components/ProjectCard';
 import SectionTitle from '../../components/SectionTitle';
 import SkillItem from '../../components/SkillItem';
 import { PageContentSections } from '@/models/PageContentSections';
-import { PageConstants } from '@/models/PageConstants';
+import { PageSocial } from '@/models/PageSocial';
 import { Article } from '@/models/domain/Article';
 import { Project } from '@/models/domain/Project';
 import ArticleCard from '@/components/ArticleCard';
@@ -62,7 +62,7 @@ const HomePage = async ({ params }: Props) => {
   );
 
   const data: PageContentSections = await dataFetch.json();
-  const social: PageConstants = await socialFetch.json();
+  const social: PageSocial = await socialFetch.json();
   const articles: Article[] = await articlesFetch.json();
   const projects: Project[] = await projectsFetch.json();
 

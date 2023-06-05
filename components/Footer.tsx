@@ -3,7 +3,7 @@ import { MdArrowOutward } from 'react-icons/md';
 
 import Icon from './Icon';
 import NavLink from './NavLink';
-import { PageConstants } from '@/models/PageConstants';
+import { PageSocial } from '@/models/PageSocial';
 import { getDictionary } from '@/app/[lang]/dictionaries';
 
 interface Props {
@@ -18,7 +18,7 @@ const Footer = async ({ locale }: Props) => {
     }
   );
 
-  const constants: PageConstants = await socialFetch.json();
+  const constants: PageSocial = await socialFetch.json();
 
   const dict = await getDictionary(locale);
   return (

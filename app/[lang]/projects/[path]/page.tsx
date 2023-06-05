@@ -84,13 +84,15 @@ const ProjectPage = async ({ params }: Props) => {
             {renderTags()}
           </ul>
         </div>
-        <div className='sidebar-group'>
-          <h3 className='sidebar-group-title'>{dict.pageIndex.content}</h3>
-          <PageIndexes />
-        </div>
-        <div className='sidebar-group'>
-          <h3 className='sidebar-group-title'>{dict.pageIndex.share}</h3>
-          <Share />
+        <div className='sticky top-[73px] flex flex-col gap-y-4'>
+          <div className='hidden tablet:sidebar-group'>
+            <h3 className='sidebar-group-title'>{dict.pageIndex.content}</h3>
+            <PageIndexes />
+          </div>
+          <div className='sidebar-group'>
+            <h3 className='sidebar-group-title'>{dict.pageIndex.share}</h3>
+            <Share />
+          </div>
         </div>
       </div>
     </>

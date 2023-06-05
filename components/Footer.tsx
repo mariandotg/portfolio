@@ -12,10 +12,7 @@ interface Props {
 
 const Footer = async ({ locale }: Props) => {
   const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`,
-    {
-      cache: 'no-cache',
-    }
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`
   );
 
   const constants: PageSocial = await socialFetch.json();
@@ -41,9 +38,11 @@ const Footer = async ({ locale }: Props) => {
               </a>
             </div>
             <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'>
-              <NavLink href={`/${locale}`}>Portfolio</NavLink>
-              <NavLink href={`/${locale}/projects`}>Proyectos</NavLink>
-              <NavLink href={`/${locale}/blog`}>Blog</NavLink>
+              <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
+              <NavLink href={`/${locale}/projects`}>
+                {dict.routes['/projects']}
+              </NavLink>
+              <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
             </div>
           </div>
           <div className='flex flex-col items-center gap-y-8'>

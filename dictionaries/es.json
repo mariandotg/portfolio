@@ -14,5 +14,10 @@
         "email": "marianguillaume.m@gmail.com",
         "madeIn": "Hecho en Buenos Aires, Argentina",
         "copyright": "2023 © Mariano Guillaume"
+    },
+    "routes": {
+        "/": "Portafolio", 
+        "/projects": "Proyectos", 
+        "/blog": "Blog"
     }
 }

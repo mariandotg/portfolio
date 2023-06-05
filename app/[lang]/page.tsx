@@ -46,10 +46,7 @@ const HomePage = async ({ params }: Props) => {
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`
   );
   const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`,
-    {
-      cache: 'no-cache',
-    }
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`
   );
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,

@@ -88,7 +88,7 @@ const HomePage = async ({ params }: Props) => {
                 {data.about.title}
               </h1>
               <ul className='flex gap-x-4'>
-                {social.social.map((social) => (
+                {social.map((social) => (
                   <li key={social.id} className='flex'>
                     <a
                       href={social.url}

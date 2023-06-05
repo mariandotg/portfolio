@@ -12,13 +12,15 @@ interface Props {
 
 const Footer = async ({ locale }: Props) => {
   const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`,
+    {
+      cache: 'no-cache',
+    }
   );
 
   const constants: PageConstants = await socialFetch.json();
 
   const dict = await getDictionary(locale);
-  console.log(constants);
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
       <div className='flex justify-center'>

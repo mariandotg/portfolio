@@ -1,40 +1,29 @@
-'use client';
 import React from 'react';
-import {
-  MdLightMode,
-  MdDarkMode,
-  MdMenu,
-  MdKeyboardArrowUp,
-} from 'react-icons/md';
-import { FaSpinner } from 'react-icons/fa';
-
-import useTheme from '@/hooks/useTheme';
-import useScroll from '@/hooks/useScroll';
-import useIsMounted from '@/hooks/useIsMounted';
-
-import Button from './Button';
 import Image from 'next/image';
 import NavLink from './NavLink';
 import LangSelector from './LangSelector';
 import HamburgerMenu from './HamburgerMenu';
 import Link from 'next/link';
+import ThemeButton from './ThemeButton';
+import ToTopButton from './ToTopButton';
+import { getDictionary } from '@/app/[lang]/dictionaries';
 
 interface Props {
   locale: string;
 }
 
-const NavBar = ({ locale }: Props) => {
-  const { theme, toggleTheme } = useTheme();
-  const { visible, scrollToTop } = useScroll();
-  const isMounted = useIsMounted();
+const NavBar = async ({ locale }: Props) => {
+  const dict = await getDictionary(locale);
 
   return (
     <header className='border-b-[1px] border-primary bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
       <nav className='relative flex items-center w-screen tablet:max-w-[800px] justify-between gap-16'>
         <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
-          <NavLink href={`/${locale}`}>Portfolio</NavLink>
-          <NavLink href={`/${locale}/projects`}>Proyectos</NavLink>
-          <NavLink href={`/${locale}/blog`}>Blog</NavLink>
+          <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
+          <NavLink href={`/${locale}/projects`}>
+            {dict.routes['/projects']}
+          </NavLink>
+          <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
         </div>
         <Link
           href={`/${locale}`}
@@ -60,33 +49,8 @@ const NavBar = ({ locale }: Props) => {
           <div className='hidden mobile:flex'>
             <LangSelector locale={locale} />
           </div>
-          <Button
-            variant='primary'
-            onClick={toggleTheme}
-            icon
-            disabled={!isMounted}
-            ariaLabel='Change theme'
-          >
-            {isMounted ? (
-              theme === 'dark' ? (
-                <MdLightMode className='duration-[0ms] w-[18px] h-[18px]' />
-              ) : (
-                <MdDarkMode className='duration-[0ms] w-[18px] h-[18px]' />
-              )
-            ) : (
-              <FaSpinner className='duration-[0ms] w-[18px] h-[18px]' />
-            )}
-          </Button>
-          <Button
-            variant='primary'
-            onClick={scrollToTop}
-            className='flex'
-            icon
-            disabled={!visible}
-            ariaLabel='Scroll to the top'
-          >
-            <MdKeyboardArrowUp className='duration-[0ms] w-[18px] h-[18px] ' />
-          </Button>
+          <ThemeButton />
+          <ToTopButton />
         </div>
       </nav>
     </header>

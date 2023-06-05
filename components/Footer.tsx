@@ -18,6 +18,7 @@ const Footer = async ({ locale }: Props) => {
   const constants: PageSocial = await socialFetch.json();
 
   const dict = await getDictionary(locale);
+
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
       <div className='flex justify-center'>

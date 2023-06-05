@@ -39,6 +39,7 @@ export default function RootLayout({
       </head>
       <body>
         <div className='flex flex-col gap-y-[160px] justify-center'>
+          {/* @ts-expect-error Async Server Component */}
           <Navbar locale={params.lang} />
           {children}
           {/* @ts-expect-error Async Server Component */}

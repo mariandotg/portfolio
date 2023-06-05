@@ -12,7 +12,8 @@ interface Props {
 
 const Footer = async ({ locale }: Props) => {
   const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`,
+    { cache: 'no-cache' }
   );
 
   const constants: PageSocial = await socialFetch.json();

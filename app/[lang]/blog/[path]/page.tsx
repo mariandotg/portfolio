@@ -7,6 +7,7 @@ import { PageSeo } from '@/models/PageSeo';
 import useDate from '@/hooks/useDate';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
+import { getDictionary } from '../../dictionaries';
 
 interface Props {
   params: {
@@ -43,6 +44,7 @@ const ArticlePage = async ({ params }: Props) => {
   const { formattedDate } = useDate(
     new Date(articleResponse.properties.date.start!)
   );
+  const dict = await getDictionary(params.lang);
 
   return (
     <>
@@ -67,7 +69,7 @@ const ArticlePage = async ({ params }: Props) => {
       <div className='relative flex flex-col col-span-1 gap-y-4'>
         <div className='flex flex-col gap-y-2'>
           <h3 className='italic font-medium font-monospace dark:text-dark-headlines text-light-headlines'>
-            Tags:
+            {dict.pageIndex.tags}
           </h3>
           <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
             {articleResponse.properties.tags.map((tag, index) => (
@@ -79,7 +81,9 @@ const ArticlePage = async ({ params }: Props) => {
         </div>
         <PageIndex />
       </div>
-      <p>Published: {formattedDate[params.lang]}</p>
+      <p>
+        {dict.pageIndex.published} {formattedDate[params.lang]}
+      </p>
     </>
   );
 };

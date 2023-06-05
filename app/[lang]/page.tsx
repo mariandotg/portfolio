@@ -30,6 +30,10 @@ interface HomeData extends PageContentSections {
   seo: Omit<PageSeo, 'loading'>;
 }
 
+interface ProjectCardsStyles {
+  [index: number]: string;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
@@ -68,6 +72,13 @@ const HomePage = async ({ params }: Props) => {
   data.latestArticles.content.articles = articles;
 
   console.log('social', social);
+  const projectCardsStyles: ProjectCardsStyles = {
+    '0': 'tablet:col-span-1 tablet:row-span-2',
+    '1': 'tablet:h-[200px]',
+    '2': 'tablet:h-[200px]',
+    '3': 'tablet:col-span-2 tablet:row-span-1 tablet:h-[200px]',
+  };
+
   return (
     <>
       <PageLayout>
@@ -136,15 +147,13 @@ const HomePage = async ({ params }: Props) => {
           <SectionTitle emoji={data.featuredProjects.emoji}>
             {data.featuredProjects.title}
           </SectionTitle>
-          <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-3 tablet:gap-4'>
+          <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-2'>
             {data.featuredProjects.content.projects.map((project, index) => (
               <ProjectCard
                 key={project.id}
                 project={project}
-                className={
-                  index === 0 ? 'mobile:col-span-2' : 'mobile:col-span-1'
-                }
                 locale={params.lang}
+                className={projectCardsStyles[index]}
               />
             ))}
           </div>

@@ -96,28 +96,20 @@ const ProjectCard = (props: Props) => {
 
   return (
     <Link
-      className={`${props.className} group tablet:grid mobile:col-span-2 tablet:grid-cols-3 tablet:col-span-3 mobile:gap-4`}
+      className={`${props.className} relative group border rounded border-transparent mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover`}
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
     >
       <div
-        className={`flex flex-col tablet:col-span-1 tablet:group-hover:border-light-primary-hover tablet:group-hover:dark:border-dark-primary-hover cursor-pointer justify-between border border-transparent gap-y-4 tablet:p-4 group rounded dark:text-dark-text text-light-text`}
+        className={`flex flex-col z-10 w-full h-full justify-end tablet:p-4 tablet:translate-y-[40px] tablet:group-hover:translate-y-0 cursor-pointer gap-y-4 group dark:text-dark-text text-light-text`}
       >
         <div className='flex flex-col gap-y-2'>
-          <div className='relative w-full h-[135px] mobile:h-[100px] tablet:hidden'>
-            <Image
-              src={props.project.image}
-              alt={`${props.project.name} image`}
-              className='absolute flex object-cover w-full rounded tablet:hidden'
-              fill={true}
-            />
-          </div>
           <div className='flex flex-col gap-y-1'>
             <h3 className='flex items-center font-medium whitespace-nowrap text-title group-hover:gap-x-2 gap-x-1 font-display dark:text-dark-headlines text-light-headlines'>
               {props.project.name}
               <MdArrowForward className='duration-[0ms] dark:text-dark-headlines h-5 w-5 text-light-headlines' />
             </h3>
-            <p className='text dark:text-dark-text text-light-text'>
+            <p className='text tablet:hidden dark:text-dark-text text-light-text'>
               {truncateString(props.project.description, 47)}
             </p>
           </div>
@@ -136,14 +128,13 @@ const ProjectCard = (props: Props) => {
           )}
         </div>
       </div>
-      <div className='relative hidden rounded cursor-pointer tablet:border tablet:border-transparent tablet:group-hover:border-primary mobile:col-span-1 tablet:col-span-2 group mobile:overflow-hidden tablet:flex'>
-        <Image
-          src={props.project.image}
-          alt={`${props.project.name} image`}
-          className='absolute z-10 object-cover object-center aspect-square'
-          fill={true}
-        />
-      </div>
+      <div className='absolute top-0 w-full h-full rounded opacity-0 -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
+      <Image
+        src={props.project.image}
+        alt={`${props.project.name} image`}
+        className='absolute flex object-cover w-full rounded -z-20'
+        fill={true}
+      />
     </Link>
   );
 };

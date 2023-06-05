@@ -1,10 +1,10 @@
 import React from 'react';
 import { MdArrowOutward } from 'react-icons/md';
 
-import PageLayout from './PageLayout';
 import Icon from './Icon';
 import NavLink from './NavLink';
 import { PageConstants } from '@/models/PageConstants';
+import { getDictionary } from '@/app/[lang]/dictionaries';
 
 interface Props {
   locale: string;
@@ -17,6 +17,8 @@ const Footer = async ({ locale }: Props) => {
 
   const constants: PageConstants = await socialFetch.json();
 
+  const dict = await getDictionary(locale);
+
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
       <div className='flex justify-center'>
@@ -24,15 +26,15 @@ const Footer = async ({ locale }: Props) => {
           <div className='grid grid-cols-1 gap-8 mobile:grid-cols-3'>
             <div className='col-span-1'>
               <h3 className='font-medium text-title whitespace-nowrap font-display dark:text-dark-headlines text-light-headlines'>
-                {constants.text.ctaEmail.text}
+                {dict.footer.emailCta}
               </h3>
               <a
-                href={constants.text.email.url}
+                href={dict.footer.email}
                 target='_blank'
                 rel='noopener noreferrer'
                 className='relative flex items-center italic font-medium underline rounded dark:hover:text-primary hover:text-primary decoration-primary group underline-offset-4 text-title w-fit font-monospace dark:text-dark-headlines text-light-headlines'
               >
-                {constants.text.email.text}
+                {dict.footer.email}
                 <MdArrowOutward className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary' />
               </a>
             </div>
@@ -62,10 +64,10 @@ const Footer = async ({ locale }: Props) => {
             </ul>
             <div className='flex flex-col items-center w-full italic h-fit gap-y-2 font-monospace'>
               <p className='flex items-center gap-x-2 text-secondary text-light-headlines dark:text-dark-headlines'>
-                Made in Buenos Aires, Argentina
+                {dict.footer.madeIn}
               </p>
               <span className='text-secondary text-light-headlines dark:text-dark-headlines'>
-                2023 © Mariano Guillaume
+                {dict.footer.copyright}
               </span>
             </div>
           </div>

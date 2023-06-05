@@ -4,5 +4,15 @@
         "share": "Compartir:",
         "tags": "Etiquetas:",
         "published": "Publicado:"
+    },
+    "project": {
+        "repository": "Repositorio",
+        "live": "Sitio online"
+    },
+    "footer": {
+        "emailCta": "¿Preferís mandarme un email?",
+        "email": "marianguillaume.m@gmail.com",
+        "madeIn": "Hecho en Buenos Aires, Argentina",
+        "copyright": "2023 © Mariano Guillaume"
     }
 }

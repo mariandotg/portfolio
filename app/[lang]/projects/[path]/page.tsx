@@ -67,10 +67,10 @@ const ProjectPage = async ({ params }: Props) => {
             variant='secondary'
             url={projectResponse.properties.repository}
           >
-            repo
+            {dict.project.repository}
           </Button>
           <Button variant='primary' url={projectResponse.properties.live}>
-            live
+            {dict.project.live}
           </Button>
         </div>
         <div className='flex flex-col gap-y-4'>

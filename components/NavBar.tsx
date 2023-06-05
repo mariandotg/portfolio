@@ -39,7 +39,7 @@ const NavBar = async ({ locale }: Props) => {
           <Image
             src='/public/mdg.svg'
             alt='brand mdg logo'
-            className='hidden -translate-x-1/2 mobile:flex left-2/4 tablet:hidden dark:brightness-[200]'
+            className='hidden mobile:flex left-2/4 tablet:hidden dark:brightness-[200]'
             width={50}
             height={23}
           />

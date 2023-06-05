@@ -12,5 +12,5 @@ export async function GET(request: NextRequest) {
     include: 3,
   }).then((data) => pageConstantsAdapter(data[0].fields));
 
-  return NextResponse.json({ ...data });
+  return NextResponse.json(data);
 }

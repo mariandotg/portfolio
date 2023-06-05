@@ -18,7 +18,7 @@ const Footer = async ({ locale }: Props) => {
   const constants: PageConstants = await socialFetch.json();
 
   const dict = await getDictionary(locale);
-
+  console.log(constants);
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
       <div className='flex justify-center'>
@@ -46,7 +46,7 @@ const Footer = async ({ locale }: Props) => {
           </div>
           <div className='flex flex-col items-center gap-y-8'>
             <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>
-              {constants.social.map((social) => (
+              {constants.map((social) => (
                 <li key={social.id} className='flex'>
                   <a
                     href={social.url}

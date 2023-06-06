@@ -44,7 +44,6 @@ const ProjectsPage = async ({ params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <SectionTitle emoji='pin'>Projects</SectionTitle>
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-3 tablet:gap-4'>
           {projectsResponse.projects.map((project, index) => (
             <ProjectCard

@@ -133,10 +133,10 @@ const ProjectCard = (props: Props) => {
             <h3
               className={`flex items-center font-medium whitespace-nowrap text ${
                 props.featured ? 'tablet:text-title' : ''
-              } group-hover:gap-x-2 gap-x-1 font-display text-dark-headlines`}
+              } group-hover:gap-x-2 gap-x-1 font-display text-light-headlines dark:text-dark-headlines`}
             >
               {props.project.name}
-              <MdArrowForward className='duration-[0ms] text-dark-headlines h-5 w-5' />
+              <MdArrowForward className='duration-[0ms] text-light-headlines dark:text-dark-headlines h-5 w-5' />
             </h3>
             <p
               className={`text ${
@@ -152,7 +152,11 @@ const ProjectCard = (props: Props) => {
           ref={containerRef}
         >
           {displayedTags.map((tag, index) => (
-            <SkillItem key={tag.id} skill={tag.name} variant='mono' />
+            <SkillItem
+              key={tag.id}
+              skill={tag.name}
+              variant={props.featured ? 'mono' : 'base'}
+            />
           ))}
           {restTags !== 0 && (
             <span className='h-[24px] w-[24px] flex justify-center items-center rounded-[50px] bg-light-text dark:bg-dark-text text-dark-headlines dark:text-light-headlines font-medium text-[12px]'>

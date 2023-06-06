@@ -82,21 +82,8 @@ const HomePage = async ({ params }: Props) => {
   return (
     <>
       <PageLayout>
-        <div className='flex flex-col gap-8'>
-          <div className='relative h-64'>
-            <Image
-              src={headerPic}
-              alt='page header'
-              className='absolute object-cover rounded'
-              fill={true}
-              priority
-              quality={90}
-              placeholder='blur'
-            />
-          </div>
-        </div>
         <Section>
-          <div className='flex flex-col col-span-3 gap-y-4'>
+          <div className='flex flex-col col-span-3 gap-y-4 mt-36'>
             <div className='flex flex-col gap-y-2'>
               <h1 className='flex italic font-medium text-title text-light-headlines dark:text-dark-headlines font-monospace'>
                 {data.about.title}

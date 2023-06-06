@@ -35,7 +35,7 @@ const Footer = async ({ locale }: Props) => {
                 rel='noopener noreferrer'
                 className='relative flex items-center italic font-medium underline rounded dark:hover:text-primary hover:text-primary decoration-primary group underline-offset-4 text-title w-fit font-monospace dark:text-dark-headlines text-light-headlines'
               >
-                {dict.footer.email}
+                marianguillaume.m@gmail.com
                 <MdArrowOutward className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary' />
               </a>
             </div>

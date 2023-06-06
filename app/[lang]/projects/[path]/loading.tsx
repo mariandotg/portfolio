@@ -1,6 +1,9 @@
 const Loading = () => {
   return (
     <>
+      <div className='relative h-64 tablet:col-span-3'>
+        <div className='w-full h-full rounded bg-tertiary animate-pulse'></div>
+      </div>
       <div className='flex flex-col gap-y-4 tablet:col-span-2'>
         <div className='flex flex-col gap-y-2'>
           <div className='w-full rounded h-7 bg-tertiary animate-pulse'></div>

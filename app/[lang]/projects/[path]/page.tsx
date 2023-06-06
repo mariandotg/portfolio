@@ -9,6 +9,7 @@ import { Metadata } from 'next';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
+import Image from 'next/image';
 
 interface Props {
   params: {
@@ -53,6 +54,20 @@ const ProjectPage = async ({ params }: Props) => {
 
   return (
     <>
+      <div className='flex flex-col col-span-3 gap-y-2'>
+        <div className='relative h-64 tablet:col-span-3'>
+          <Image
+            src={projectResponse.properties.image}
+            alt={projectResponse.properties.imageAlt}
+            className='absolute object-cover rounded'
+            fill={true}
+            priority
+            quality={90}
+            placeholder='blur'
+            blurDataURL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAIAAADzBuo/AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASSURBVBhXY3gro4IHDZy0jAoA9QM6yzHo/PoAAAAASUVORK5CYII='
+          />
+        </div>
+      </div>
       <div className='flex flex-col gap-y-4 tablet:col-span-2'>
         <div className='flex flex-col gap-y-2'>
           <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>

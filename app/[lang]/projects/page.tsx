@@ -49,10 +49,9 @@ const ProjectsPage = async ({ params }: Props) => {
             <ProjectCard
               key={project.id}
               project={project}
-              className={
-                index === 0 ? 'mobile:col-span-2' : 'mobile:col-span-1'
-              }
-              locale={'/en'}
+              className='mobile:col-span-1'
+              locale={params.lang}
+              featured={false}
             />
           ))}
         </div>

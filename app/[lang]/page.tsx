@@ -154,6 +154,7 @@ const HomePage = async ({ params }: Props) => {
                 project={project}
                 locale={params.lang}
                 className={projectCardsStyles[index]}
+                featured={true}
               />
             ))}
           </div>

@@ -14,6 +14,7 @@ interface Props {
   project: Project;
   className?: string;
   locale: string;
+  featured: boolean;
 }
 
 const ProjectCard = (props: Props) => {
@@ -96,17 +97,35 @@ const ProjectCard = (props: Props) => {
 
   return (
     <Link
-      className={`${props.className} relative group border rounded border-transparent mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover`}
+      className={`${
+        props.className
+      } relative group border rounded border-transparent mobile:col-span-1 overflow-hidden mobile:gap-4 ${
+        props.featured
+          ? 'tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover'
+          : ''
+      }`}
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
     >
-      <div className='flex flex-col z-10 w-full h-full tablet:p-4 justify-end tablet:translate-y-[40px] tablet:group-hover:translate-y-0 cursor-pointer gap-y-4 group dark:text-dark-text text-light-text'>
+      <div
+        className={`flex flex-col z-10 w-full h-full ${
+          props.featured
+            ? 'tablet:p-4 tablet:translate-y-[40px] tablet:group-hover:translate-y-0'
+            : ''
+        } justify-end cursor-pointer gap-y-4 group dark:text-dark-text text-light-text`}
+      >
         <div className='flex flex-col gap-y-2'>
-          <div className='relative w-full h-[135px] mobile:h-[100px] tablet:hidden'>
+          <div
+            className={`relative w-full h-[135px] ${
+              props.featured ? 'tablet:hidden' : ''
+            }`}
+          >
             <Image
               src={props.project.image}
               alt={`${props.project.name} image`}
-              className='absolute flex object-cover w-full rounded tablet:hidden'
+              className={`absolute flex object-cover w-full rounded ${
+                props.featured ? 'tablet:hidden' : ''
+              }`}
               fill={true}
             />
           </div>
@@ -115,7 +134,11 @@ const ProjectCard = (props: Props) => {
               {props.project.name}
               <MdArrowForward className='duration-[0ms] text-dark-headlines h-5 w-5' />
             </h3>
-            <p className='text tablet:hidden dark:text-dark-text text-light-text'>
+            <p
+              className={`text ${
+                props.featured ? 'tablet:hidden' : ''
+              } dark:text-dark-text text-light-text`}
+            >
               {truncateString(props.project.description, 47)}
             </p>
           </div>
@@ -134,13 +157,17 @@ const ProjectCard = (props: Props) => {
           )}
         </div>
       </div>
-      <div className='absolute top-0 hidden w-full h-full rounded opacity-0 tablet:flex -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
-      <Image
-        src={props.project.image}
-        alt={`${props.project.name} image`}
-        className='absolute hidden object-cover w-full rounded tablet:flex -z-20'
-        fill={true}
-      />
+      {props.featured ? (
+        <>
+          <div className='absolute top-0 hidden w-full h-full rounded opacity-0 tablet:flex -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
+          <Image
+            src={props.project.image}
+            alt={`${props.project.name} image`}
+            className='absolute hidden object-cover w-full rounded tablet:flex -z-20'
+            fill={true}
+          />
+        </>
+      ) : null}
     </Link>
   );
 };

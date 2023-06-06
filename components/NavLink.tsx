@@ -13,7 +13,10 @@ const NavLink = ({ href, children }: Props) => {
   const pathname = usePathname();
   const isMounted = useIsMounted();
 
-  const isActive = isMounted && pathname === href;
+  const sections = href.split('/');
+  const currentSection = pathname.split('/');
+
+  const isActive = isMounted && sections[2] === currentSection[2];
   const active = isActive
     ? ' text-dark-headlines underline font-medium underline-offset-2 decoration-2 text-primary decoration-primary dark:hover:text-dark-primary-hover hover:text-light-primary-hover'
     : ' dark:text-dark-headlines text-light-headlines dark:hover:text-primary hover:text-primary';

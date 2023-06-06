@@ -47,7 +47,7 @@ const ProjectPage = async ({ params }: Props) => {
   const renderTags = () =>
     projectResponse.properties.tags.map((tag, index) => (
       <li>
-        <SkillItem key={tag.id} skill={tag.name} />
+        <SkillItem key={tag.id} skill={tag.name} variant='base' />
       </li>
     ));
 

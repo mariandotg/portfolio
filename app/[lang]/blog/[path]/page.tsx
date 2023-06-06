@@ -50,7 +50,7 @@ const ArticlePage = async ({ params }: Props) => {
   const renderTags = () =>
     articleResponse.properties.tags.map((tag, index) => (
       <li>
-        <SkillItem key={tag.id} skill={tag.name} />
+        <SkillItem key={tag.id} skill={tag.name} variant='base' />
       </li>
     ));
 

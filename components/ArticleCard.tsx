@@ -3,7 +3,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { MdArrowForward } from 'react-icons/md';
-import SkillItem from './SkillItem';
 import useDate from '@/hooks/useDate';
 
 interface Props {

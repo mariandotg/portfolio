@@ -66,9 +66,9 @@ export const getPageData = async (
     if (properties) {
       const propertiesResponse = properties.adapter(page)[0];
       resultado.properties = propertiesResponse;
-      return resultado;
     }
   } catch {
     return false;
   }
+  return resultado;
 };

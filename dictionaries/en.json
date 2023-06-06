@@ -11,7 +11,7 @@
     },
     "footer": {
         "emailCta": "Rather write me an email?",
-        "email": "marianguillaume.m@gmail.com",
+        "email": "mailto:marianguillaume.m@gmail.com",
         "madeIn": "Made in Buenos Aires, Argentina",
         "copyright": "2023 © Mariano Guillaume"
     },

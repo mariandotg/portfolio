@@ -110,9 +110,9 @@ const ProjectCard = (props: Props) => {
       <div
         className={`flex flex-col z-10 w-full h-full ${
           props.featured
-            ? 'tablet:p-4 tablet:translate-y-[40px] tablet:group-hover:translate-y-0'
-            : ''
-        } justify-end cursor-pointer gap-y-4 group dark:text-dark-text text-light-text`}
+            ? 'tablet:p-4 tablet:translate-y-[40px] gap-y-2 tablet:group-hover:translate-y-0'
+            : 'gap-y-4'
+        } justify-end cursor-pointer group dark:text-dark-text text-light-text`}
       >
         <div className='flex flex-col gap-y-2'>
           <div
@@ -167,7 +167,7 @@ const ProjectCard = (props: Props) => {
       </div>
       {props.featured ? (
         <>
-          <div className='absolute top-0 hidden w-full h-full rounded opacity-0 tablet:flex -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
+          <div className='absolute top-0 flex w-full h-full rounded -z-10 tablet:group-hover:opacity-100 bg-gradient-to-t from-light/60 to-transparent dark:from-dark/70'></div>
           <Image
             src={props.project.image}
             alt={`${props.project.name} image`}

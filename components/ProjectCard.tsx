@@ -111,9 +111,9 @@ const ProjectCard = (props: Props) => {
             />
           </div>
           <div className='flex flex-col gap-y-1'>
-            <h3 className='flex items-center font-medium whitespace-nowrap text-title group-hover:gap-x-2 gap-x-1 font-display dark:text-dark-headlines text-light-headlines'>
+            <h3 className='flex items-center font-medium whitespace-nowrap text-title group-hover:gap-x-2 gap-x-1 font-display text-dark-headlines'>
               {props.project.name}
-              <MdArrowForward className='duration-[0ms] dark:text-dark-headlines h-5 w-5 text-light-headlines' />
+              <MdArrowForward className='duration-[0ms] text-dark-headlines h-5 w-5' />
             </h3>
             <p className='text tablet:hidden dark:text-dark-text text-light-text'>
               {truncateString(props.project.description, 47)}

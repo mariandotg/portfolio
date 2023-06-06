@@ -100,10 +100,16 @@ const ProjectCard = (props: Props) => {
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
     >
-      <div
-        className={`flex flex-col z-10 w-full h-full justify-end tablet:p-4 tablet:translate-y-[40px] tablet:group-hover:translate-y-0 cursor-pointer gap-y-4 group dark:text-dark-text text-light-text`}
-      >
+      <div className='flex flex-col z-10 w-full h-full tablet:p-4 justify-end tablet:translate-y-[40px] tablet:group-hover:translate-y-0 cursor-pointer gap-y-4 group dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>
+          <div className='relative w-full h-[135px] mobile:h-[100px] tablet:hidden'>
+            <Image
+              src={props.project.image}
+              alt={`${props.project.name} image`}
+              className='absolute flex object-cover w-full rounded tablet:hidden'
+              fill={true}
+            />
+          </div>
           <div className='flex flex-col gap-y-1'>
             <h3 className='flex items-center font-medium whitespace-nowrap text-title group-hover:gap-x-2 gap-x-1 font-display dark:text-dark-headlines text-light-headlines'>
               {props.project.name}
@@ -128,11 +134,11 @@ const ProjectCard = (props: Props) => {
           )}
         </div>
       </div>
-      <div className='absolute top-0 w-full h-full rounded opacity-0 -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
+      <div className='absolute top-0 hidden w-full h-full rounded opacity-0 tablet:flex -z-10 tablet:group-hover:opacity-100 bg-light/60 dark:bg-dark/70'></div>
       <Image
         src={props.project.image}
         alt={`${props.project.name} image`}
-        className='absolute flex object-cover w-full rounded -z-20'
+        className='absolute hidden object-cover w-full rounded tablet:flex -z-20'
         fill={true}
       />
     </Link>

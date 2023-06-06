@@ -19,5 +19,8 @@
         "/": "Portfolio", 
         "/projects": "Projects", 
         "/blog": "Blog"
+    },
+    "latestArticles": {
+        "notFound": "We couldn't get the latest articles published :("
     }
 }

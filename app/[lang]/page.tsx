@@ -14,10 +14,10 @@ import { Article } from '@/models/domain/Article';
 import { Project } from '@/models/domain/Project';
 import ArticleCard from '@/components/ArticleCard';
 
-import headerPic from '../[lang]/../../public/public/header-web.webp';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { PageSeo } from '@/models/PageSeo';
 import { Metadata } from 'next';
+import { getDictionary } from './dictionaries';
 
 interface Props {
   params: {
@@ -71,7 +71,8 @@ const HomePage = async ({ params }: Props) => {
   data.featuredProjects.content.projects = projects;
   data.latestArticles.content.articles = articles;
 
-  console.log('social', social);
+  const dict = await getDictionary(params.lang);
+
   const projectCardsStyles: ProjectCardsStyles = {
     '0': 'tablet:col-span-1 tablet:row-span-2',
     '1': 'tablet:h-[200px]',
@@ -217,22 +218,28 @@ const HomePage = async ({ params }: Props) => {
           </SectionTitle>
           <div className='flex w-full snap-x tablet:col-span-3'>
             <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
-              {data.latestArticles.content.articles.map((article, index) => (
-                <li
-                  key={article.id}
-                  className={`cursor-pointer group ${
-                    index === 0
-                      ? 'mobile:col-span-2 tablet:col-span-1'
-                      : 'mobile:col-span-1'
-                  }`}
-                >
-                  <ArticleCard
-                    article={article}
-                    path={`${params.lang}/blog/${article.path}`}
-                    locale={params.lang}
-                  />
-                </li>
-              ))}
+              {data.latestArticles.content.articles.length !== 0 ? (
+                data.latestArticles.content.articles.map((article, index) => (
+                  <li
+                    key={article.id}
+                    className={`cursor-pointer group ${
+                      index === 0
+                        ? 'mobile:col-span-2 tablet:col-span-1'
+                        : 'mobile:col-span-1'
+                    }`}
+                  >
+                    <ArticleCard
+                      article={article}
+                      path={`${params.lang}/blog/${article.path}`}
+                      locale={params.lang}
+                    />
+                  </li>
+                ))
+              ) : (
+                <p className='col-span-1 dark:text-dark-text text-light-text'>
+                  {dict.latestArticles.notFound}
+                </p>
+              )}
             </ul>
           </div>
         </Section>

@@ -19,5 +19,8 @@
         "/": "Portafolio", 
         "/projects": "Proyectos", 
         "/blog": "Blog"
+    },
+    "latestArticles": {
+        "notFound": "No pudimos obtener los articulos más recientes publicados, lo sentimos :("
     }
 }

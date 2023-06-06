@@ -226,7 +226,11 @@ const HomePage = async ({ params }: Props) => {
                       : 'mobile:col-span-1'
                   }`}
                 >
-                  <ArticleCard article={article} locale={params.lang} />
+                  <ArticleCard
+                    article={article}
+                    path={`${params.lang}/blog/${article.path}`}
+                    locale={params.lang}
+                  />
                 </li>
               ))}
             </ul>

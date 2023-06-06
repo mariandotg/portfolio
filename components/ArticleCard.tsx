@@ -8,16 +8,13 @@ import useDate from '@/hooks/useDate';
 interface Props {
   article: Article;
   locale: string;
+  path: string;
 }
 
-const ArticleCard = ({ article, locale }: Props) => {
+const ArticleCard = ({ article, locale, path }: Props) => {
   const { formattedDate } = useDate(new Date(article.date.start!));
-
   return (
-    <Link
-      href={`${locale}/blog/${article.path}`}
-      className='flex flex-col gap-y-2'
-    >
+    <Link href={path} className='flex flex-col gap-y-2'>
       <span className='font-light text-secondary text-light-text dark:text-dark-text'>
         {formattedDate[locale]}
       </span>

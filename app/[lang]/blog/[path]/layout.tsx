@@ -36,7 +36,7 @@ const ArticleLayout = async ({
   );
 
   const latestArticlesResponse: Article[] = await latestArticlesFetch.json();
-
+  console.log('layout lang', params.lang);
   return (
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
@@ -69,7 +69,11 @@ const ArticleLayout = async ({
                     : 'mobile:col-span-1'
                 }`}
               >
-                <ArticleCard article={article} locale={params.lang} />
+                <ArticleCard
+                  article={article}
+                  path={article.path}
+                  locale={params.lang}
+                />
               </li>
             ))}
           </ul>

@@ -152,7 +152,7 @@ const ProjectCard = (props: Props) => {
           ref={containerRef}
         >
           {displayedTags.map((tag, index) => (
-            <SkillItem key={tag.id} skill={tag.name} />
+            <SkillItem key={tag.id} skill={tag.name} variant='mono' />
           ))}
           {restTags !== 0 && (
             <span className='h-[24px] w-[24px] flex justify-center items-center rounded-[50px] bg-light-text dark:bg-dark-text text-dark-headlines dark:text-light-headlines font-medium text-[12px]'>

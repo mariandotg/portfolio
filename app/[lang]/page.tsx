@@ -173,9 +173,9 @@ const HomePage = async ({ params }: Props) => {
                     {skillCard.title}
                   </h3>
                   <div className='flex flex-wrap gap-2'>
-                    {skillCard.skills.map((skill, index) => {
-                      return <SkillItem key={index} skill={skill} />;
-                    })}
+                    {skillCard.skills.map((skill, index) => (
+                      <SkillItem key={index} skill={skill} variant='base' />
+                    ))}
                   </div>
                 </div>
               );

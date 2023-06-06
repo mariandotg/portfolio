@@ -21,6 +21,9 @@
         "/blog": "Blog"
     },
     "latestArticles": {
-        "notFound": "No pudimos obtener los articulos más recientes publicados, lo sentimos :("
+        "notFound": "No pudimos obtener los articulos más recientes publicados"
+    },
+    "blog": {
+        "notFound": "No pudimos obtener los articulos publicados"
     }
 }

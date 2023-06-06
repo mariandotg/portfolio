@@ -1,6 +1,7 @@
 import { projectsAdapter } from '@/adapters/projectsAdapter';
 import { CompoundFilterObj } from '@/models/notion/Filters';
 import { getPageData } from '@/services/notion';
+import { notFound } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -35,5 +36,7 @@ export async function GET(request: NextRequest) {
     { seo: true, properties: { adapter: projectsAdapter }, content: true }
   );
 
-  return NextResponse.json(projectResponse);
+  return projectResponse === false
+    ? notFound()
+    : NextResponse.json(projectResponse);
 }

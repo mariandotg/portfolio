@@ -1,4 +1,3 @@
-import { articlesAdapter } from '@/adapters/articlesAdapter';
 import { notionDataAdapter } from '@/adapters/notionDataAdapter';
 import { pageSeoAdapter } from '@/adapters/pageSeoAdapter';
 import { FilterObj, CompoundFilterObj } from '@/models/notion/Filters';
@@ -46,28 +45,30 @@ export const getPageData = async (
   const { seo, content, properties } = notionPageConfigObject;
   const resultado: any = {};
 
-  const response: NotionClientQueryResponse = await client.databases.query({
-    database_id: notionConfig.databaseId,
-    filter: notionConfig.filter,
-  });
+  try {
+    const response: NotionClientQueryResponse = await client.databases.query({
+      database_id: notionConfig.databaseId,
+      filter: notionConfig.filter,
+    });
+    const page = notionDataAdapter(response);
 
-  const page = notionDataAdapter(response);
+    if (seo) {
+      const seoResponse = pageSeoAdapter(page[0]);
+      resultado.seo = seoResponse;
+    }
 
-  if (seo) {
-    const seoResponse = pageSeoAdapter(page[0]);
-    resultado.seo = seoResponse;
+    if (content) {
+      const mdblocks = await n2m.pageToMarkdown(page[0].id);
+      const mdString = n2m.toMarkdownString(mdblocks);
+      resultado.content = mdString;
+    }
+
+    if (properties) {
+      const propertiesResponse = properties.adapter(page)[0];
+      resultado.properties = propertiesResponse;
+      return resultado;
+    }
+  } catch {
+    return false;
   }
-
-  if (content) {
-    const mdblocks = await n2m.pageToMarkdown(page[0].id);
-    const mdString = n2m.toMarkdownString(mdblocks);
-    resultado.content = mdString;
-  }
-
-  if (properties) {
-    const propertiesResponse = properties.adapter(page)[0];
-    resultado.properties = propertiesResponse;
-  }
-
-  return resultado;
 };

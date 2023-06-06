@@ -194,11 +194,11 @@ const HomePage = async ({ params }: Props) => {
                 className='relative flex flex-col pl-4 tablet:grid gap-y-2 tablet:grid-cols-3 tablet:pl-0 tablet:gap-4'
               >
                 <div className='relative tablet:col-span-1'>
-                  <span className='mr-2 text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[8px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary'>
+                  <span className='tablet:mr-2 text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[8px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary'>
                     {jobCard.period}
                   </span>
                 </div>
-                <div className='ml-2 flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-2 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
+                <div className='tablet:ml-2 flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-2 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
                   <h3 className='flex font-medium text gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
                     {jobCard.position} - {jobCard.company}
                   </h3>

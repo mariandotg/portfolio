@@ -84,7 +84,7 @@ const HomePage = async ({ params }: Props) => {
       <PageLayout>
         <Section>
           <div className='flex flex-col col-span-3 gap-y-4 mt-36'>
-            <div className='flex flex-col gap-y-2'>
+            <div className='flex items-center gap-x-4'>
               <h1 className='flex italic font-medium text-title text-light-headlines dark:text-dark-headlines font-monospace'>
                 {data.about.title}
               </h1>
@@ -99,7 +99,7 @@ const HomePage = async ({ params }: Props) => {
                     >
                       <Icon
                         value={social.icon.toLocaleLowerCase()}
-                        className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
+                        className='h-5 w-5 duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
                       />
                     </a>
                   </li>
@@ -165,7 +165,7 @@ const HomePage = async ({ params }: Props) => {
                       : 'mobile:col-span-1'
                   }`}
                 >
-                  <h3 className='flex items-center font-medium gap-x-2 dark:text-dark-headlines text-title text-light-headlines'>
+                  <h3 className='flex items-center font-medium gap-x-2 dark:text-dark-headlines text text-light-headlines'>
                     <Icon
                       value={skillCard.title.toLocaleLowerCase()}
                       className='duration-[0ms] dark:text-dark-headlines text-light-headlines'
@@ -196,21 +196,14 @@ const HomePage = async ({ params }: Props) => {
                   className='relative flex flex-col pl-4 tablet:grid gap-y-2 tablet:grid-cols-3 tablet:pl-0 tablet:gap-8'
                 >
                   <div className='relative tablet:col-span-1'>
-                    <span
-                      className={`text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[16px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary `}
-                    >
+                    <span className='text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[16px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary'>
                       {jobCard.period}
                     </span>
                   </div>
-                  <div className='flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-2 tablet:col-span-2 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
-                    <div>
-                      <span className='italic font-medium underline underline-offset-2 text font-monospace text-light-text dark:text-dark-text'>
-                        {jobCard.company}
-                      </span>
-                      <h3 className='flex font-medium text-title gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
-                        {jobCard.position}
-                      </h3>
-                    </div>
+                  <div className='flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-2 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
+                    <h3 className='flex font-medium text gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
+                      {jobCard.position} - {jobCard.company}
+                    </h3>
                     <p className='text text-light-text dark:text-dark-text'>
                       {jobCard.responsabilities}
                     </p>

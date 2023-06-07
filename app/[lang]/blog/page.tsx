@@ -58,7 +58,7 @@ const BlogPage = async ({ params }: Props) => {
                     >
                       <ArticleCard
                         article={article}
-                        path={`blog/${article.path}`}
+                        path={`${params.lang}/blog/${article.path}`}
                         locale={params.lang}
                       />
                     </li>

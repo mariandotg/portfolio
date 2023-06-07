@@ -2,6 +2,7 @@ import { pageContentAdapter } from '@/adapters/pageContentAdapter';
 import { IPage } from '@/models/contentful/generated/contentful';
 import { getContentfulData } from '@/services/contentful';
 import { getPageData } from '@/services/notion';
+import { notFound } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -41,5 +42,5 @@ export async function GET(request: NextRequest) {
     { seo: true }
   );
 
-  return NextResponse.json({ ...data, ...seo });
+  return seo === false ? notFound() : NextResponse.json({ ...data, ...seo });
 }

@@ -57,7 +57,7 @@ const ArticleLayout = async ({
               >
                 <ArticleCard
                   article={article}
-                  path={`blog/${article.path}`}
+                  path={article.path}
                   locale={params.lang}
                 />
               </li>

@@ -2,7 +2,6 @@ import React from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/models/domain/Project';
-import SectionTitle from '@/components/SectionTitle';
 import Section from '@/components/Section';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';

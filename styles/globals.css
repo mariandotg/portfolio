@@ -5,11 +5,14 @@
 @tailwind utilities;
 
 * {
-  @apply ease-in-out duration-300 text
+  @apply ease-in-out duration-300 text;
 }
 
+html {
+  @apply h-full;
+}
 body {
-  @apply font-display bg-light dark:bg-dark overflow-x-hidden;
+  @apply font-display bg-light h-full w-full dark:bg-dark overflow-x-hidden;
 }
 
 ::-webkit-scrollbar {

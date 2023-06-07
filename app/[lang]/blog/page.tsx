@@ -3,7 +3,6 @@ import PageLayout from '../../../components/PageLayout';
 import { PageSeo } from '@/models/PageSeo';
 import { Article } from '@/models/domain/Article';
 import Section from '@/components/Section';
-import SectionTitle from '@/components/SectionTitle';
 import ArticleCard from '@/components/ArticleCard';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';

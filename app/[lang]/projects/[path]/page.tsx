@@ -10,7 +10,7 @@ import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: {
@@ -31,9 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     { cache: 'no-cache' }
   );
 
-  console.log(projectFetch);
   if (!projectFetch.ok) {
-    return notFound();
+    return redirect(`../../${params.lang}/projects/not-found`);
   }
 
   const projectResponse: ProjectData = await projectFetch.json();
@@ -48,7 +47,7 @@ const ProjectPage = async ({ params }: Props) => {
   );
 
   if (!projectFetch.ok) {
-    return notFound();
+    return redirect(`../../${params.lang}/projects/not-found`);
   }
 
   const projectResponse: ProjectData = await projectFetch.json();

@@ -7,7 +7,9 @@
     },
     "project": {
         "repository": "Repository",
-        "live": "Live site"
+        "live": "Live site",
+        "notFound": "This project doesn't exist",
+        "seoNotFound": "Project not found"
     },
     "footer": {
         "emailCta": "Rather write me an email?",
@@ -25,5 +27,9 @@
     },
     "blog": {
         "notFound": "We couldn't get the published articles"
+    },
+    "article": {
+        "notFound": "This article doesn't exist",
+        "seoNotFound": "Article not found"
     }
 }

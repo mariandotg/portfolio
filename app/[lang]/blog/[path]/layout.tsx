@@ -5,13 +5,6 @@ import ArticleCard from '@/components/ArticleCard';
 import PageLayout from '@/components/PageLayout';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
-import Image from 'next/image';
-
-interface ArticleData {
-  content: { parent: string };
-  seo: Omit<PageSeo, 'loading'>;
-  properties: Article;
-}
 
 const ArticleLayout = async ({
   children,
@@ -23,20 +16,13 @@ const ArticleLayout = async ({
     path: string;
   };
 }) => {
-  const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
-    { cache: 'no-cache' }
-  );
-
-  const articleResponse: ArticleData = await articleFetch.json();
-
   const latestArticlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
     { cache: 'no-cache' }
   );
 
   const latestArticlesResponse: Article[] = await latestArticlesFetch.json();
-  console.log('layout lang', params.lang);
+
   return (
     <PageLayout>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
@@ -57,7 +43,7 @@ const ArticleLayout = async ({
               >
                 <ArticleCard
                   article={article}
-                  path={`blog/${article.path}`}
+                  path={`${params.lang}/blog/${article.path}`}
                   locale={params.lang}
                 />
               </li>

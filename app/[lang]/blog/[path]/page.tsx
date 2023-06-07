@@ -10,6 +10,7 @@ import { getDictionary } from '../../dictionaries';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import Image from 'next/image';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: {
@@ -30,6 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     { cache: 'no-cache' }
   );
 
+  if (!articleFetch.ok) {
+    return redirect(`../../${params.lang}/blog/not-found`);
+  }
+
   const articleResponse: ArticleData = await articleFetch.json();
 
   return metadataAdapter(articleResponse.seo);
@@ -40,6 +45,10 @@ const ArticlePage = async ({ params }: Props) => {
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
     { cache: 'no-cache' }
   );
+
+  if (!articleFetch.ok) {
+    return redirect(`../../${params.lang}/blog/not-found`);
+  }
 
   const articleResponse: ArticleData = await articleFetch.json();
 

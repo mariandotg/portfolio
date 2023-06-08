@@ -17,6 +17,7 @@ const n2m = new NotionToMarkdown({ notionClient: client });
 interface NotionConfig {
   databaseId: string;
   filter: FilterObj<{ [key: string]: unknown }> | CompoundFilterObj;
+  pageSize: number;
 }
 
 export const queryDatabase = cache(
@@ -24,6 +25,7 @@ export const queryDatabase = cache(
     const response: NotionClientQueryResponse = await client.databases.query({
       database_id: notionConfig.databaseId,
       filter: notionConfig.filter,
+      page_size: notionConfig.pageSize,
     });
 
     return notionDataAdapter(response);
@@ -49,6 +51,7 @@ export const getPageData = async (
     const response: NotionClientQueryResponse = await client.databases.query({
       database_id: notionConfig.databaseId,
       filter: notionConfig.filter,
+      pageSize: notionConfig.pageSize,
     });
     const page = notionDataAdapter(response);
 

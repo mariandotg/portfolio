@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     {
       databaseId,
       filter: articleFilter,
+      pageSize: 1,
     },
     { seo: true, properties: { adapter: articlesAdapter }, content: true }
   );

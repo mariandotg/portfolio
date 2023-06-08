@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
   const articlesResponse = await queryDatabase({
     databaseId,
     filter: latestArticlesFilter,
+    pageSize: 3,
   });
 
   const articles = articlesAdapter(articlesResponse);

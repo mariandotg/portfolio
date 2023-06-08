@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
   const projectsResponse = await queryDatabase({
     databaseId,
     filter: projectsFilter,
+    pageSize: 10,
   });
 
   const projects = projectsAdapter(projectsResponse);

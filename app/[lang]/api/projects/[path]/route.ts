@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     {
       databaseId,
       filter: projectFilter,
+      pageSize: 1,
     },
     { seo: true, properties: { adapter: projectsAdapter }, content: true }
   );

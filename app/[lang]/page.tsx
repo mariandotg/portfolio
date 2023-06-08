@@ -55,7 +55,7 @@ const HomePage = async ({ params }: Props) => {
   );
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { next: { revalidate: 3600 } }
+    { next: { revalidate: 86400 } }
   );
   const projectsFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`,

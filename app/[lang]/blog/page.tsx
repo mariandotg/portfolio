@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const BlogPage = async ({ params }: Props) => {
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   const articlesResponse: { articles: Article[] } = await articlesFetch.json();

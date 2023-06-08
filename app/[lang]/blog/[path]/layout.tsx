@@ -18,7 +18,7 @@ const ArticleLayout = async ({
 }) => {
   const latestArticlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   const latestArticlesResponse: Article[] = await latestArticlesFetch.json();

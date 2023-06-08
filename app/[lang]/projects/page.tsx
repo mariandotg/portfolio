@@ -24,7 +24,7 @@ interface ArticleData {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/projects`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   const articleResponse: ArticleData = await articleFetch.json();
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const ProjectsPage = async ({ params }: Props) => {
   const projectsFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   const projectsResponse: { projects: Project[] } = await projectsFetch.json();

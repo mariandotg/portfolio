@@ -28,7 +28,7 @@ interface ArticleData {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const articleFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   if (!articleFetch.ok) {
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const ArticlePage = async ({ params }: Props) => {
   const articleFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/${params.path}`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
 
   if (!articleFetch.ok) {

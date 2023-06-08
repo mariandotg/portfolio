@@ -36,7 +36,7 @@ interface ProjectCardsStyles {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
 
   const homeResponse: HomeData = await homeFetch.json();
@@ -46,18 +46,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const HomePage = async ({ params }: Props) => {
   const dataFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
+    { cache: 'force-cache' }
   );
   const socialFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 86400 } }
   );
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { cache: 'no-cache' }
+    { next: { revalidate: 3600 } }
   );
   const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`,
+    { cache: 'force-cache' }
   );
 
   const data: PageContentSections = await dataFetch.json();

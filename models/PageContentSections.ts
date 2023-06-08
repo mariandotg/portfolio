@@ -7,6 +7,7 @@ import {
   ContactContent,
 } from '@/models/domain/FormattedData/FormattedContent';
 import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection';
+import { PageSeo } from './PageSeo';
 
 export interface PageContentSections {
   about: FormattedSection<AboutContent>;
@@ -15,7 +16,5 @@ export interface PageContentSections {
   jobExperience: FormattedSection<JobsContent>;
   latestArticles: FormattedSection<ArticlesContent>;
   contact: FormattedSection<ContactContent>;
-  blog: {
-    parent: string;
-  };
+  seo: Omit<PageSeo, 'loading'>;
 }

@@ -14,7 +14,6 @@ import { Project } from '@/models/domain/Project';
 import ArticleCard from '@/components/ArticleCard';
 
 import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { PageSeo } from '@/models/PageSeo';
 import { Metadata } from 'next';
 import { getDictionary } from './dictionaries';
 
@@ -23,10 +22,6 @@ interface Props {
     lang: string;
     path: string;
   };
-}
-
-interface HomeData extends PageContentSections {
-  seo: Omit<PageSeo, 'loading'>;
 }
 
 interface ProjectCardsStyles {
@@ -39,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     { cache: 'force-cache' }
   );
 
-  const homeResponse: HomeData = await homeFetch.json();
+  const homeResponse: PageContentSections = await homeFetch.json();
 
   return metadataAdapter(homeResponse.seo);
 }

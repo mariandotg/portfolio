@@ -102,7 +102,7 @@ const ProjectCard = (props: Props) => {
       } relative group border rounded border-transparent mobile:col-span-1 overflow-hidden mobile:gap-4 ${
         props.featured
           ? 'tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover'
-          : ''
+          : 'tablet:col-span-2'
       }`}
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
@@ -173,6 +173,8 @@ const ProjectCard = (props: Props) => {
             alt={`${props.project.name} image`}
             className='absolute hidden object-cover w-full rounded tablet:flex -z-20'
             fill={true}
+            placeholder='blur'
+            blurDataURL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAIAAADzBuo/AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASSURBVBhXY3gro4IHDZy0jAoA9QM6yzHo/PoAAAAASUVORK5CYII='
           />
         </>
       ) : null}

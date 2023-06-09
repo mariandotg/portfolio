@@ -1,21 +1,19 @@
 import PageLayout from '../../components/PageLayout';
-
 import { MdArrowOutward } from 'react-icons/md';
 import Button from '../../components/Button';
 import Icon from '../../components/Icon';
 import Section from '../../components/Section';
-import ProjectCard from '../../components/ProjectCard';
 import SectionTitle from '../../components/SectionTitle';
 import SkillItem from '../../components/SkillItem';
 import { PageContentSections } from '@/models/PageContentSections';
 import { PageSocial } from '@/models/PageSocial';
 import { Article } from '@/models/domain/Article';
-import { Project } from '@/models/domain/Project';
 import ArticleCard from '@/components/ArticleCard';
 
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import { getDictionary } from './dictionaries';
+import FeaturedProjects from '@/components/FeaturedProjects';
 
 interface Props {
   params: {
@@ -24,14 +22,10 @@ interface Props {
   };
 }
 
-interface ProjectCardsStyles {
-  [index: number]: string;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'force-cache' }
+    { cache: 'no-cache' }
   );
 
   const homeResponse: PageContentSections = await homeFetch.json();
@@ -42,37 +36,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const HomePage = async ({ params }: Props) => {
   const dataFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'force-cache' }
+    { cache: 'no-cache' }
   );
   const socialFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`,
-    { next: { revalidate: 86400 } }
+    { cache: 'no-cache' }
   );
   const articlesFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { next: { revalidate: 86400 } }
-  );
-  const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`,
-    { cache: 'force-cache' }
+    { cache: 'no-cache' }
   );
 
   const data: PageContentSections = await dataFetch.json();
   const social: PageSocial = await socialFetch.json();
   const articles: Article[] = await articlesFetch.json();
-  const projects: Project[] = await projectsFetch.json();
 
-  data.featuredProjects.content.projects = projects;
   data.latestArticles.content.articles = articles;
 
   const dict = await getDictionary(params.lang);
-
-  const projectCardsStyles: ProjectCardsStyles = {
-    '0': 'tablet:col-span-1 tablet:row-span-2',
-    '1': 'tablet:h-[200px]',
-    '2': 'tablet:h-[200px]',
-    '3': 'tablet:col-span-2 tablet:row-span-1 tablet:h-[200px]',
-  };
 
   return (
     <PageLayout>
@@ -129,15 +110,8 @@ const HomePage = async ({ params }: Props) => {
           {data.featuredProjects.title}
         </SectionTitle>
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-2'>
-          {data.featuredProjects.content.projects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              locale={params.lang}
-              className={projectCardsStyles[index]}
-              featured={true}
-            />
-          ))}
+          {/* @ts-expect-error Async Server Component */}
+          <FeaturedProjects params={params} />
         </div>
       </Section>
 

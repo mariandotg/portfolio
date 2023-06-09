@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://github.com/mariandotg",
+    "icon": "github",
+    "alt": "Github",
+    "slug": "github",
+    "id": "1CR7ny5PrjeooLsW4wMeRf"
+  },
+  {
+    "url": "https://www.linkedin.com/in/marianoguillaume/",
+    "icon": "linkedin",
+    "alt": "Linkedin",
+    "slug": "linkedin",
+    "id": "7uPSh3qAuyj8SrDaKo5PTp"
+  },
+  {
+    "url": "https://twitter.com/mguillaume06",
+    "icon": "twitter",
+    "alt": "Twitter",
+    "slug": "twitter",
+    "id": "1jOEdXrFkn35e2UcwRARsp"
+  }
+]

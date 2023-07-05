@@ -8,21 +8,22 @@ import { Tag } from '@/models/domain/Tag';
 import SkillItem from './SkillItem';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
-interface Props {
-  project: Project;
+export interface ProjectCardProps {
+  project?: Project;
   className?: string;
   locale: string;
   featured: boolean;
 }
 
-const ProjectCard = (props: Props) => {
+const ProjectCard = (props: ProjectCardProps) => {
+  if (!props.project)
+    return <div className='bg-tertiary animate-pulse'>test placeholder</div>;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [restTags, setRestTags] = useState(0);
   const [numMaxTags, setNumMaxTags] = useState(0);
   const [displayedTags, setDisplayedTags] = useState<Tag[]>(props.project.tags);
-  const pathname = usePathname();
 
   const truncateString = (string: string, maxLength: number) => {
     if (string.length >= maxLength) {
@@ -91,8 +92,8 @@ const ProjectCard = (props: Props) => {
   }, [containerRef, setNumMaxTags]);
 
   useEffect(() => {
-    setDisplayedTags(props.project.tags.slice(0, numMaxTags));
-    setRestTags(props.project.tags.length - numMaxTags);
+    setDisplayedTags(props.project!.tags.slice(0, numMaxTags));
+    setRestTags(props.project!.tags.length - numMaxTags);
   }, [props.project.tags, numMaxTags]);
 
   return (

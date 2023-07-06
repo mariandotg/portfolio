@@ -52,7 +52,63 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
     <PageLayout>
       <Section>
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-2 tablet:gap-4'>
-          <Suspense fallback={<div>Cargando...</div>}>
+          <Suspense
+            fallback={
+              <div className='flex flex-col tablet:col-span-2 gap-y-4'>
+                <div className='flex flex-col gap-y-4'>
+                  <div className='flex flex-col col-span-2 gap-y-2'>
+                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
+                    <div className='flex flex-col col-span-2 gap-y-1'>
+                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
+                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
+                    </div>
+                  </div>
+                  <div className='flex gap-x-1'>
+                    {[...Array(5).keys()].map((item) => (
+                      <div
+                        key={item}
+                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+                <div className='flex flex-col gap-y-4'>
+                  <div className='flex flex-col col-span-2 gap-y-2'>
+                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
+                    <div className='flex flex-col col-span-2 gap-y-1'>
+                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
+                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
+                    </div>
+                  </div>
+                  <div className='flex gap-x-1'>
+                    {[...Array(5).keys()].map((item) => (
+                      <div
+                        key={item}
+                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+                <div className='flex flex-col gap-y-4'>
+                  <div className='flex flex-col col-span-2 gap-y-2'>
+                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
+                    <div className='flex flex-col col-span-2 gap-y-1'>
+                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
+                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
+                    </div>
+                  </div>
+                  <div className='flex gap-x-1'>
+                    {[...Array(5).keys()].map((item) => (
+                      <div
+                        key={item}
+                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            }
+          >
             {/* @ts-expect-error Async Server Component */}
             <CustomCard
               lang={params.lang}

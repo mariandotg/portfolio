@@ -1,8 +1,7 @@
 'use client';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { Project } from '@/models/domain/Project';
 import { ProjectCardProps } from './ProjectCard';
-import { useSearchParams } from 'next/navigation';
 
 interface Props {
   lang: string;
@@ -11,15 +10,25 @@ interface Props {
   fallback: ReactNode;
 }
 
-const CustomCard = ({ children, iterableArray, fallback }: Props) => {
+const CustomCard = async ({
+  children,
+  iterableArray,
+  fallback,
+  lang,
+}: Props) => {
+  const [projects, setProjects] = useState<Project[]>([]);
   const validChildren = React.Children.toArray(children).filter(
     Boolean
   ) as React.ReactElement<ProjectCardProps>[];
 
+  useEffect(() => {
+    setProjects(iterableArray);
+  }, [iterableArray]);
+
   return (
     <>
-      {iterableArray.length !== 0
-        ? iterableArray.map((project) =>
+      {projects.length !== 0
+        ? projects.map((project) =>
             React.cloneElement(validChildren[0], {
               key: project.id,
               project,

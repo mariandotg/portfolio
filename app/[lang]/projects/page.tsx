@@ -52,22 +52,24 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
     <PageLayout>
       <Section>
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-2 tablet:gap-4'>
-          {/* @ts-expect-error Async Server Component */}
-          <CustomCard
-            lang={params.lang}
-            iterableArray={projectsResponse.projects}
-            fallback={
-              <p className='col-span-1 dark:text-dark-text text-light-text'>
-                No se encontró proyectos que cumplan con el filtro ingresado
-              </p>
-            }
-          >
-            <ProjectCard
-              className='mobile:col-span-1'
-              locale={params.lang}
-              featured={false}
-            />
-          </CustomCard>
+          <Suspense fallback={<div>Cargando...</div>}>
+            {/* @ts-expect-error Async Server Component */}
+            <CustomCard
+              lang={params.lang}
+              iterableArray={projectsResponse.projects}
+              fallback={
+                <p className='col-span-1 dark:text-dark-text text-light-text'>
+                  No se encontró proyectos que cumplan con el filtro ingresado
+                </p>
+              }
+            >
+              <ProjectCard
+                className='mobile:col-span-1'
+                locale={params.lang}
+                featured={false}
+              />
+            </CustomCard>
+          </Suspense>
         </div>
 
         <div className='sidebar'>

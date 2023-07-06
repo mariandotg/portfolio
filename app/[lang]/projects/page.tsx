@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/models/domain/Project';
@@ -52,6 +52,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
     <PageLayout>
       <Section>
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-2 tablet:gap-4'>
+          {/* @ts-expect-error Async Server Component */}
           <CustomCard
             lang={params.lang}
             iterableArray={projectsResponse.projects}

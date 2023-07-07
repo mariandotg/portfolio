@@ -16,8 +16,14 @@ const FilterByTag = ({}: Props) => {
     { label: 'Tailwindcss', value: 'Tailwindcss', added: false },
     { label: 'Styled-components', value: 'Styled-components', added: false },
   ]);
+  const [forceUpdate, setForceUpdate] = useState(false);
+
   const pathname = usePathname();
   const router = useRouter();
+
+  const updateTags = () => {
+    setForceUpdate((prevState) => !prevState);
+  };
 
   const updateSearchParams = (params: string) => {
     setTags((prev) => {
@@ -29,14 +35,17 @@ const FilterByTag = ({}: Props) => {
         newTags.delete(params);
       }
 
+      updateTags();
       return newTags;
     });
-
-    const searchParams = Array.from(tags).join(',');
-    router.push(
-      tags.size !== 0 ? `${pathname}?tags=${searchParams}` : pathname
-    );
   };
+
+  useEffect(() => {
+    const searchParams = Array.from(tags).join(',');
+    const newSearchParams = tags.size !== 0 ? `?tags=${searchParams}` : '';
+
+    router.push(`${pathname}${newSearchParams}`);
+  }, [tags, updateTags]);
 
   return (
     <div className='sidebar'>

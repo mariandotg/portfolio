@@ -30,7 +30,7 @@ const NavBar = async ({ locale }: Props) => {
           className='absolute flex items-center h-full -translate-x-1/2 left-2/4 w-fit'
         >
           <Image
-            src='/public/marianoGuillaume.svg'
+            src='/public/logo-v2-4.svg'
             alt='brand marianoGuillaume logo'
             className='flex mobile:hidden tablet:dark:flex tablet:flex dark:brightness-[200] w-[164px]'
             width={164}

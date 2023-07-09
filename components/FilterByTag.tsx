@@ -1,6 +1,7 @@
 'use client';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { MdClose } from 'react-icons/md';
 
 interface Props {}
 
@@ -38,6 +39,18 @@ const FilterByTag = ({}: Props) => {
       updateTags();
       return newTags;
     });
+    setUiTags((prevTags) => {
+      const updatedTags = prevTags.map((tag, i) => {
+        if (tag.value === params) {
+          return {
+            ...tag,
+            added: !tag.added,
+          };
+        }
+        return tag;
+      });
+      return updatedTags;
+    });
   };
 
   useEffect(() => {
@@ -53,7 +66,9 @@ const FilterByTag = ({}: Props) => {
         {uiTags.map((uiTag) => {
           return (
             <button
-              className={uiTag.added ? 'bg-[#FF0000]' : 'bg-primary'}
+              className={`${
+                uiTag.added ? 'bg-primary text-dark-headlines' : 'text-primary'
+              } px-2 py-1 rounded-[50px] group relative text-secondary border border-primary`}
               onClick={() => updateSearchParams(uiTag.value)}
             >
               {uiTag.label}

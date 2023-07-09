@@ -42,7 +42,7 @@ const BlogPage = async ({ params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col col-span-3 gap-8'>
+        <div className='flex flex-col col-span-4 gap-8'>
           <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
             <div className='flex w-full snap-x tablet:col-span-2'>
               <ul className='flex flex-col w-full gap-y-4'>

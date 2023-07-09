@@ -30,7 +30,7 @@ const ArticleLayout = async ({
       </div>
       <Section>
         <SectionTitle emoji='article'>Latest Articles</SectionTitle>
-        <div className='flex w-full snap-x tablet:col-span-3'>
+        <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {latestArticlesResponse.map((article, index) => (
               <li

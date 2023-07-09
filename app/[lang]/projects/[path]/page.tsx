@@ -63,8 +63,8 @@ const ProjectPage = async ({ params }: Props) => {
 
   return (
     <>
-      <div className='flex flex-col col-span-3 gap-y-2'>
-        <div className='relative h-64 tablet:col-span-3'>
+      <div className='flex flex-col col-span-4 gap-y-2'>
+        <div className='relative h-64 tablet:col-span-4'>
           <Image
             src={projectResponse.properties.image}
             alt={projectResponse.properties.imageAlt}

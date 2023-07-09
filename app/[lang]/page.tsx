@@ -58,7 +58,7 @@ const HomePage = async ({ params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col col-span-3 gap-y-4 mt-36'>
+        <div className='flex flex-col col-span-4 gap-y-4 mt-36'>
           <div className='flex items-center gap-x-4'>
             <h1 className='flex italic font-medium text-title text-light-headlines dark:text-dark-headlines font-monospace'>
               {data.about.title}
@@ -85,7 +85,7 @@ const HomePage = async ({ params }: Props) => {
             {data.about.content.description.text}
           </p>
         </div>
-        <div className='flex flex-col gap-4 tablet:col-start-2 tablet:gap-4 mobile:col-span-2 mobile:grid mobile:grid-cols-2'>
+        <div className='flex flex-col gap-4 tablet:col-start-3 tablet:gap-4 mobile:col-span-2 mobile:grid mobile:grid-cols-2'>
           <Button
             variant={data.about.content.secondaryCta.variant}
             url={data.about.content.secondaryCta.url}
@@ -109,7 +109,7 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.featuredProjects.emoji}>
           {data.featuredProjects.title}
         </SectionTitle>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-2'>
+        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-4 tablet:grid-cols-3 tablet:grid-rows-2'>
           {/* @ts-expect-error Async Server Component */}
           <FeaturedProjects params={params} />
         </div>
@@ -119,10 +119,10 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.skills.emoji}>
           {data.skills.title}
         </SectionTitle>
-        <p className='col-span-3 text text-light-text dark:text-dark-text'>
+        <p className='col-span-4 text text-light-text dark:text-dark-text'>
           {data.skills.content.skillsDescription.text}
         </p>
-        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-3 '>
+        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-4 '>
           {data.skills.content.skillCards.map((skillCard, index) => {
             return (
               <div
@@ -155,7 +155,7 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.jobExperience.emoji}>
           {data.jobExperience.title}
         </SectionTitle>
-        <div className='flex flex-col gap-y-8 relative tablet:col-span-3 tablet:gap-0 border-l-[1px] tablet:border-none border-primary '>
+        <div className='flex flex-col gap-y-8 relative tablet:col-span-4 tablet:gap-0 border-l-[1px] tablet:border-none border-primary '>
           {data.jobExperience.content.jobCards.map((jobCard) => (
             <div
               key={jobCard.id}
@@ -183,7 +183,7 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.latestArticles.emoji}>
           {data.latestArticles.title}
         </SectionTitle>
-        <div className='flex w-full snap-x tablet:col-span-3'>
+        <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {data.latestArticles.content.articles.length !== 0 ? (
               data.latestArticles.content.articles.map((article, index) => (

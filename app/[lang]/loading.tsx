@@ -5,7 +5,7 @@ const Loading = () => {
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col justify-end col-span-3 gap-y-4 mt-36'>
+        <div className='flex flex-col justify-end col-span-4 gap-y-4 mt-36'>
           <div className='flex items-center gap-x-4'>
             <div className='w-64 h-6 rounded bg-tertiary animate-pulse'></div>
             <div className='h-6 rounded aspect-square bg-tertiary animate-pulse'></div>
@@ -30,11 +30,11 @@ const Loading = () => {
       </Section>
 
       <Section>
-        <div className='flex items-center gap-4 tablet:col-span-3'>
+        <div className='flex items-center gap-4 tablet:col-span-4'>
           <div className='h-6 rounded aspect-square bg-tertiary animate-pulse'></div>
           <div className='w-64 h-4 rounded bg-tertiary animate-pulse'></div>
         </div>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:grid-cols-3 tablet:grid-rows-2'>
+        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-4 tablet:grid-cols-3 tablet:grid-rows-2'>
           <span className='col-span-1 h-[135px] tablet:h-full rounded tablet:col-span-1 tablet:row-span-2 bg-tertiary animate-pulse'></span>
           <span className='col-span-1 h-[135px] tablet:h-[200px] rounded bg-tertiary animate-pulse'></span>
           <span className='col-span-1 h-[135px] tablet:h-[200px] rounded bg-tertiary animate-pulse'></span>
@@ -43,18 +43,18 @@ const Loading = () => {
       </Section>
 
       <Section>
-        <div className='flex items-center gap-4 tablet:col-span-3'>
+        <div className='flex items-center gap-4 tablet:col-span-4'>
           <div className='h-6 rounded aspect-square bg-tertiary animate-pulse'></div>
           <div className='w-64 h-4 rounded bg-tertiary animate-pulse'></div>
         </div>
         <div className='h-4 rounded bg-tertiary animate-pulse'></div>
-        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-3 '>
+        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-4 '>
           {[...Array(3).keys()].map((item) => (
             <div
               key={item}
               className='flex flex-col border border-transparent rounded gap-y-2 mobile:col-span-1 tablet:col-span-1'
             >
-              <div className='flex items-center gap-2 tablet:col-span-3'>
+              <div className='flex items-center gap-2 tablet:col-span-4'>
                 <div className='h-4 rounded aspect-square bg-tertiary animate-pulse'></div>
                 <div className='w-32 h-4 rounded bg-tertiary animate-pulse'></div>
               </div>
@@ -69,11 +69,11 @@ const Loading = () => {
       </Section>
 
       <Section>
-        <div className='flex items-center gap-4 tablet:col-span-3'>
+        <div className='flex items-center gap-4 tablet:col-span-4'>
           <div className='h-6 rounded aspect-square bg-tertiary animate-pulse'></div>
           <div className='w-64 h-4 rounded bg-tertiary animate-pulse'></div>
         </div>
-        <div className='flex flex-col gap-y-8 relative tablet:col-span-3 tablet:gap-0 border-l-[1px] tablet:border-none border-primary '>
+        <div className='flex flex-col gap-y-8 relative tablet:col-span-4 tablet:gap-0 border-l-[1px] tablet:border-none border-primary '>
           {[...Array(5).keys()].map((item) => (
             <div
               key={item}
@@ -99,11 +99,11 @@ const Loading = () => {
       </Section>
 
       <Section>
-        <div className='flex items-center gap-4 tablet:col-span-3'>
+        <div className='flex items-center gap-4 tablet:col-span-4'>
           <div className='h-6 rounded aspect-square bg-tertiary animate-pulse'></div>
           <div className='w-64 h-4 rounded bg-tertiary animate-pulse'></div>
         </div>
-        <div className='flex w-full snap-x tablet:col-span-3'>
+        <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {[...Array(3).keys()].map((item) => (
               <li

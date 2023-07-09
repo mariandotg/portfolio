@@ -17,17 +17,10 @@ const NavBar = async ({ locale }: Props) => {
 
   return (
     <header className='border-b-[1px] border-primary bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
-      <nav className='relative flex items-center w-screen tablet:max-w-[1000px] justify-between gap-16'>
-        <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
-          <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
-          <NavLink href={`/${locale}/projects`}>
-            {dict.routes['/projects']}
-          </NavLink>
-          <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
-        </div>
+      <nav className='relative flex items-center w-screen tablet:max-w-[1000px] justify-end gap-16'>
         <Link
           href={`/${locale}`}
-          className='absolute flex items-center h-full -translate-x-1/2 left-2/4 w-fit'
+          className='absolute left-0 flex items-center h-full w-fit'
         >
           <Image
             src='/public/logo-v2-4.svg'
@@ -44,13 +37,20 @@ const NavBar = async ({ locale }: Props) => {
             height={23}
           />
         </Link>
-        <HamburgerMenu locale={locale} />
-        <div className='relative flex items-center gap-2'>
-          <div className='hidden mobile:flex'>
-            <LangSelector locale={locale} />
+        <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
+          <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
+          <NavLink href={`/${locale}/projects`}>
+            {dict.routes['/projects']}
+          </NavLink>
+          <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
+          <HamburgerMenu locale={locale} />
+          <div className='relative flex items-center gap-2'>
+            <div className='hidden mobile:flex'>
+              <LangSelector locale={locale} />
+            </div>
+            <ThemeButton />
+            <ToTopButton />
           </div>
-          <ThemeButton />
-          <ToTopButton />
         </div>
       </nav>
     </header>

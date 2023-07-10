@@ -25,10 +25,8 @@ const FeaturedProjects = async ({ params }: Props) => {
     '1': 'tablet:h-[200px]',
     '2': 'tablet:col-span-2 tablet:h-[200px]',
     '3': 'tablet:col-span-2 tablet:row-span-1 tablet:h-[200px]',
-    '4': '',
   };
 
-  data.push(data[3]);
   return data.map((project, index) => (
     <ProjectCard
       key={project.id}

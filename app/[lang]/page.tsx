@@ -112,6 +112,7 @@ const HomePage = async ({ params }: Props) => {
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-4 tablet:grid-cols-4 tablet:grid-rows-2'>
           {/* @ts-expect-error Async Server Component */}
           <FeaturedProjects params={params} />
+          <Button variant='tertiary'>See all my projects</Button>
         </div>
       </Section>
 
@@ -122,16 +123,12 @@ const HomePage = async ({ params }: Props) => {
         <p className='col-span-4 text text-light-text dark:text-dark-text'>
           {data.skills.content.skillsDescription.text}
         </p>
-        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-4 '>
+        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-4 tablet:col-span-4 '>
           {data.skills.content.skillCards.map((skillCard, index) => {
             return (
               <div
                 key={skillCard.id}
-                className={`flex flex-col border border-transparent rounded gap-y-2 ${
-                  index === data.skills.content.skillCards.length - 1
-                    ? 'mobile:col-span-2 tablet:col-span-1'
-                    : 'mobile:col-span-1'
-                }`}
+                className={`flex flex-col border border-transparent rounded gap-y-2 mobile:col-span-1`}
               >
                 <h3 className='flex items-center font-medium gap-x-2 dark:text-dark-headlines text text-light-headlines'>
                   <Icon
@@ -148,6 +145,7 @@ const HomePage = async ({ params }: Props) => {
               </div>
             );
           })}
+          <Button variant='tertiary'>Download my cv</Button>
         </div>
       </Section>
 
@@ -159,14 +157,14 @@ const HomePage = async ({ params }: Props) => {
           {data.jobExperience.content.jobCards.map((jobCard) => (
             <div
               key={jobCard.id}
-              className='relative flex flex-col pl-4 tablet:grid gap-y-2 tablet:grid-cols-3 tablet:pl-0 tablet:gap-4'
+              className='relative flex flex-col pl-4 tablet:grid gap-y-2 tablet:grid-cols-4 tablet:pl-0 tablet:gap-4'
             >
               <div className='relative tablet:col-span-1'>
                 <span className='tablet:mr-2 text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[8px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary'>
                   {jobCard.period}
                 </span>
               </div>
-              <div className='tablet:ml-2 flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-2 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
+              <div className='tablet:ml-2 flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-3 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
                 <h3 className='flex font-medium text gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
                   {jobCard.position} - {jobCard.company}
                 </h3>
@@ -184,7 +182,7 @@ const HomePage = async ({ params }: Props) => {
           {data.latestArticles.title}
         </SectionTitle>
         <div className='flex w-full snap-x tablet:col-span-4'>
-          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
+          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-4'>
             {data.latestArticles.content.articles.length !== 0 ? (
               data.latestArticles.content.articles.map((article, index) => (
                 <li
@@ -207,6 +205,7 @@ const HomePage = async ({ params }: Props) => {
                 {dict.latestArticles.notFound}
               </p>
             )}
+            <Button variant='tertiary'>Download my cv</Button>
           </ul>
         </div>
       </Section>

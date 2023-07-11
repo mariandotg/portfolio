@@ -24,7 +24,7 @@ const Footer = async ({ locale }: Props) => {
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
       <div className='flex justify-center'>
         <div className='flex flex-col w-screen tablet:max-w-[1000px] px-4 tablet:p-0 gap-16'>
-          <div className='grid grid-cols-1 gap-8 mobile:grid-cols-3'>
+          <div className='grid grid-cols-1 gap-8 mobile:grid-cols-4'>
             <div className='col-span-1'>
               <h3 className='font-medium text-title whitespace-nowrap font-display dark:text-dark-headlines text-light-headlines'>
                 {dict.footer.emailCta}
@@ -39,7 +39,7 @@ const Footer = async ({ locale }: Props) => {
                 <MdArrowOutward className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary' />
               </a>
             </div>
-            <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-3 gap-y-4'>
+            <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-4 gap-y-4'>
               <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
               <NavLink href={`/${locale}/projects`}>
                 {dict.routes['/projects']}

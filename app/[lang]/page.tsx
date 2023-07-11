@@ -112,7 +112,9 @@ const HomePage = async ({ params }: Props) => {
         <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-4 tablet:grid-cols-4 tablet:grid-rows-2'>
           {/* @ts-expect-error Async Server Component */}
           <FeaturedProjects params={params} />
-          <Button variant='tertiary'>See all my projects</Button>
+          <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
+            See all my projects
+          </div>
         </div>
       </Section>
 
@@ -128,7 +130,7 @@ const HomePage = async ({ params }: Props) => {
             return (
               <div
                 key={skillCard.id}
-                className={`flex flex-col border border-transparent rounded gap-y-2 mobile:col-span-1`}
+                className={`flex flex-col gap-y-2 mobile:col-span-1`}
               >
                 <h3 className='flex items-center font-medium gap-x-2 dark:text-dark-headlines text text-light-headlines'>
                   <Icon
@@ -145,7 +147,9 @@ const HomePage = async ({ params }: Props) => {
               </div>
             );
           })}
-          <Button variant='tertiary'>Download my cv</Button>
+          <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
+            See my certificates on LinkedIn
+          </div>
         </div>
       </Section>
 
@@ -205,7 +209,10 @@ const HomePage = async ({ params }: Props) => {
                 {dict.latestArticles.notFound}
               </p>
             )}
-            <Button variant='tertiary'>Download my cv</Button>
+
+            <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
+              Check my blog
+            </div>
           </ul>
         </div>
       </Section>

@@ -21,10 +21,10 @@ const FeaturedProjects = async ({ params }: Props) => {
   const data: Project[] = await projectsFetch.json();
 
   const projectCardsStyles: ProjectCardsStyles = {
-    '0': 'tablet:col-span-1 tablet:row-span-2',
-    '1': 'tablet:h-[200px]',
-    '2': 'tablet:col-span-2 tablet:h-[200px]',
-    '3': 'tablet:col-span-2 tablet:row-span-1 tablet:h-[200px]',
+    '0': 'tablet:col-span-1 tablet:row-span-1',
+    '1': 'tablet:col-span-2 tablet:row-span-2',
+    '2': 'tablet:col-span-1 tablet:row-span-1',
+    '3': 'tablet:col-span-1 tablet:row-span-1 tablet:h-[256px]',
   };
 
   return data.map((project, index) => (

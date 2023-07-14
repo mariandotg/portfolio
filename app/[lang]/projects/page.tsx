@@ -51,7 +51,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-2 tablet:gap-4'>
+        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:gap-4'>
           <Suspense
             fallback={
               <div className='flex flex-col tablet:col-span-2 gap-y-4'>

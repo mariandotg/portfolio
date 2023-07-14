@@ -12,7 +12,9 @@ module.exports = {
   ],
   theme: {
     borderRadius: {
-      DEFAULT: '4px',
+      DEFAULT: '6px',
+      sm: '4px',
+      full: '100%',
     },
     animation: {
       'animate-image': 'fade-in 1s ease-out',

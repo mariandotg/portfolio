@@ -98,7 +98,7 @@ const ProjectCard = (props: ProjectCardProps) => {
 
   return (
     <Link
-      className={`${props.className} relative group border border-transparent p-4 rounded-[6px] dark:hover:border-light-text/30 hover:border-dark-text/30 bg-dark-headlines/30 dark:bg-light-headlines/50 mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:col-span-1`}
+      className={`${props.className} relative group border border-transparent p-4 rounded dark:hover:border-light-text/30 hover:border-dark-text/30 bg-dark-headlines/30 dark:bg-light-headlines/50 mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:col-span-1`}
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
     >
@@ -108,7 +108,7 @@ const ProjectCard = (props: ProjectCardProps) => {
             <Image
               src={props.project.image}
               alt={`${props.project.name} image`}
-              className='absolute flex object-cover w-full rounded'
+              className='absolute flex object-cover w-full rounded-sm'
               fill={true}
             />
           </div>

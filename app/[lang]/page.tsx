@@ -132,13 +132,15 @@ const HomePage = async ({ params }: Props) => {
             return (
               <div
                 key={skillCard.id}
-                className={`flex flex-col gap-y-2 mobile:col-span-1`}
+                className='flex flex-col p-4 rounded gap-y-2 mobile:col-span-1 bg-dark-headlines/30 dark:bg-light-headlines/50'
               >
-                <h3 className='flex items-center font-medium gap-x-2 dark:text-dark-headlines text text-light-headlines'>
+                <span className='p-2 border rounded-full w-fit dark:border-light-text/30 border-dark-text/30'>
                   <Icon
                     value={skillCard.title.toLocaleLowerCase()}
                     className='duration-[0ms] dark:text-dark-headlines text-light-headlines'
                   />
+                </span>
+                <h3 className='font-medium dark:text-dark-headlines text text-light-headlines'>
                   {skillCard.title}
                 </h3>
                 <div className='flex flex-wrap gap-2'>
@@ -149,7 +151,7 @@ const HomePage = async ({ params }: Props) => {
               </div>
             );
           })}
-          <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
+          <div className='flex items-center justify-center p-4 text-center rounded bg-primary/25 dark:text-dark-headlines text-light-headlines'>
             See my certificates on LinkedIn
           </div>
         </div>

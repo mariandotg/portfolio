@@ -15,7 +15,7 @@ interface ProjectCardsStyles {
 const FeaturedProjects = async ({ params }: Props) => {
   const projectsFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`,
-    { cache: 'force-cache' }
+    { cache: 'no-cache' }
   );
 
   const data: Project[] = await projectsFetch.json();

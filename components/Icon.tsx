@@ -98,6 +98,7 @@ const icons: Icons = {
   twitter: SiTwitter,
   tiktok: SiTiktok,
   'other tools': MdBuild,
+  'otras herramientas': MdBuild,
   youtube: SiYoutube,
   default: SiReact,
 };

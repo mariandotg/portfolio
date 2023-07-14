@@ -109,11 +109,13 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.featuredProjects.emoji}>
           {data.featuredProjects.title}
         </SectionTitle>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-4 tablet:grid-cols-4 tablet:grid-rows-2'>
-          {/* @ts-expect-error Async Server Component */}
-          <FeaturedProjects params={params} />
-          <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
-            See all my projects
+        <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
+          <div className='flex flex-col w-full gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:grid-cols-3 tablet:grid-rows-1'>
+            {/* @ts-expect-error Async Server Component */}
+            <FeaturedProjects params={params} />
+          </div>
+          <div>
+            <Button variant='tertiary'>See all my projects</Button>
           </div>
         </div>
       </Section>

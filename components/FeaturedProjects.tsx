@@ -32,7 +32,6 @@ const FeaturedProjects = async ({ params }: Props) => {
       key={project.id}
       project={project}
       locale={params.lang}
-      className={projectCardsStyles[index]}
       featured={true}
     />
   ));

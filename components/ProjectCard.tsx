@@ -98,87 +98,41 @@ const ProjectCard = (props: ProjectCardProps) => {
 
   return (
     <Link
-      className={`${
-        props.className
-      } relative group border rounded border-transparent mobile:col-span-1 overflow-hidden mobile:gap-4 ${
-        props.featured
-          ? 'tablet:hover:border-light-primary-hover tablet:hover:dark:border-dark-primary-hover'
-          : 'tablet:col-span-2'
-      }`}
+      className={`${props.className} relative group border border-transparent p-4 rounded-[6px] dark:hover:border-light-text/30 hover:border-dark-text/30 bg-dark-headlines/30 dark:bg-light-headlines/50 mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:col-span-1`}
       href={`${props.locale}/projects/${props.project.path}`}
       locale={props.locale}
     >
-      <div
-        className={`flex flex-col z-10 w-full h-full ${
-          props.featured
-            ? 'tablet:p-4 tablet:translate-y-[40px] gap-y-2 tablet:group-hover:translate-y-0'
-            : 'gap-y-4'
-        } justify-end cursor-pointer group dark:text-dark-text text-light-text`}
-      >
+      <div className='z-10 flex flex-col justify-end w-full h-full cursor-pointer group dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>
-          <div
-            className={`relative w-full h-[135px] ${
-              props.featured ? 'tablet:hidden' : ''
-            }`}
-          >
+          <div className='relative w-full aspect-[344/197]'>
             <Image
               src={props.project.image}
               alt={`${props.project.name} image`}
-              className={`absolute flex object-cover w-full rounded ${
-                props.featured ? 'tablet:hidden' : ''
-              }`}
+              className='absolute flex object-cover w-full rounded'
               fill={true}
             />
           </div>
           <div className='flex flex-col gap-y-1'>
-            <h3
-              className={`flex items-center font-medium whitespace-nowrap text ${
-                props.featured ? 'tablet:text-title' : ''
-              } group-hover:gap-x-2 gap-x-1 font-display text-light-headlines dark:text-dark-headlines`}
-            >
+            <span className='flex items-center font-medium whitespace-nowrap text group-hover:gap-x-2 gap-x-1 font-display text-light-headlines dark:text-dark-headlines group-hover:text-primary'>
               {props.project.name}
-              <MdArrowForward className='duration-[0ms] text-light-headlines dark:text-dark-headlines h-5 w-5' />
-            </h3>
-            <p
-              className={`text ${
-                props.featured ? 'tablet:hidden' : ''
-              } dark:text-dark-text text-light-text`}
-            >
-              {truncateString(props.project.description, 47)}
-            </p>
+              <MdArrowForward className='duration-[0ms] text-light-headlines dark:text-dark-headlines h-4 w-4 group-hover:text-primary' />
+            </span>
+          </div>
+          <div
+            className='flex flex-row items-center w-full gap-2'
+            ref={containerRef}
+          >
+            {displayedTags.map((tag, index) => (
+              <SkillItem key={tag.id} skill={tag.name} variant='base' />
+            ))}
+            {restTags !== 0 && (
+              <span className='h-[24px] w-[24px] flex justify-center items-center rounded-[50px] bg-light-text dark:bg-dark-text text-dark-headlines dark:text-light-headlines font-medium text-[12px]'>
+                +{restTags}
+              </span>
+            )}
           </div>
         </div>
-        <div
-          className='flex flex-row items-center w-full gap-2'
-          ref={containerRef}
-        >
-          {displayedTags.map((tag, index) => (
-            <SkillItem
-              key={tag.id}
-              skill={tag.name}
-              variant={props.featured ? 'mono' : 'base'}
-            />
-          ))}
-          {restTags !== 0 && (
-            <span className='h-[24px] w-[24px] flex justify-center items-center rounded-[50px] bg-light-text dark:bg-dark-text text-dark-headlines dark:text-light-headlines font-medium text-[12px]'>
-              +{restTags}
-            </span>
-          )}
-        </div>
       </div>
-      {props.featured ? (
-        <>
-          <div className='absolute top-0 flex w-full h-full rounded -z-10 tablet:group-hover:opacity-100 bg-gradient-to-t from-light/60 to-transparent dark:from-dark/70'></div>
-          <Image
-            src={props.project.image}
-            alt={`${props.project.name} image`}
-            className='absolute hidden object-cover w-full rounded tablet:flex -z-20'
-            fill={true}
-            placeholder='blur'
-            blurDataURL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAIAAADzBuo/AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASSURBVBhXY3gro4IHDZy0jAoA9QM6yzHo/PoAAAAASUVORK5CYII='
-          />
-        </>
-      ) : null}
     </Link>
   );
 };

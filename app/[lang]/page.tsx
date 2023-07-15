@@ -134,7 +134,7 @@ const HomePage = async ({ params }: Props) => {
                 key={skillCard.id}
                 className='flex flex-col p-4 rounded gap-y-2 mobile:col-span-1 bg-dark-headlines/30 dark:bg-light-headlines/50'
               >
-                <span className='p-2 border rounded-full w-fit dark:border-light-text/30 border-dark-text/30'>
+                <span className='p-2 border rounded-full w-fit dark:border-light-text/30 border-dark-text/30 bg-light dark:bg-dark'>
                   <Icon
                     value={skillCard.title.toLocaleLowerCase()}
                     className='duration-[0ms] dark:text-dark-headlines text-light-headlines'
@@ -161,27 +161,34 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.jobExperience.emoji}>
           {data.jobExperience.title}
         </SectionTitle>
-        <div className='flex flex-col gap-y-8 relative tablet:col-span-4 tablet:gap-0 border-l-[1px] tablet:border-none border-primary '>
+        <ol className='relative flex flex-col border-l tablet:border-none gap-y-4 tablet:col-span-3 tablet:grid-cols-3 border-primary tablet:gap-0'>
           {data.jobExperience.content.jobCards.map((jobCard) => (
-            <div
+            <li
+              className='flex tablet:grid tablet:grid-cols-3 tablet:col-span-2'
               key={jobCard.id}
-              className='relative flex flex-col pl-4 tablet:grid gap-y-2 tablet:grid-cols-4 tablet:pl-0 tablet:gap-4'
             >
-              <div className='relative tablet:col-span-1'>
-                <span className='tablet:mr-2 text-secondary tablet:text tablet:justify-end flex font-light text-light-text dark:text-dark-text tablet:after:top-0 tablet:after:-right-[8px] tablet:after:content-[""] tablet:after:h-full tablet:after:w-[1px] tablet:after:absolute tablet:after:bg-primary'>
-                  {jobCard.period}
-                </span>
+              <div className='hidden p-4 mb-1 leading-none tablet:m-0 text text-light-text dark:text-dark-text tablet:flex tablet:border-r tablet:border-primary tablet:col-span-1 tablet:justify-end tablet:mr-[2px]'>
+                <p className='tablet:mr-1'>{jobCard.period}</p>
               </div>
-              <div className='tablet:ml-2 flex tablet:pb-8 tablet:border-none tablet:relative flex-col gap-y-1 tablet:col-span-3 before:content-[""] before:rounded before:w-[7px] before:h-[7px] before:bg-primary before:absolute before:top-1 tablet:before:top-2 before:right-auto tablet:before:-left-5 before:-left-1'>
+              <div className='p-4 ml-4 rounded tablet:relative bg-dark-headlines/30 dark:bg-light-headlines/50 tablet:col-span-2 tablet:mb-4'>
+                <div className='absolute w-[13px] h-[13px] text-light-text rounded-[50px] tablet:mt-1.5 -left-[7px] border tablet:-left-[25px] border-light dark:border-dark bg-primary'></div>
+                <p className='mb-1 leading-none text-secondary text-light-text dark:text-dark-text tablet:hidden'>
+                  {jobCard.period}
+                </p>
                 <h3 className='flex font-medium text gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
                   {jobCard.position} - {jobCard.company}
                 </h3>
-                <p className='text text-light-text dark:text-dark-text'>
+                <p className='mb-4 text text-light-text dark:text-dark-text'>
                   {jobCard.responsabilities}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
+        </ol>
+        <div className='relative hidden tablet:flex tablet:col-span-1'>
+          <div className='sticky flex h-[256px] items-center justify-center p-4 mb-4 text-center rounded top-[72px] bg-primary/25 dark:text-dark-headlines w-full text-light-headlines'>
+            Download my CV
+          </div>
         </div>
       </Section>
 

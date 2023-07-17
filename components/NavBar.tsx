@@ -17,7 +17,7 @@ const NavBar = async ({ locale }: Props) => {
 
   return (
     <header className='border-b-[1px] border-primary bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
-      <nav className='relative flex items-center w-screen tablet:max-w-[1000px] justify-between mobile:justify-end gap-16 mobile:gap-4'>
+      <nav className='relative flex items-center w-screen tablet:max-w-[800px] justify-between mobile:justify-end gap-16 mobile:gap-4'>
         <Link
           href={`/${locale}`}
           className='absolute flex items-center h-full -translate-x-1/2 mobile:translate-x-0 mobile:left-0 left-2/4 w-fit'

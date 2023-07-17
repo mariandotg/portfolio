@@ -194,7 +194,7 @@ const HomePage = async ({ params }: Props) => {
           {data.latestArticles.title}
         </SectionTitle>
         <div className='flex w-full snap-x tablet:col-span-4'>
-          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-4'>
+          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {data.latestArticles.content.articles.length !== 0 ? (
               data.latestArticles.content.articles.map((article, index) => (
                 <li
@@ -217,10 +217,6 @@ const HomePage = async ({ params }: Props) => {
                 {dict.latestArticles.notFound}
               </p>
             )}
-
-            <div className='flex items-center justify-center p-4 text-center border rounded border-primary bg-primary/25 dark:text-dark-headlines text-light-headlines'>
-              Check my blog
-            </div>
           </ul>
         </div>
       </Section>

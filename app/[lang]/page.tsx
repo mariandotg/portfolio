@@ -127,32 +127,34 @@ const HomePage = async ({ params }: Props) => {
         <p className='col-span-4 text text-light-text dark:text-dark-text'>
           {data.skills.content.skillsDescription.text}
         </p>
-        <div className='relative flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-4 tablet:col-span-4 '>
-          {data.skills.content.skillCards.map((skillCard, index) => {
-            return (
-              <div
-                key={skillCard.id}
-                className='flex flex-col p-4 rounded gap-y-2 mobile:col-span-1 bg-dark-headlines/30 dark:bg-light-headlines/50'
-              >
-                <span className='p-2 border rounded-full w-fit dark:border-light-text/30 border-dark-text/30 bg-light dark:bg-dark'>
-                  <Icon
-                    value={skillCard.title.toLocaleLowerCase()}
-                    className='duration-[0ms] dark:text-dark-headlines text-light-headlines'
-                  />
-                </span>
-                <h3 className='font-medium dark:text-dark-headlines text text-light-headlines'>
-                  {skillCard.title}
-                </h3>
-                <div className='flex flex-wrap gap-2'>
-                  {skillCard.skills.map((skill, index) => (
-                    <SkillItem key={index} skill={skill} variant='base' />
-                  ))}
+        <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
+          <div className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:gap-4 tablet:grid-cols-3 tablet:col-span-4 '>
+            {data.skills.content.skillCards.map((skillCard, index) => {
+              return (
+                <div
+                  key={skillCard.id}
+                  className='flex flex-col p-4 rounded gap-y-2 mobile:col-span-1 bg-dark-headlines/30 dark:bg-light-headlines/50'
+                >
+                  <span className='p-2 border rounded-full w-fit dark:border-light-text/30 border-dark-text/30 bg-light dark:bg-dark'>
+                    <Icon
+                      value={skillCard.title.toLocaleLowerCase()}
+                      className='duration-[0ms] dark:text-dark-headlines text-light-headlines'
+                    />
+                  </span>
+                  <h3 className='font-medium dark:text-dark-headlines text text-light-headlines'>
+                    {skillCard.title}
+                  </h3>
+                  <div className='flex flex-wrap gap-2'>
+                    {skillCard.skills.map((skill, index) => (
+                      <SkillItem key={index} skill={skill} variant='base' />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-          <div className='flex items-center justify-center p-4 text-center rounded bg-primary/25 dark:text-dark-headlines text-light-headlines'>
-            See my certificates on LinkedIn
+              );
+            })}
+          </div>
+          <div>
+            <Button variant='tertiary'>See my certificates on LinkedIn</Button>
           </div>
         </div>
       </Section>
@@ -161,10 +163,10 @@ const HomePage = async ({ params }: Props) => {
         <SectionTitle emoji={data.jobExperience.emoji}>
           {data.jobExperience.title}
         </SectionTitle>
-        <ol className='relative flex flex-col border-l tablet:border-none gap-y-4 tablet:col-span-3 tablet:grid-cols-3 border-primary tablet:gap-0'>
+        <ol className='relative flex flex-col border-l tablet:border-none gap-y-4 tablet:col-span-4 tablet:grid-cols-3 border-primary tablet:gap-0'>
           {data.jobExperience.content.jobCards.map((jobCard) => (
             <li
-              className='flex tablet:grid tablet:grid-cols-3 tablet:col-span-2'
+              className='flex tablet:grid tablet:grid-cols-3 tablet:col-span-3'
               key={jobCard.id}
             >
               <div className='hidden p-4 mb-1 leading-none tablet:m-0 text text-light-text dark:text-dark-text tablet:flex tablet:border-r tablet:border-primary tablet:col-span-1 tablet:justify-end tablet:mr-[2px]'>
@@ -185,11 +187,6 @@ const HomePage = async ({ params }: Props) => {
             </li>
           ))}
         </ol>
-        <div className='relative hidden tablet:flex tablet:col-span-1'>
-          <div className='sticky flex h-[256px] items-center justify-center p-4 mb-4 text-center rounded top-[72px] bg-primary/25 dark:text-dark-headlines w-full text-light-headlines'>
-            Download my CV
-          </div>
-        </div>
       </Section>
 
       <Section>

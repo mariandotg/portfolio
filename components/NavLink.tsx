@@ -24,7 +24,7 @@ const NavLink = ({ href, children }: Props) => {
   return (
     <Link
       href={href}
-      className={`italic font-light cursor-pointer w-fit text-secondary font-monospace${active}`}
+      className={`font-light cursor-pointer w-fit text-secondary ${active}`}
     >
       {children}
     </Link>

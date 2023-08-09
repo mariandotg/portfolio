@@ -34,3 +34,15 @@ export const getLatestArticles = async () => {
   const { data } = await response.json();
   return data;
 };
+
+export const getArticle = async () => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_API_URL}/articles/1?populate[image]=*&populate[localizations][fields][1]=title`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('test error');
+  }
+  const { data } = await response.json();
+  return data;
+};

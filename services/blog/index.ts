@@ -22,3 +22,15 @@ export const getArticles = async () => {
   const { data } = await response.json();
   return data;
 };
+
+export const getLatestArticles = async () => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_API_URL}/articles?locale=en&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path&pagination[pageSize]=3&sort[0]=publishedAt:desc`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('test error');
+  }
+  const { data } = await response.json();
+  return data;
+};

@@ -11,9 +11,9 @@ http://localhost:1337/api/articles/1?populate[image]=*&populate[localizations][f
 
 import { NEXT_PUBLIC_API_URL } from '@/config';
 
-export const getArticles = async () => {
+export const getArticles = async (locale: string = 'en') => {
   const response = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles?locale=en&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path`,
+    `${NEXT_PUBLIC_API_URL}/articles?locale=${locale}&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path`,
     { cache: 'no-cache' }
   );
   if (!response.ok) {
@@ -23,9 +23,9 @@ export const getArticles = async () => {
   return data;
 };
 
-export const getLatestArticles = async () => {
+export const getLatestArticles = async (locale: string = 'en') => {
   const response = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles?locale=en&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path&pagination[pageSize]=3&sort[0]=publishedAt:desc`,
+    `${NEXT_PUBLIC_API_URL}/articles?locale=${locale}&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path&pagination[pageSize]=3&sort[0]=publishedAt:desc`,
     { cache: 'no-cache' }
   );
   if (!response.ok) {
@@ -35,9 +35,9 @@ export const getLatestArticles = async () => {
   return data;
 };
 
-export const getArticle = async () => {
+export const getArticle = async (id: number) => {
   const response = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles/1?populate[image]=*&populate[localizations][fields][1]=title`,
+    `${NEXT_PUBLIC_API_URL}/articles/${id}?populate[image]=*&populate[localizations][fields][1]=title`,
     { cache: 'no-cache' }
   );
   if (!response.ok) {

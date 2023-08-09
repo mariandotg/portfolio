@@ -5,7 +5,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
+  const category = request.nextUrl.searchParams.get('category');
   const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+
+  const categoryFilter = category
+    ? [
+        {
+          property: 'Category',
+          select: {
+            equals: category,
+          },
+        },
+      ]
+    : [];
 
   const articlesFilter: CompoundFilterObj = {
     and: [
@@ -27,6 +39,7 @@ export async function GET(request: NextRequest) {
           equals: lang,
         },
       },
+      ...categoryFilter,
     ],
   };
 

@@ -13,6 +13,9 @@ interface Props {
   params: {
     lang: string;
   };
+  searchParams: {
+    category: string;
+  };
 }
 interface ArticleData {
   content: { parent: string };
@@ -30,9 +33,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metadataAdapter(articleResponse.seo);
 }
 
-const BlogPage = async ({ params }: Props) => {
+const BlogPage = async ({ searchParams, params }: Props) => {
+  console.log('searchParams', searchParams);
+
   const articlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles`,
+    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles${
+      searchParams.category ? `?category=${searchParams.category}` : ''
+    }`,
     { next: { revalidate: 3600 } }
   );
 

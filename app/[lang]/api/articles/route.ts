@@ -1,4 +1,4 @@
-import { rawPreviewArticlesAdapter } from '@/adapters/rawPreviewArticlesAdapter';
+import { rawsToPreviews } from '@/adapters/rawToPreviewAdapters';
 import { fetchArticles } from '@/services/blog';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const category = request.nextUrl.searchParams.get('category');
 
   const data = await fetchArticles(lang);
-  const articles = rawPreviewArticlesAdapter(data);
+  const articles = rawsToPreviews(data);
 
   return NextResponse.json({ articles });
 }

@@ -1,6 +1,6 @@
 import { RawFullArticle } from '@/models/blog/blog.models';
 
-export const rawFullArticleAdapter = (article: RawFullArticle) => {
+export const rawToFull = (article: RawFullArticle) => {
   const {
     id,
     attributes: {

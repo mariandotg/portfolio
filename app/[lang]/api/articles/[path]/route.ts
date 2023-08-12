@@ -1,4 +1,4 @@
-import { rawFullArticleAdapter } from '@/adapters/rawFullArticleAdapter';
+import { rawToFull } from '@/adapters/rawToFullAdapter';
 import { fetchArticleById } from '@/services/blog';
 import { notFound } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   // @ts-ignore
   const data = await fetchArticleById(path);
-  const articleResponse = rawFullArticleAdapter(data);
+  const articleResponse = rawToFull(data);
 
   return articleResponse === false
     ? notFound()

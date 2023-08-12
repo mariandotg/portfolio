@@ -12,7 +12,7 @@ http://localhost:1337/api/articles/1?populate[image]=*&populate[localizations][f
 import { NEXT_PUBLIC_API_URL } from '@/config';
 import { RawFullArticle, RawPreviewArticle } from '@/models/blog/blog.models';
 
-export const getArticles = async (
+export const fetchArticles = async (
   locale: string = 'en'
 ): Promise<RawPreviewArticle[]> => {
   const response = await fetch(
@@ -27,7 +27,7 @@ export const getArticles = async (
   return data as RawPreviewArticle[];
 };
 
-export const getLatestArticles = async (
+export const fetchLatestArticles = async (
   locale: string = 'en'
 ): Promise<RawPreviewArticle[]> => {
   const response = await fetch(
@@ -42,7 +42,7 @@ export const getLatestArticles = async (
   return data as RawPreviewArticle[];
 };
 
-export const getArticle = async (id: number): Promise<RawFullArticle> => {
+export const fetchArticleById = async (id: number): Promise<RawFullArticle> => {
   const response = await fetch(
     `${NEXT_PUBLIC_API_URL}/articles/${id}?populate[image]=*&populate[localizations][fields][1]=locale`,
     { cache: 'no-cache' }

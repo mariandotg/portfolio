@@ -10,33 +10,11 @@ http://localhost:1337/api/articles/1?populate[image]=*&populate[localizations][f
 */
 
 import { NEXT_PUBLIC_API_URL } from '@/config';
-import {
-  PreviewArticle,
-  RawFullArticle,
-  RawPreviewArticle,
-} from '@/models/blog/blog.models';
-
-const rawPreviewArticlesAdapter = (articles: RawPreviewArticle[]) => {
-  return articles.map((article) => {
-    const {
-      id,
-      attributes: { category, publishedAt, title, path, image: imageData },
-    } = article;
-    const image = {
-      placeholder: imageData.data.attributes.placeholder,
-      name: imageData.data.attributes.name,
-      alternativeText: imageData.data.attributes.alternativeText,
-      width: imageData.data.attributes.width,
-      height: imageData.data.attributes.height,
-      url: imageData.data.attributes.url,
-    };
-    return { path, title, publishedAt, category, id, image };
-  });
-};
+import { RawFullArticle, RawPreviewArticle } from '@/models/blog/blog.models';
 
 export const getArticles = async (
   locale: string = 'en'
-): Promise<PreviewArticle[]> => {
+): Promise<RawPreviewArticle[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_API_URL}/articles?locale=${locale}&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path`,
     { cache: 'no-cache' }
@@ -45,14 +23,13 @@ export const getArticles = async (
     throw new Error('test error');
   }
   const { data } = await response.json();
-  const articles: RawPreviewArticle[] = data;
 
-  return rawPreviewArticlesAdapter(articles);
+  return data as RawPreviewArticle[];
 };
 
 export const getLatestArticles = async (
   locale: string = 'en'
-): Promise<PreviewArticle[]> => {
+): Promise<RawPreviewArticle[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_API_URL}/articles?locale=${locale}&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=category&fields[3]=path&pagination[pageSize]=3&sort[0]=publishedAt:desc`,
     { cache: 'no-cache' }
@@ -61,9 +38,8 @@ export const getLatestArticles = async (
     throw new Error('test error');
   }
   const { data } = await response.json();
-  const articles: RawPreviewArticle[] = data;
 
-  return rawPreviewArticlesAdapter(articles);
+  return data as RawPreviewArticle[];
 };
 
 export const getArticle = async (id: number): Promise<RawFullArticle> => {

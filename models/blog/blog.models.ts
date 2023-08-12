@@ -14,7 +14,7 @@ export interface PreviewArticle {
   };
 }
 
-export interface RawArticle {
+export interface RawFullArticle {
   id: number;
   attributes: Attribute;
 }
@@ -46,7 +46,7 @@ export interface Attribute {
       {
         id: number;
         attributes: {
-          title: string;
+          locale: string;
         };
       }
     ];

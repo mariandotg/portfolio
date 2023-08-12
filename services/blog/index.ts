@@ -10,7 +10,11 @@ http://localhost:1337/api/articles/1?populate[image]=*&populate[localizations][f
 */
 
 import { NEXT_PUBLIC_API_URL } from '@/config';
-import { PreviewArticle, RawPreviewArticle } from '@/models/blog/blog.models';
+import {
+  PreviewArticle,
+  RawFullArticle,
+  RawPreviewArticle,
+} from '@/models/blog/blog.models';
 
 const rawPreviewArticlesAdapter = (articles: RawPreviewArticle[]) => {
   return articles.map((article) => {
@@ -62,14 +66,15 @@ export const getLatestArticles = async (
   return rawPreviewArticlesAdapter(articles);
 };
 
-export const getArticle = async (id: number) => {
+export const getArticle = async (id: number): Promise<RawFullArticle> => {
   const response = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles/${id}?populate[image]=*&populate[localizations][fields][1]=title`,
+    `${NEXT_PUBLIC_API_URL}/articles/${id}?populate[image]=*&populate[localizations][fields][1]=locale`,
     { cache: 'no-cache' }
   );
   if (!response.ok) {
     throw new Error('test error');
   }
   const { data } = await response.json();
-  return data;
+
+  return data as RawFullArticle;
 };

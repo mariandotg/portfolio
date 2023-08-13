@@ -11,7 +11,7 @@ import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-import { getArticle } from '@/services/api';
+import { getArticle, getArticleMetadata } from '@/services/api';
 
 interface Props {
   params: {
@@ -27,10 +27,7 @@ interface ArticleData {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = await getArticle(params.lang, params.path);
-
-  const articleResponse: ArticleData = article;
-  return metadataAdapter(articleResponse.seo);
+  return await getArticleMetadata(params.lang, params.path);
 }
 
 const ArticlePage = async ({ params }: Props) => {

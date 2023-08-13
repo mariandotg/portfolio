@@ -32,3 +32,15 @@ export const getPageMetadata = async (
 
   return metadataAdapter(articleResponse.seo);
 };
+
+export const getArticleMetadata = async (
+  lang: string,
+  path: string
+): Promise<Metadata> => {
+  const article = await getArticle(lang, path);
+
+  //@ts-ignore
+  const articleResponse: ArticleData = article;
+
+  return metadataAdapter(articleResponse.seo);
+};

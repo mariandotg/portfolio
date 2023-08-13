@@ -19,6 +19,33 @@ export interface RawFullArticle {
   attributes: Attribute;
 }
 
+export interface RawPage {
+  id: number;
+  attributes: {
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+    locale: string;
+    description: string;
+    path: string;
+    canonicalUrl: string;
+    openGraphType: string;
+    schemaType: string;
+    image: RawImage;
+    localizations: {
+      data: [
+        {
+          id: number;
+          attributes: {
+            locale: string;
+          };
+        }
+      ];
+    };
+  };
+}
+
 export interface RawPreviewArticle {
   id: number;
   attributes: Pick<

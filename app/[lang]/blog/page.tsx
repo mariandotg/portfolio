@@ -11,7 +11,7 @@ import FilterByTag from '@/components/FilterByTag';
 import { PreviewArticle } from '@/models/blog/blog.models';
 import { fetchContentByPath } from '@/services/blog';
 import { rawToFull } from '@/adapters/rawToFullAdapter';
-import { getPageMetadata } from '@/services/api';
+import { getArticles, getPageMetadata } from '@/services/api';
 
 interface Props {
   params: {
@@ -32,17 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const BlogPage = async ({ searchParams, params }: Props) => {
-  console.log('searchParams', searchParams);
-
-  const articlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles${
-      searchParams.category ? `?category=${searchParams.category}` : ''
-    }`,
-    { next: { revalidate: 3600 } }
-  );
-  const articlesResponse: { articles: PreviewArticle[] } =
-    await articlesFetch.json();
-
+  const articles = await getArticles(params.lang);
   const dict = await getDictionary(params.lang);
 
   return (
@@ -58,8 +48,8 @@ const BlogPage = async ({ searchParams, params }: Props) => {
         </div>
         <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>
-            {articlesResponse.articles.length !== 0 ? (
-              articlesResponse.articles.map((article, index) => (
+            {articles.length !== 0 ? (
+              articles.map((article, index) => (
                 <li
                   key={article.id}
                   className={`cursor-pointer group ${

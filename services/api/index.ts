@@ -2,7 +2,7 @@ import { NEXT_PUBLIC_BASE_FETCH_URL } from '@/config';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchContentByPath } from '../blog';
-import { RawPage } from '@/models/blog/blog.models';
+import { PreviewArticle, RawPage } from '@/models/blog/blog.models';
 import { rawToFull } from '@/adapters/rawToFullAdapter';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 
@@ -18,6 +18,19 @@ export const getArticle = async (lang: string, path: string): Promise<any> => {
   const data = await response.json();
 
   return data;
+};
+
+export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('doesn`t have articles error');
+  }
+  const { articles } = await response.json();
+
+  return articles as PreviewArticle[];
 };
 
 export const getPageMetadata = async (

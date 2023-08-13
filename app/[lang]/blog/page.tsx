@@ -1,37 +1,23 @@
 import React from 'react';
 import PageLayout from '../../../components/PageLayout';
-import { PageSeo } from '@/models/PageSeo';
-import { Article } from '@/models/domain/Article';
 import Section from '@/components/Section';
 import ArticleCard from '@/components/ArticleCard';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import { getDictionary } from '../dictionaries';
 import FilterByTag from '@/components/FilterByTag';
-import { PreviewArticle } from '@/models/blog/blog.models';
-import { fetchContentByPath } from '@/services/blog';
-import { rawToFull } from '@/adapters/rawToFullAdapter';
 import { getArticles, getPageMetadata } from '@/services/api';
 
 interface Props {
   params: {
     lang: string;
   };
-  searchParams: {
-    category: string;
-  };
-}
-interface ArticleData {
-  content: { parent: string };
-  seo: Omit<PageSeo, 'loading'>;
-  properties: Article;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return await getPageMetadata(params.lang, 'blog');
 }
 
-const BlogPage = async ({ searchParams, params }: Props) => {
+const BlogPage = async ({ params }: Props) => {
   const articles = await getArticles(params.lang);
   const dict = await getDictionary(params.lang);
 

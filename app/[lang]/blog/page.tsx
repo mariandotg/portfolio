@@ -8,6 +8,10 @@ import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import { getDictionary } from '../dictionaries';
 import FilterByTag from '@/components/FilterByTag';
+import { PreviewArticle } from '@/models/blog/blog.models';
+import { fetchContentByPath } from '@/services/blog';
+import { rawToFull } from '@/adapters/rawToFullAdapter';
+import { getPageMetadata } from '@/services/api';
 
 interface Props {
   params: {
@@ -24,13 +28,7 @@ interface ArticleData {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/blog`
-  );
-
-  const articleResponse: ArticleData = await articleFetch.json();
-
-  return metadataAdapter(articleResponse.seo);
+  return await getPageMetadata(params.lang, 'blog');
 }
 
 const BlogPage = async ({ searchParams, params }: Props) => {
@@ -42,8 +40,8 @@ const BlogPage = async ({ searchParams, params }: Props) => {
     }`,
     { next: { revalidate: 3600 } }
   );
-
-  const articlesResponse: { articles: Article[] } = await articlesFetch.json();
+  const articlesResponse: { articles: PreviewArticle[] } =
+    await articlesFetch.json();
 
   const dict = await getDictionary(params.lang);
 

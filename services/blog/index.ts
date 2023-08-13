@@ -42,9 +42,12 @@ export const fetchLatestArticles = async (
   return data as RawPreviewArticle[];
 };
 
-export const fetchArticleById = async (id: number): Promise<RawFullArticle> => {
+export const fetchArticleById = async (
+  lang: string,
+  path: string
+): Promise<RawFullArticle> => {
   const response = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles/${id}?populate[image]=*&populate[localizations][fields][1]=locale`,
+    `${NEXT_PUBLIC_API_URL}/articles?locale=${lang}&filters[path][$eq]=${path}&populate[image]=*&populate[localizations][fields][1]=locale`,
     { cache: 'no-cache' }
   );
   if (!response.ok) {

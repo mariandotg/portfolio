@@ -7,9 +7,8 @@ export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
   const path = request.nextUrl.pathname.split('/').filter(Boolean)[3];
 
-  // @ts-ignore
-  const data = await fetchArticleById(path);
-  const articleResponse = rawToFull(data);
+  const data = await fetchArticleById(lang, path);
+  const articleResponse = rawToFull(data[0]);
 
   return articleResponse === false
     ? notFound()

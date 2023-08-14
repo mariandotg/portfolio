@@ -1,3 +1,27 @@
+export interface FullArticle {
+  title: string;
+  content: string;
+  description: string;
+  path: string;
+  category: string;
+  seo: {
+    title: string;
+    id: string;
+    description: string;
+    image: string;
+    imageAlt: string;
+    slug: string;
+    path: string;
+    openGraphType: string;
+    url: string;
+    schemaType: string;
+  };
+  publishedAt: string;
+  locale: string;
+  image: any;
+  locales: any;
+}
+
 export interface PreviewArticle {
   id: number;
   title: string;

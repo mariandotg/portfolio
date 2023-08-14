@@ -32,34 +32,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ArticlePage = async ({ params }: Props) => {
   const article = await getArticle(params.lang, params.path);
-
-  const articleResponse: ArticleData = article;
-  const { formattedDate } = useDate(
-    // @ts-ignore
-    new Date(articleResponse.publishedAt)
-  );
+  const { formattedDate } = useDate(new Date(article.publishedAt));
   const dict = await getDictionary(params.lang);
-
-  const renderTags = () =>
-    articleResponse.properties.tags.map((tag, index) => (
-      <li>
-        <SkillItem key={tag.id} skill={tag.name} variant='base' />
-      </li>
-    ));
 
   return (
     <>
       <div className='flex flex-col col-span-4 gap-y-2'>
         <div className='relative h-64 tablet:col-span-4'>
           <Image
-            src={articleResponse.image.data.attributes.url}
+            src={article.image.data.attributes.url}
             alt='page header'
             className='absolute object-cover rounded'
             fill={true}
             priority
             quality={90}
             placeholder='blur'
-            blurDataURL={articleResponse.image.data.attributes.placeholder}
+            blurDataURL={article.image.data.attributes.placeholder}
           />
         </div>
       </div>
@@ -67,17 +55,17 @@ const ArticlePage = async ({ params }: Props) => {
         <div className='flex flex-col gap-y-4'>
           <div className='flex flex-col gap-y-2'>
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
-              {articleResponse.title}
+              {article.title}
             </h1>
             <span className='flex px-2 italic font-medium rounded font-monospace text-dark-headlines bg-dark-tertiary-hover dark:bg-light-tertiary-hover w-fit'>
-              {articleResponse.category.toLocaleUpperCase()}
+              {article.category.toLocaleUpperCase()}
             </span>
           </div>
           <p className='dark:text-dark-text text-light-text'>
-            {articleResponse.description}
+            {article.description}
           </p>
         </div>
-        <Markdown>{articleResponse.content}</Markdown>
+        <Markdown>{article.content}</Markdown>
         <p>
           {dict.pageIndex.published} {formattedDate[params.lang]}
         </p>

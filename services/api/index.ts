@@ -2,11 +2,18 @@ import { NEXT_PUBLIC_BASE_FETCH_URL } from '@/config';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchContentByPath } from '../blog';
-import { PreviewArticle, RawPage } from '@/models/blog/blog.models';
+import {
+  FullArticle,
+  PreviewArticle,
+  RawPage,
+} from '@/models/blog/blog.models';
 import { rawToFull } from '@/adapters/rawToFullAdapter';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 
-export const getArticle = async (lang: string, path: string): Promise<any> => {
+export const getArticle = async (
+  lang: string,
+  path: string
+): Promise<FullArticle> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/${path}`,
     { cache: 'no-cache' }
@@ -17,7 +24,7 @@ export const getArticle = async (lang: string, path: string): Promise<any> => {
   }
   const data = await response.json();
 
-  return data;
+  return data as FullArticle;
 };
 
 export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
@@ -67,8 +74,5 @@ export const getArticleMetadata = async (
 ): Promise<Metadata> => {
   const article = await getArticle(lang, path);
 
-  //@ts-ignore
-  const articleResponse: ArticleData = article;
-
-  return metadataAdapter(articleResponse.seo);
+  return metadataAdapter(article.seo);
 };

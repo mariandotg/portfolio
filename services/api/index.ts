@@ -33,6 +33,21 @@ export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
   return articles as PreviewArticle[];
 };
 
+export const getLatestArticles = async (
+  lang: string
+): Promise<PreviewArticle[]> => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('doesn`t have latest articles error');
+  }
+  const articles = await response.json();
+
+  return articles as PreviewArticle[];
+};
+
 export const getPageMetadata = async (
   lang: string,
   path: string

@@ -1,27 +1,20 @@
 import React from 'react';
-import { PageSeo } from '@/models/PageSeo';
-import { Article } from '@/models/domain/Article';
 import ArticleCard from '@/components/ArticleCard';
 import PageLayout from '@/components/PageLayout';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
+import { getLatestArticles } from '@/services/api';
 
-const ArticleLayout = async ({
-  children,
-  params,
-}: {
+interface Props {
   children: React.ReactNode;
   params: {
     lang: string;
     path: string;
   };
-}) => {
-  const latestArticlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { next: { revalidate: 3600 } }
-  );
+}
 
-  const latestArticlesResponse: Article[] = await latestArticlesFetch.json();
+const ArticleLayout = async ({ children, params }: Props) => {
+  const latestArticles = await getLatestArticles(params.lang);
 
   return (
     <PageLayout>
@@ -32,7 +25,7 @@ const ArticleLayout = async ({
         <SectionTitle emoji='article'>Latest Articles</SectionTitle>
         <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
-            {latestArticlesResponse.map((article, index) => (
+            {latestArticles.map((article, index) => (
               <li
                 key={article.id}
                 className={`cursor-pointer group ${

@@ -11,7 +11,7 @@ import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-import { getProject } from '@/services/api';
+import { getProject, getProjectMetadata } from '@/services/api';
 import { randomUUID } from 'crypto';
 
 interface Props {
@@ -21,25 +21,8 @@ interface Props {
   };
 }
 
-interface ProjectData {
-  content: { parent: string };
-  seo: Omit<PageSeo, 'loading'>;
-  properties: Project;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const projectFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/${params.path}`,
-    { next: { revalidate: 86400 } }
-  );
-
-  if (!projectFetch.ok) {
-    return redirect(`../../${params.lang}/projects/not-found`);
-  }
-
-  const projectResponse: ProjectData = await projectFetch.json();
-
-  return metadataAdapter(projectResponse.seo);
+  return await getProjectMetadata(params.lang, params.path);
 }
 
 const ProjectPage = async ({ params }: Props) => {

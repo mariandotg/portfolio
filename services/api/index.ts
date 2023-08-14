@@ -95,3 +95,12 @@ export const getArticleMetadata = async (
 
   return metadataAdapter(article.seo);
 };
+
+export const getProjectMetadata = async (
+  lang: string,
+  path: string
+): Promise<Metadata> => {
+  const project = await getProject(lang, path);
+
+  return metadataAdapter(project.seo);
+};

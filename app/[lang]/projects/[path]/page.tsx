@@ -11,6 +11,8 @@ import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
+import { getProject } from '@/services/api';
+import { randomUUID } from 'crypto';
 
 interface Props {
   params: {
@@ -41,21 +43,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ProjectPage = async ({ params }: Props) => {
-  const projectFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/${params.path}`,
-    { next: { revalidate: 86400 } }
-  );
-
-  if (!projectFetch.ok) {
-    return redirect(`../../${params.lang}/projects/not-found`);
-  }
-
-  const projectResponse: ProjectData = await projectFetch.json();
-
+  const project = await getProject(params.lang, params.path);
   const dict = await getDictionary(params.lang);
 
   const renderTags = () =>
-    projectResponse.properties.tags.map((tag, index) => (
+    project.tags.map((tag, index) => (
       <li>
         <SkillItem key={tag.id} skill={tag.name} variant='base' />
       </li>
@@ -66,39 +58,36 @@ const ProjectPage = async ({ params }: Props) => {
       <div className='flex flex-col col-span-4 gap-y-2'>
         <div className='relative h-64 tablet:col-span-4'>
           <Image
-            src={projectResponse.properties.image}
-            alt={projectResponse.properties.imageAlt}
+            src={project.image.data.attributes.url}
+            alt={project.image.data.attributes.alternativeText}
             className='absolute object-cover rounded'
             fill={true}
             priority
             quality={90}
             placeholder='blur'
-            blurDataURL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAIAAADzBuo/AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASSURBVBhXY3gro4IHDZy0jAoA9QM6yzHo/PoAAAAASUVORK5CYII='
+            blurDataURL={project.image.data.attributes.placeholder}
           />
         </div>
       </div>
       <div className='flex flex-col gap-y-4 tablet:col-span-2'>
         <div className='flex flex-col gap-y-2'>
           <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
-            {projectResponse.properties.name}
+            {project.title}
           </h1>
           <p className='dark:text-dark-text text-light-text'>
-            {projectResponse.properties.description}
+            {project.description}
           </p>
         </div>
         <div className='flex flex-row gap-x-4'>
-          <Button
-            variant='secondary'
-            url={projectResponse.properties.repository}
-          >
+          <Button variant='secondary' url={project.repository}>
             {dict.project.repository}
           </Button>
-          <Button variant='primary' url={projectResponse.properties.live}>
+          <Button variant='primary' url={project.live}>
             {dict.project.live}
           </Button>
         </div>
         <div className='flex flex-col gap-y-4'>
-          <Markdown>{projectResponse.content.parent}</Markdown>
+          <Markdown>{project.content}</Markdown>
         </div>
       </div>
       <div className='sidebar'>

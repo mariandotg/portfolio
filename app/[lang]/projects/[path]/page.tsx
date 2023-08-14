@@ -1,18 +1,13 @@
 import React from 'react';
 import SkillItem from '@/components/SkillItem';
 import Markdown from '@/components/Markdown';
-import { PageSeo } from '@/models/PageSeo';
-import { Project } from '@/models/domain/Project';
 import Button from '@/components/Button';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
 import Image from 'next/image';
-import { redirect } from 'next/navigation';
 import { getProject, getProjectMetadata } from '@/services/api';
-import { randomUUID } from 'crypto';
 
 interface Props {
   params: {

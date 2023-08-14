@@ -1,13 +1,13 @@
 import React from 'react';
 
-const ProjectsLayout = ({
-  children,
-}: {
+interface Props {
   children: React.ReactNode;
   params: {
     lang: string;
   };
-}) => {
+}
+
+const ProjectsLayout = ({ children }: Props) => {
   return children;
 };
 

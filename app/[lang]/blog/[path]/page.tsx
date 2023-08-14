@@ -1,16 +1,11 @@
 import React from 'react';
-import SkillItem from '@/components/SkillItem';
 import Markdown from '@/components/Markdown';
-import { Article } from '@/models/domain/Article';
-import { PageSeo } from '@/models/PageSeo';
 import useDate from '@/hooks/useDate';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import { getDictionary } from '../../dictionaries';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import Image from 'next/image';
-import { redirect } from 'next/navigation';
 import { getArticle, getArticleMetadata } from '@/services/api';
 
 interface Props {
@@ -18,12 +13,6 @@ interface Props {
     path: string;
     lang: string;
   };
-}
-
-interface ArticleData {
-  content: { parent: string };
-  seo: Omit<PageSeo, 'loading'>;
-  properties: Article;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -1,6 +1,8 @@
 import { RawPreviewArticle, PreviewArticle } from '@/models/blog/blog.models';
 
-export const rawToPreview = (article: RawPreviewArticle): PreviewArticle => {
+export const rawToPreviewArticle = (
+  article: RawPreviewArticle
+): PreviewArticle => {
   const {
     id,
     attributes: { category, publishedAt, title, path, image: imageData },
@@ -16,8 +18,8 @@ export const rawToPreview = (article: RawPreviewArticle): PreviewArticle => {
   return { path, title, publishedAt, category, id, image };
 };
 
-export const rawsToPreviews = (
+export const rawsToPreviewArticles = (
   articles: RawPreviewArticle[]
 ): PreviewArticle[] => {
-  return articles.map((article) => rawToPreview(article));
+  return articles.map((article) => rawToPreviewArticle(article));
 };

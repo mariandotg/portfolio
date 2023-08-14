@@ -1,3 +1,32 @@
+export interface FullProject {
+  title: string;
+  content: string;
+  description: string;
+  path: string;
+  tags: {
+    id: string;
+    name: string;
+  }[];
+  repository: string;
+  live: string;
+  seo: {
+    title: string;
+    id: string;
+    description: string;
+    image: string;
+    imageAlt?: string;
+    slug: string;
+    path: string;
+    openGraphType: string;
+    url: string;
+    schemaType: string;
+  };
+  publishedAt: string;
+  locale: string;
+  image: any;
+  locales: any;
+}
+
 export interface FullArticle {
   title: string;
   content: string;
@@ -9,7 +38,7 @@ export interface FullArticle {
     id: string;
     description: string;
     image: string;
-    imageAlt: string;
+    imageAlt?: string;
     slug: string;
     path: string;
     openGraphType: string;
@@ -57,6 +86,37 @@ export interface RawPage {
     openGraphType: string;
     schemaType: string;
     image: RawImage;
+    localizations: {
+      data: [
+        {
+          id: number;
+          attributes: {
+            locale: string;
+          };
+        }
+      ];
+    };
+  };
+}
+
+export interface RawFullProject {
+  id: number;
+  attributes: {
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+    locale: string;
+    description: string;
+    path: string;
+    canonicalUrl: string;
+    openGraphType: string;
+    schemaType: string;
+    image: RawImage;
+    tags: string[];
+    repository: string;
+    live: string;
+    content: string;
     localizations: {
       data: [
         {

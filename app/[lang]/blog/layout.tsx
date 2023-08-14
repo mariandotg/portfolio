@@ -1,13 +1,13 @@
 import React from 'react';
 
-const BlogLayout = ({
-  children,
-}: {
+interface Props {
   children: React.ReactNode;
   params: {
     lang: string;
   };
-}) => {
+}
+
+const BlogLayout = ({ children }: Props) => {
   return children;
 };
 

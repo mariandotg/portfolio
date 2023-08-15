@@ -14,6 +14,7 @@ import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
 import { getDictionary } from './dictionaries';
 import FeaturedProjects from '@/components/FeaturedProjects';
+import { getFeaturedProjects, getLatestArticles } from '@/services/api';
 
 interface Props {
   params: {
@@ -42,14 +43,10 @@ const HomePage = async ({ params }: Props) => {
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`,
     { next: { revalidate: 86400 } }
   );
-  const articlesFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/latest`,
-    { next: { revalidate: 86400 } }
-  );
 
   const data: PageContentSections = await dataFetch.json();
   const social: PageSocial = await socialFetch.json();
-  const articles: Article[] = await articlesFetch.json();
+  const articles = await getLatestArticles(params.lang);
 
   data.latestArticles.content.articles = articles;
 

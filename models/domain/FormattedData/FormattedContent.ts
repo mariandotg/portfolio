@@ -1,3 +1,4 @@
+import { PreviewArticle } from '@/models/blog/blog.models';
 import { Article } from '../Article';
 import { Button } from '../Button';
 import { CtaContact } from '../CtaContact';
@@ -31,7 +32,7 @@ export interface JobsContent {
 }
 
 export interface ArticlesContent {
-  articles: Array<Article>;
+  articles: Array<PreviewArticle>;
 }
 
 export interface ContactContent {

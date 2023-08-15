@@ -1,5 +1,5 @@
-import { Project } from '@/models/domain/Project';
 import ProjectCard from './ProjectCard';
+import { getFeaturedProjects } from '@/services/api';
 
 interface Props {
   params: {
@@ -13,12 +13,7 @@ interface ProjectCardsStyles {
 }
 
 const FeaturedProjects = async ({ params }: Props) => {
-  const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects/featured`,
-    { cache: 'no-cache' }
-  );
-
-  const data: Project[] = await projectsFetch.json();
+  const featuredProjects = await getFeaturedProjects(params.lang);
 
   const projectCardsStyles: ProjectCardsStyles = {
     '0': 'tablet:col-span-1 tablet:row-span-1',
@@ -27,7 +22,7 @@ const FeaturedProjects = async ({ params }: Props) => {
     '3': 'tablet:col-span-1 tablet:row-span-1 tablet:h-[256px]',
   };
 
-  return data.map((project, index) => (
+  return featuredProjects.map((project, index) => (
     <ProjectCard
       key={project.id}
       project={project}

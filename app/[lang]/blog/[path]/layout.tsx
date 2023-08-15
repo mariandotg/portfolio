@@ -4,6 +4,7 @@ import PageLayout from '@/components/PageLayout';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
 import { getLatestArticles } from '@/services/api';
+import { NEXT_PUBLIC_API_URL } from '@/config';
 
 interface Props {
   children: React.ReactNode;
@@ -11,6 +12,18 @@ interface Props {
     lang: string;
     path: string;
   };
+}
+export async function generateStaticParams({ params }: Props) {
+  const products = await fetch(
+    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
+    { cache: 'force-cache' }
+  ).then((res) => res.json());
+
+  console.log('generateStaticParams', products);
+  //@ts-ignore
+  return products.data.map((product) => ({
+    path: product.attributes.path,
+  }));
 }
 
 const ArticleLayout = async ({ children, params }: Props) => {

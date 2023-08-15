@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     path
   );
   const projectResponse = rawToFullProject(data[0]);
-
+  //@ts-ignore
   return projectResponse === false
     ? notFound()
     : NextResponse.json(projectResponse);

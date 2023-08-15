@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     path
   );
   const articleResponse = rawToFullArticle(data[0]);
-
+  //@ts-ignore
   return articleResponse === false
     ? notFound()
     : NextResponse.json(articleResponse);

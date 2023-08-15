@@ -13,7 +13,7 @@ interface Props {
     path: string;
   };
 }
-export async function generateStaticParams({ params }: Props) {
+export async function generateStaticParams() {
   const products = await fetch(
     `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
     { cache: 'force-cache' }

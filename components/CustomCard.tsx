@@ -1,12 +1,12 @@
 'use client';
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Project } from '@/models/domain/Project';
+import { PreviewProject } from '@/models/blog/blog.models';
 import { ProjectCardProps } from './ProjectCard';
 
 interface Props {
   lang: string;
   children: ReactNode;
-  iterableArray: Project[];
+  iterableArray: PreviewProject[];
   fallback: ReactNode;
 }
 
@@ -16,7 +16,7 @@ const CustomCard = async ({
   fallback,
   lang,
 }: Props) => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<PreviewProject[]>([]);
   const validChildren = React.Children.toArray(children).filter(
     Boolean
   ) as React.ReactElement<ProjectCardProps>[];

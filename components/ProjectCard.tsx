@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MdArrowForward } from 'react-icons/md';
 
-import { Project } from '@/models/domain/Project';
+import { PreviewProject } from '@/models/blog/blog.models';
 import { Tag } from '@/models/domain/Tag';
 
 import SkillItem from './SkillItem';
@@ -10,7 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export interface ProjectCardProps {
-  project?: Project;
+  project?: PreviewProject;
   className?: string;
   locale: string;
   featured: boolean;
@@ -106,15 +106,18 @@ const ProjectCard = (props: ProjectCardProps) => {
         <div className='flex flex-col gap-y-2'>
           <div className='relative w-full aspect-[344/197]'>
             <Image
-              src={props.project.image}
-              alt={`${props.project.name} image`}
+              src={props.project.image.url}
+              alt={
+                props.project.image.alternativeText ||
+                'missing alternative text'
+              }
               className='absolute flex object-cover w-full rounded-sm'
               fill={true}
             />
           </div>
           <div className='flex flex-col gap-y-1'>
             <span className='flex items-center font-medium whitespace-nowrap text group-hover:gap-x-2 gap-x-1 font-display text-light-headlines dark:text-dark-headlines group-hover:text-primary'>
-              {props.project.name}
+              {props.project.title}
               <MdArrowForward className='duration-[0ms] text-light-headlines dark:text-dark-headlines h-4 w-4 group-hover:text-primary' />
             </span>
           </div>

@@ -1,14 +1,11 @@
 import React, { Suspense } from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
-import { Project } from '@/models/domain/Project';
 import Section from '@/components/Section';
-import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Metadata } from 'next';
-import { PageSeo } from '@/models/PageSeo';
-import { Article } from '@/models/domain/Article';
 import FilterByTag from '@/components/FilterByTag';
 import CustomCard from '@/components/CustomCard';
+import { getPageMetadata, getProjects } from '@/services/api';
 
 interface Props {
   params: {
@@ -20,33 +17,12 @@ interface Props {
   };
 }
 
-interface ArticleData {
-  markdown: { parent: string };
-  seo: Omit<PageSeo, 'loading'>;
-  metadata: Article;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const articleFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/articles/projects`,
-    { next: { revalidate: 3600 } }
-  );
-
-  const articleResponse: ArticleData = await articleFetch.json();
-
-  return metadataAdapter(articleResponse.seo);
+  return await getPageMetadata(params.lang, 'projects');
 }
 
 const ProjectsPage = async ({ searchParams, params }: Props) => {
-  console.log('searchParams', searchParams);
-  const projectsFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/projects${
-      searchParams.tags ? `?tags=${searchParams.tags}` : ''
-    }`,
-    { cache: 'default' }
-  );
-
-  const projectsResponse: { projects: Project[] } = await projectsFetch.json();
+  const projects = await getProjects(params.lang);
 
   return (
     <PageLayout>
@@ -112,7 +88,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
             {/* @ts-expect-error Async Server Component */}
             <CustomCard
               lang={params.lang}
-              iterableArray={projectsResponse.projects}
+              iterableArray={projects}
               fallback={
                 <p className='col-span-1 dark:text-dark-text text-light-text'>
                   No se encontró proyectos que cumplan con el filtro ingresado

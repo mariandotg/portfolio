@@ -6,6 +6,7 @@ import {
   FullArticle,
   FullProject,
   PreviewArticle,
+  PreviewProject,
   RawPage,
 } from '@/models/blog/blog.models';
 import { rawToFullArticle } from '@/adapters/rawToFullAdapter';
@@ -56,6 +57,19 @@ export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
   const { articles } = await response.json();
 
   return articles as PreviewArticle[];
+};
+
+export const getProjects = async (lang: string): Promise<PreviewProject[]> => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/projects`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('doesn`t have projects error');
+  }
+  const { projects } = await response.json();
+
+  return projects as PreviewProject[];
 };
 
 export const getLatestArticles = async (

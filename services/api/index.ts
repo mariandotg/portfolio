@@ -87,6 +87,21 @@ export const getLatestArticles = async (
   return articles as PreviewArticle[];
 };
 
+export const getFeaturedProjects = async (
+  lang: string
+): Promise<PreviewProject[]> => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/featured-projects`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('doesn`t have featured projects error');
+  }
+  const projects = await response.json();
+
+  return projects as PreviewProject[];
+};
+
 export const getPageMetadata = async (
   lang: string,
   path: string

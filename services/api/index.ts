@@ -106,7 +106,7 @@ export const getPageMetadata = async (
   lang: string,
   path: string
 ): Promise<Metadata> => {
-  const response = await fetchContentByPath<RawPage>('pages', lang, path);
+  const response = await fetchContentByPath<RawPage[]>('pages', lang, path);
   //@ts-ignore
   const articleFetch = rawToFullArticle(response[0]);
 
@@ -121,7 +121,7 @@ export const getArticleMetadata = async (
   path: string
 ): Promise<Metadata> => {
   const article = await getArticle(lang, path);
-
+  //@ts-ignore
   return metadataAdapter(article.seo);
 };
 
@@ -130,6 +130,6 @@ export const getProjectMetadata = async (
   path: string
 ): Promise<Metadata> => {
   const project = await getProject(lang, path);
-
+  //@ts-ignore
   return metadataAdapter(project.seo);
 };

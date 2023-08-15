@@ -63,6 +63,21 @@ export const fetchLatestArticles = async (
   return data as RawPreviewArticle[];
 };
 
+export const fetchFeaturedProjects = async (
+  locale: string = 'en'
+): Promise<RawPreviewProject[]> => {
+  const response = await fetch(
+    `${NEXT_PUBLIC_API_URL}/projects?locale=${locale}&populate[image]=*&fields[0]=title&fields[1]=publishedAt&fields[2]=tags&fields[3]=path&pagination[pageSize]=3&filters[featured][$eq]=true`,
+    { cache: 'no-cache' }
+  );
+  if (!response.ok) {
+    throw new Error('test error');
+  }
+  const { data } = await response.json();
+
+  return data as RawPreviewProject[];
+};
+
 export const fetchContentByPath = async <
   T extends RawFullArticle[] | RawPage[] | RawFullProject[]
 >(

@@ -55,13 +55,12 @@ const LangSelector = ({ locale }: Props) => {
   return (
     <div className='flex flex-col justify-center select-none'>
       <Button
-        variant='primary'
+        variant='tertiary'
         className='flex items-center h-8 gap-2 not-italic'
         onClick={handleLangChange}
         icon
       >
-        <MdLanguage className='w-[18px] h-[18px]' />
-        {currentLanguage!.label[locale]}
+        {locale.toUpperCase()}
         {!isOpen ? (
           <MdArrowDropDown className='w-[18px] h-[18px]' />
         ) : (

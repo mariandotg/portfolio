@@ -35,7 +35,7 @@ export const getProject = async (
 ): Promise<FullProject> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/projects/${path}`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     return redirect(`../../en/projects/not-found`);
@@ -49,7 +49,7 @@ export const getProject = async (
 export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     throw new Error('doesn`t have articles error');
@@ -62,7 +62,7 @@ export const getArticles = async (lang: string): Promise<PreviewArticle[]> => {
 export const getProjects = async (lang: string): Promise<PreviewProject[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/projects`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     throw new Error('doesn`t have projects error');
@@ -77,7 +77,7 @@ export const getLatestArticles = async (
 ): Promise<PreviewArticle[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     throw new Error('doesn`t have latest articles error');
@@ -92,7 +92,7 @@ export const getFeaturedProjects = async (
 ): Promise<PreviewProject[]> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/featured-projects`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     throw new Error('doesn`t have featured projects error');

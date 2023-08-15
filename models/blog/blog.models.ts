@@ -67,6 +67,25 @@ export interface PreviewArticle {
   };
 }
 
+export interface PreviewProject {
+  id: number;
+  title: string;
+  publishedAt: string;
+  tags: {
+    id: string;
+    name: string;
+  }[];
+  path: string;
+  image: {
+    placeholder: string;
+    name: string;
+    alternativeText?: string;
+    width: number;
+    height: number;
+    url: string;
+  };
+}
+
 export interface RawFullArticle {
   id: number;
   attributes: Attribute;
@@ -136,6 +155,17 @@ export interface RawPreviewArticle {
     Attribute,
     'title' | 'publishedAt' | 'category' | 'path' | 'image'
   >;
+}
+
+export interface RawPreviewProject {
+  id: number;
+  attributes: {
+    title: string;
+    publishedAt: string;
+    path: string;
+    image: RawImage;
+    tags: string[];
+  };
 }
 
 export interface Attribute {

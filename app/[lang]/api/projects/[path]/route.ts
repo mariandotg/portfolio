@@ -4,9 +4,7 @@ import {
   rawToFullProject,
 } from '@/adapters/rawToFullAdapter';
 import { RawFullArticle, RawFullProject } from '@/models/blog/blog.models';
-import { CompoundFilterObj } from '@/models/notion/Filters';
 import { fetchContentByPath } from '@/services/blog';
-import { getPageData } from '@/services/notion';
 import { notFound } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -14,7 +12,11 @@ export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
   const path = request.nextUrl.pathname.split('/').filter(Boolean)[3];
 
-  const data = await fetchContentByPath<RawFullProject>('projects', lang, path);
+  const data = await fetchContentByPath<RawFullProject[]>(
+    'projects',
+    lang,
+    path
+  );
   const projectResponse = rawToFullProject(data[0]);
 
   return projectResponse === false

@@ -18,7 +18,7 @@ export const getArticle = async (
 ): Promise<FullArticle> => {
   const response = await fetch(
     `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/${path}`,
-    { cache: 'no-cache' }
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     return redirect(`../../en/blog/not-found`);

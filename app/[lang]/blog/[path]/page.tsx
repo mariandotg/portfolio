@@ -7,12 +7,30 @@ import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import Image from 'next/image';
 import { getArticle, getArticleMetadata } from '@/services/api';
+import { NEXT_PUBLIC_API_URL } from '@/config';
 
 interface Props {
   params: {
     path: string;
     lang: string;
   };
+}
+
+export async function generateStaticParams() {
+  const products = await fetch(
+    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
+    { cache: 'force-cache' }
+  ).then((res) => res.json());
+  const langs = [{ lang: 'en' }, { lang: 'es' }];
+
+  console.log('generateStaticParams', products);
+  return langs.map((lang) => {
+    //@ts-ignore
+    return products.data.map((product) => ({
+      path: product.attributes.path,
+      lang,
+    }));
+  });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

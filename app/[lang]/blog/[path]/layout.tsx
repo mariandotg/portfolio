@@ -6,8 +6,6 @@ import SectionTitle from '@/components/SectionTitle';
 import { getLatestArticles } from '@/services/api';
 import { NEXT_PUBLIC_API_URL } from '@/config';
 
-export const revalidate = 86400;
-
 interface Props {
   children: React.ReactNode;
   params: {
@@ -18,8 +16,7 @@ interface Props {
 
 export async function generateStaticParams() {
   const products = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
-    { cache: 'force-cache' }
+    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`
   ).then((res) => res.json());
   const langs = [{ lang: 'en' }, { lang: 'es' }];
 

@@ -17,8 +17,7 @@ export const getArticle = async (
   path: string
 ): Promise<FullArticle> => {
   const response = await fetch(
-    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/${path}`,
-    { cache: 'force-cache' }
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/articles/${path}`
   );
   if (!response.ok) {
     return redirect(`../../en/blog/not-found`);
@@ -76,8 +75,7 @@ export const getLatestArticles = async (
   lang: string
 ): Promise<PreviewArticle[]> => {
   const response = await fetch(
-    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`,
-    { cache: 'force-cache' }
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`
   );
   if (!response.ok) {
     throw new Error('doesn`t have latest articles error');

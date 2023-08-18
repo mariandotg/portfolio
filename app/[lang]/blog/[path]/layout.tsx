@@ -20,7 +20,7 @@ export async function generateStaticParams() {
   ).then((res) => res.json());
   const langs = [{ lang: 'en' }, { lang: 'es' }];
 
-  const obj = langs.map((lang) => {
+  const obj = langs.flatMap((lang) => {
     //@ts-ignore
     return products.data.map((product) => ({
       path: product.attributes.path,

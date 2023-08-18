@@ -1,6 +1,9 @@
 import Navbar from '../../components/NavBar';
 import Footer from '../../components/Footer';
 
+export async function generateStaticParams() {
+  return [{ lang: 'en' }, { lang: 'es' }];
+}
 export default function LangLayout({
   children,
   params,

@@ -20,14 +20,15 @@ export async function generateStaticParams() {
   ).then((res) => res.json());
   const langs = [{ lang: 'en' }, { lang: 'es' }];
 
-  console.log('generateStaticParams', products);
-  return langs.map((lang) => {
+  const obj = langs.map((lang) => {
     //@ts-ignore
     return products.data.map((product) => ({
       path: product.attributes.path,
-      lang,
+      lang: lang.lang,
     }));
   });
+  console.log('generateStaticParams', obj);
+  return obj;
 }
 
 const ArticleLayout = async ({ children, params }: Props) => {

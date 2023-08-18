@@ -13,18 +13,6 @@ interface Props {
     path: string;
   };
 }
-export async function generateStaticParams() {
-  const products = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
-    { cache: 'force-cache' }
-  ).then((res) => res.json());
-
-  console.log('generateStaticParams', products);
-  //@ts-ignore
-  return products.data.map((product) => ({
-    path: product.attributes.path,
-  }));
-}
 
 const ArticleLayout = async ({ children, params }: Props) => {
   const latestArticles = await getLatestArticles(params.lang);

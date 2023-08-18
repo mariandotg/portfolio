@@ -9,6 +9,8 @@ import Image from 'next/image';
 import { getArticle, getArticleMetadata } from '@/services/api';
 import { NEXT_PUBLIC_API_URL } from '@/config';
 
+export const dynamic = 'force-static';
+
 interface Props {
   params: {
     path: string;

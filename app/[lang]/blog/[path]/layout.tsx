@@ -6,6 +6,8 @@ import SectionTitle from '@/components/SectionTitle';
 import { getLatestArticles } from '@/services/api';
 import { NEXT_PUBLIC_API_URL } from '@/config';
 
+export const revalidate = 86400;
+
 interface Props {
   children: React.ReactNode;
   params: {

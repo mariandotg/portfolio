@@ -4,8 +4,11 @@ import { getDictionary } from '../../dictionaries';
 interface Props {
   params: {
     lang: string;
-    path: string;
   };
+}
+
+export function generateStaticParams() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -14,6 +14,23 @@ interface Props {
   };
 }
 
+export async function generateStaticParams() {
+  const products = await fetch(
+    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`,
+    { cache: 'force-cache' }
+  ).then((res) => res.json());
+  const langs = [{ lang: 'en' }, { lang: 'es' }];
+
+  console.log('generateStaticParams', products);
+  return langs.map((lang) => {
+    //@ts-ignore
+    return products.data.map((product) => ({
+      lang,
+      path: product.attributes.path,
+    }));
+  });
+}
+
 const ArticleLayout = async ({ children, params }: Props) => {
   const latestArticles = await getLatestArticles(params.lang);
 

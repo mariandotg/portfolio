@@ -19,7 +19,6 @@ import { getFeaturedProjects, getLatestArticles } from '@/services/api';
 interface Props {
   params: {
     lang: string;
-    path: string;
   };
 }
 

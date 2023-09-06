@@ -21,7 +21,7 @@ const SkillItem = ({ skill, illuminate, variant }: Props) => {
       } px-2 py-1 rounded-[50px] items-center justify-center group/item gap-x-2`}
     >
       <Icon
-        value={skill.toLocaleLowerCase()}
+        value={skill?.toLocaleLowerCase()}
         className={`duration-[0ms] ${
           illuminate && 'group-hover/item:fill-primary'
         } ${

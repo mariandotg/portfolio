@@ -6,7 +6,6 @@ import { PreviewProject } from '@/models/blog/blog.models';
 import { Tag } from '@/models/domain/Tag';
 
 import SkillItem from './SkillItem';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export interface ProjectCardProps {
@@ -104,15 +103,14 @@ const ProjectCard = (props: ProjectCardProps) => {
     >
       <div className='z-10 flex flex-col justify-end w-full h-full cursor-pointer group dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>
-          <div className='relative w-full aspect-[344/197]'>
-            <Image
+          <div className='relative overflow-hidden w-full aspect-[344/197]'>
+            <img
               src={props.project.image.url}
               alt={
                 props.project.image.alternativeText ||
                 'missing alternative text'
               }
-              className='absolute flex object-cover w-full rounded-sm'
-              fill={true}
+              className='flex object-cover w-full rounded-sm'
             />
           </div>
           <div className='flex flex-col gap-y-1'>

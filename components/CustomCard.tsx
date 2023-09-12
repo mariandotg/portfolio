@@ -6,7 +6,7 @@ import { ProjectCardProps } from './ProjectCard';
 interface Props {
   lang: string;
   children: ReactNode;
-  iterableArray: PreviewProject[];
+  iterableArray: PreviewProject[] | undefined;
   fallback: ReactNode;
 }
 
@@ -22,7 +22,7 @@ const CustomCard = async ({
   ) as React.ReactElement<ProjectCardProps>[];
 
   useEffect(() => {
-    setProjects(iterableArray);
+    setProjects(iterableArray ? iterableArray : []);
   }, [iterableArray]);
 
   return (

@@ -1,16 +1,15 @@
 import { NEXT_PUBLIC_BASE_FETCH_URL } from '@/config';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { fetchContentByPath } from '../blog';
 import {
   FullArticle,
   FullProject,
   PreviewArticle,
   PreviewProject,
-  RawPage,
 } from '@/models/blog/blog.models';
-import { rawToFullArticle } from '@/adapters/rawToFullAdapter';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { fetchArticleByPath } from '../content/articles';
+import { fetchProjectByPath } from '../content/projects';
 
 export const getArticle = async (
   lang: string,
@@ -75,7 +74,8 @@ export const getLatestArticles = async (
   lang: string
 ): Promise<PreviewArticle[]> => {
   const response = await fetch(
-    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`
+    `${NEXT_PUBLIC_BASE_FETCH_URL}/${lang}/api/latest-articles`,
+    { cache: 'force-cache' }
   );
   if (!response.ok) {
     throw new Error('doesn`t have latest articles error');
@@ -100,34 +100,18 @@ export const getFeaturedProjects = async (
   return projects as PreviewProject[];
 };
 
-export const getPageMetadata = async (
-  lang: string,
-  path: string
-): Promise<Metadata> => {
-  const response = await fetchContentByPath<RawPage[]>('pages', lang, path);
-  //@ts-ignore
-  const articleFetch = rawToFullArticle(response[0]);
-
-  //@ts-ignore
-  const articleResponse: ArticleData = articleFetch;
-
-  return metadataAdapter(articleResponse.seo);
-};
-
 export const getArticleMetadata = async (
   lang: string,
   path: string
 ): Promise<Metadata> => {
-  const article = await getArticle(lang, path);
-  //@ts-ignore
-  return metadataAdapter(article.seo);
+  const article = await fetchArticleByPath(path, lang);
+  return metadataAdapter(article!.meta);
 };
 
 export const getProjectMetadata = async (
   lang: string,
   path: string
 ): Promise<Metadata> => {
-  const project = await getProject(lang, path);
-  //@ts-ignore
-  return metadataAdapter(project.seo);
+  const project = await fetchProjectByPath(path, lang);
+  return metadataAdapter(project!.meta);
 };

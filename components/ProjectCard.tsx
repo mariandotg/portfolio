@@ -98,8 +98,7 @@ const ProjectCard = (props: ProjectCardProps) => {
   return (
     <Link
       className={`${props.className} relative group border border-transparent p-4 rounded dark:hover:border-light-text/30 hover:border-dark-text/30 bg-dark-headlines/30 dark:bg-light-headlines/50 mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:col-span-1`}
-      href={`${props.locale}/projects/${props.project.path}`}
-      locale={props.locale}
+      href={`projects/${props.project.path}`}
     >
       <div className='z-10 flex flex-col justify-end w-full h-full cursor-pointer group dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>

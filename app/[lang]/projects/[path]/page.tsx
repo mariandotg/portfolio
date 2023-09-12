@@ -1,13 +1,15 @@
 import React from 'react';
 import SkillItem from '@/components/SkillItem';
-import Markdown from '@/components/Markdown';
 import Button from '@/components/Button';
 import { Metadata } from 'next';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
 import { getDictionary } from '../../dictionaries';
-import Image from 'next/image';
-import { getProject, getProjectMetadata } from '@/services/api';
+import { getProjectMetadata } from '@/services/api';
+import { fetchProjectByPath } from '@/services/content/projects';
+import { redirect } from 'next/navigation';
+
+export const revalidate = 86400;
 
 interface Props {
   params: {
@@ -21,8 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ProjectPage = async ({ params }: Props) => {
-  const project = await getProject(params.lang, params.path);
   const dict = await getDictionary(params.lang);
+  const project = await fetchProjectByPath(params.path, params.lang);
+
+  if (!project) return redirect(`../../${params.lang}/projects/not-found`);
 
   const renderTags = () =>
     project.tags.map((tag, index) => (
@@ -34,16 +38,12 @@ const ProjectPage = async ({ params }: Props) => {
   return (
     <>
       <div className='flex flex-col col-span-4 gap-y-2'>
-        <div className='relative h-64 tablet:col-span-4'>
-          <Image
-            src={project.image.data.attributes.url}
-            alt={project.image.data.attributes.alternativeText}
-            className='absolute object-cover rounded'
-            fill={true}
-            priority
-            quality={90}
+        <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
+          <img
+            src={project.image}
+            alt='page header'
+            className='object-cover w-full'
             placeholder='blur'
-            blurDataURL={project.image.data.attributes.placeholder}
           />
         </div>
       </div>
@@ -65,7 +65,7 @@ const ProjectPage = async ({ params }: Props) => {
           </Button>
         </div>
         <div className='flex flex-col gap-y-4'>
-          <Markdown>{project.content}</Markdown>
+          <article>{project.content}</article>
         </div>
       </div>
       <div className='sidebar'>

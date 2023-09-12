@@ -5,18 +5,22 @@ import Icon from './Icon';
 import NavLink from './NavLink';
 import { PageSocial } from '@/models/PageSocial';
 import { getDictionary } from '@/app/[lang]/dictionaries';
+import { getContentfulData } from '@/services/contentful';
+import { IConstants } from '@/models/contentful/generated/contentful';
+import { pageSocialAdapter } from '@/adapters/pageSocialAdapter';
 
 interface Props {
   locale: string;
 }
 
 const Footer = async ({ locale }: Props) => {
-  const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${locale}/api/social`,
-    { cache: 'no-cache' }
-  );
+  const social = await getContentfulData<IConstants>({
+    locale: locale,
+    content_type: 'constants',
+    include: 3,
+  }).then((data) => pageSocialAdapter(data[0].fields));
 
-  const constants: PageSocial = await socialFetch.json();
+  const constants: PageSocial = social;
 
   const dict = await getDictionary(locale);
 

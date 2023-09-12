@@ -2,10 +2,9 @@ import React, { Suspense } from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
 import Section from '@/components/Section';
-import { Metadata } from 'next';
 import FilterByTag from '@/components/FilterByTag';
 import CustomCard from '@/components/CustomCard';
-import { getPageMetadata, getProjects } from '@/services/api';
+import { fetchProjects } from '@/services/content/projects';
 
 interface Props {
   params: {
@@ -17,12 +16,13 @@ interface Props {
   };
 }
 
+/* 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return await getPageMetadata(params.lang, 'projects');
-}
+}*/
 
 const ProjectsPage = async ({ searchParams, params }: Props) => {
-  const projects = await getProjects(params.lang);
+  const projects = await fetchProjects(params.lang);
 
   return (
     <PageLayout>

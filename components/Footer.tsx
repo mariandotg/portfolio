@@ -1,26 +1,16 @@
 import React from 'react';
 import { MdArrowOutward } from 'react-icons/md';
-
 import Icon from './Icon';
 import NavLink from './NavLink';
-import { PageSocial } from '@/models/PageSocial';
 import { getDictionary } from '@/app/[lang]/dictionaries';
-import { getContentfulData } from '@/services/contentful';
-import { IConstants } from '@/models/contentful/generated/contentful';
-import { pageSocialAdapter } from '@/adapters/pageSocialAdapter';
+import { fetchSocialMedia } from '@/services/content/social-media';
 
 interface Props {
   locale: string;
 }
 
 const Footer = async ({ locale }: Props) => {
-  const social = await getContentfulData<IConstants>({
-    locale: locale,
-    content_type: 'constants',
-    include: 3,
-  }).then((data) => pageSocialAdapter(data[0].fields));
-
-  const constants: PageSocial = social;
+  const constants = await fetchSocialMedia();
 
   const dict = await getDictionary(locale);
 
@@ -53,7 +43,7 @@ const Footer = async ({ locale }: Props) => {
           </div>
           <div className='flex flex-col items-center gap-y-8'>
             <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>
-              {constants.map((social) => (
+              {constants!.map((social) => (
                 <li key={social.id} className='flex'>
                   <a
                     href={social.url}

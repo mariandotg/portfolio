@@ -1,9 +1,7 @@
-import { PageSeo } from '@/models/PageSeo';
+import { Meta } from '@/models/blog/blog.models';
 import { Metadata } from 'next';
 
-export const metadataAdapter = (
-  seoObject: Omit<PageSeo, 'loading'>
-): Metadata => {
+export const metadataAdapter = (seoObject: Meta): Metadata => {
   return {
     title: seoObject.title,
     category: 'technology',

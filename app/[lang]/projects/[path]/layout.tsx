@@ -1,4 +1,5 @@
 import PageLayout from '@/components/PageLayout';
+import { fetchProjects } from '@/services/content/projects';
 import React from 'react';
 
 interface Props {
@@ -7,6 +8,18 @@ interface Props {
     path: string;
     lang: string;
   };
+}
+
+export async function generateStaticParams() {
+  const products = await fetchProjects('en');
+  const langs = [{ lang: 'en' }, { lang: 'es' }];
+
+  return langs.flatMap(({ lang }) =>
+    products!.map(({ path }) => ({
+      path,
+      lang,
+    }))
+  );
 }
 
 const ProjectLayout = async ({ children, params }: Props) => {

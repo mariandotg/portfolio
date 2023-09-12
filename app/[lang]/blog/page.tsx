@@ -2,23 +2,22 @@ import React from 'react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '@/components/Section';
 import ArticleCard from '@/components/ArticleCard';
-import { Metadata } from 'next';
 import { getDictionary } from '../dictionaries';
 import FilterByTag from '@/components/FilterByTag';
-import { getArticles, getPageMetadata } from '@/services/api';
+import { fetchArticles } from '@/services/content/articles';
 
 interface Props {
   params: {
     lang: string;
   };
 }
-
+/*
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return await getPageMetadata(params.lang, 'blog');
-}
+}*/
 
 const BlogPage = async ({ params }: Props) => {
-  const articles = await getArticles(params.lang);
+  const articles = await fetchArticles(params.lang);
   const dict = await getDictionary(params.lang);
 
   return (
@@ -34,7 +33,7 @@ const BlogPage = async ({ params }: Props) => {
         </div>
         <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>
-            {articles.length !== 0 ? (
+            {articles !== undefined ? (
               articles.map((article, index) => (
                 <li
                   key={article.id}

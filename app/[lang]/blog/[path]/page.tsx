@@ -1,13 +1,12 @@
 import React from 'react';
-import Markdown from '@/components/Markdown';
 import useDate from '@/hooks/useDate';
 import { Metadata } from 'next';
 import { getDictionary } from '../../dictionaries';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
-import Image from 'next/image';
-import { getArticle, getArticleMetadata } from '@/services/api';
-import { NEXT_PUBLIC_API_URL } from '@/config';
+import { getArticleMetadata } from '@/services/api';
+import { fetchArticleByPath } from '@/services/content/articles';
+import { redirect } from 'next/navigation';
 
 export const revalidate = 86400;
 
@@ -23,23 +22,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ArticlePage = async ({ params }: Props) => {
-  const article = await getArticle(params.lang, params.path);
-  const { formattedDate } = useDate(new Date(article.publishedAt));
   const dict = await getDictionary(params.lang);
+  const article = await fetchArticleByPath(params.path, params.lang);
+
+  if (!article) return redirect(`../../en/blog/not-found`);
+
+  const { formattedDate } = useDate(new Date(article.publishedAt));
 
   return (
     <>
       <div className='flex flex-col col-span-4 gap-y-2'>
-        <div className='relative h-64 tablet:col-span-4'>
-          <Image
-            src={article.image.data.attributes.url}
+        <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
+          <img
+            src={article.image}
             alt='page header'
-            className='absolute object-cover rounded'
-            fill={true}
-            priority
-            quality={90}
+            className='object-cover'
             placeholder='blur'
-            blurDataURL={article.image.data.attributes.placeholder}
           />
         </div>
       </div>
@@ -57,7 +55,7 @@ const ArticlePage = async ({ params }: Props) => {
             {article.description}
           </p>
         </div>
-        <Markdown>{article.content}</Markdown>
+        <article>{article.content}</article>
         <p>
           {dict.pageIndex.published} {formattedDate[params.lang]}
         </p>

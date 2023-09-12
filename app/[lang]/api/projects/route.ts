@@ -1,12 +1,10 @@
-import { rawsToPreviewProjects } from '@/adapters/rawToPreviewAdapters';
-import { fetchProjects } from '@/services/blog';
+import { fetchProjects } from '@/services/content/projects';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const lang = request.nextUrl.pathname.split('/').filter(Boolean)[0];
 
-  const data = await fetchProjects(lang);
-  const projects = rawsToPreviewProjects(data);
+  const projects = await fetchProjects(lang);
 
   return NextResponse.json({ projects });
 }

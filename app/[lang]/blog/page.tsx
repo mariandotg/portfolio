@@ -5,16 +5,21 @@ import ArticleCard from '@/components/ArticleCard';
 import { getDictionary } from '../dictionaries';
 import FilterByTag from '@/components/FilterByTag';
 import { fetchArticles } from '@/services/content/articles';
+import { fetchPageByPath } from '@/services/content/pages';
+import { Metadata } from 'next';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
+import { Meta } from '@/models/blog/blog.models';
 
 interface Props {
   params: {
     lang: string;
   };
 }
-/*
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return await getPageMetadata(params.lang, 'blog');
-}*/
+  const data = await fetchPageByPath<{ seo: Meta }>('blog', params.lang);
+  return metadataAdapter(data!.seo);
+}
 
 const BlogPage = async ({ params }: Props) => {
   const articles = await fetchArticles(params.lang);

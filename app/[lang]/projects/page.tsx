@@ -5,6 +5,10 @@ import Section from '@/components/Section';
 import FilterByTag from '@/components/FilterByTag';
 import CustomCard from '@/components/CustomCard';
 import { fetchProjects } from '@/services/content/projects';
+import { fetchPageByPath } from '@/services/content/pages';
+import { Meta } from '@/models/blog/blog.models';
+import { Metadata } from 'next';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
 
 interface Props {
   params: {
@@ -16,10 +20,10 @@ interface Props {
   };
 }
 
-/* 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return await getPageMetadata(params.lang, 'projects');
-}*/
+  const data = await fetchPageByPath<{ seo: Meta }>('projects', params.lang);
+  return metadataAdapter(data!.seo);
+}
 
 const ProjectsPage = async ({ searchParams, params }: Props) => {
   const projects = await fetchProjects(params.lang);

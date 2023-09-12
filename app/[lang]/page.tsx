@@ -10,78 +10,36 @@ import ArticleCard from '@/components/ArticleCard';
 import { getDictionary } from './dictionaries';
 import FeaturedProjects from '@/components/FeaturedProjects';
 import { fetchArticles } from '@/services/content/articles';
-import { getContentfulData } from '@/services/contentful';
-import { IConstants, IPage } from '@/models/contentful/generated/contentful';
-import { pageSocialAdapter } from '@/adapters/pageSocialAdapter';
-import { pageContentAdapter } from '@/adapters/pageContentAdapter';
-import { getPageData } from '@/services/notion';
+import { fetchPageByPath } from '@/services/content/pages';
+import { fetchSocialMedia } from '@/services/content/social-media';
+import { redirect } from 'next/navigation';
+import { Metadata } from 'next';
+import { metadataAdapter } from '@/adapters/metadataAdapter';
 
 interface Props {
   params: {
     lang: string;
   };
 }
-/*
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const homeFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'force-cache' }
-  );
 
-  const homeResponse: PageContentSections = await homeFetch.json();
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const data = await fetchPageByPath<PageContentSections>('home', params.lang);
+
   //@ts-ignore
-  return metadataAdapter(homeResponse.seo);
-}*/
+  return metadataAdapter(data!.seo);
+}
 
 const HomePage = async ({ params }: Props) => {
-  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+  const data = await fetchPageByPath<PageContentSections>('home', params.lang);
 
-  const dataRaw = await getContentfulData<IPage>({
-    content_type: 'page',
-    locale: params.lang,
-    include: 3,
-    ['fields.name']: 'home',
-  }).then((data) => pageContentAdapter(data[0].fields.sections));
+  if (!data) return redirect(`../../not-found`);
 
-  const seo = await getPageData(
-    {
-      databaseId,
-      filter: {
-        and: [
-          {
-            property: 'SeoPath',
-            formula: {
-              string: {
-                equals: 'home',
-              },
-            },
-          },
-          {
-            property: 'Locale',
-            select: {
-              equals: params.lang,
-            },
-          },
-        ],
-      },
-      pageSize: 1,
-    },
-    { seo: true }
-  );
-
-  const data: PageContentSections = { ...dataRaw, ...seo };
-  const social = await getContentfulData<IConstants>({
-    locale: params.lang,
-    content_type: 'constants',
-    include: 3,
-  }).then((data) => pageSocialAdapter(data[0].fields));
-
+  const social = await fetchSocialMedia();
   const articles = await fetchArticles(params.lang);
   const latestArticles = articles?.slice(0, 2);
-
-  data.latestArticles.content.articles = latestArticles!;
-
   const dict = await getDictionary(params.lang);
+
+  data!.latestArticles.content.articles = latestArticles!;
 
   return (
     <PageLayout>
@@ -92,7 +50,7 @@ const HomePage = async ({ params }: Props) => {
               {data.about.title}
             </h1>
             <ul className='flex gap-x-4'>
-              {social.map((social) => (
+              {social!.map((social) => (
                 <li key={social.id} className='flex'>
                   <a
                     href={social.url}

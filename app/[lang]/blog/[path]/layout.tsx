@@ -49,7 +49,7 @@ const ArticleLayout = async ({ children, params }: Props) => {
               >
                 <ArticleCard
                   article={article}
-                  path={`${params.lang}/blog/${article.path}`}
+                  path={`blog/${article.path}`}
                   locale={params.lang}
                 />
               </li>

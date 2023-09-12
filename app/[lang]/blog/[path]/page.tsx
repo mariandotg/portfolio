@@ -25,7 +25,7 @@ const ArticlePage = async ({ params }: Props) => {
   const dict = await getDictionary(params.lang);
   const article = await fetchArticleByPath(params.path, params.lang);
 
-  if (!article) return redirect(`../../en/blog/not-found`);
+  if (!article) return redirect(`../../${params.lang}/blog/not-found`);
 
   const { formattedDate } = useDate(new Date(article.publishedAt));
 

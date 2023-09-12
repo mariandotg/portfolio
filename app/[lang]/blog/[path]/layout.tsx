@@ -3,8 +3,7 @@ import ArticleCard from '@/components/ArticleCard';
 import PageLayout from '@/components/PageLayout';
 import Section from '@/components/Section';
 import SectionTitle from '@/components/SectionTitle';
-import { getLatestArticles } from '@/services/api';
-import { NEXT_PUBLIC_API_URL } from '@/config';
+import { fetchArticles } from '@/services/content/articles';
 
 interface Props {
   children: React.ReactNode;
@@ -15,24 +14,20 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const products = await fetch(
-    `${NEXT_PUBLIC_API_URL}/articles?fields[0]=path`
-  ).then((res) => res.json());
+  const articles = await fetchArticles('en');
   const langs = [{ lang: 'en' }, { lang: 'es' }];
 
-  const obj = langs.flatMap((lang) => {
-    //@ts-ignore
-    return products.data.map((product) => ({
-      path: product.attributes.path,
-      lang: lang.lang,
+  return langs.flatMap(({ lang }) => {
+    return articles!.map((product) => ({
+      path: product.path,
+      lang,
     }));
   });
-  console.log('generateStaticParams', obj);
-  return obj;
 }
 
 const ArticleLayout = async ({ children, params }: Props) => {
-  const latestArticles = await getLatestArticles(params.lang);
+  const articles = await fetchArticles(params.lang);
+  const latestArticles = articles?.slice(0, 2);
 
   return (
     <PageLayout>
@@ -43,7 +38,7 @@ const ArticleLayout = async ({ children, params }: Props) => {
         <SectionTitle emoji='article'>Latest Articles</SectionTitle>
         <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
-            {latestArticles.map((article, index) => (
+            {latestArticles!.map((article, index) => (
               <li
                 key={article.id}
                 className={`cursor-pointer group ${

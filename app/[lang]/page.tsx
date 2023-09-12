@@ -6,22 +6,22 @@ import Section from '../../components/Section';
 import SectionTitle from '../../components/SectionTitle';
 import SkillItem from '../../components/SkillItem';
 import { PageContentSections } from '@/models/PageContentSections';
-import { PageSocial } from '@/models/PageSocial';
-import { Article } from '@/models/domain/Article';
 import ArticleCard from '@/components/ArticleCard';
-
-import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { Metadata } from 'next';
 import { getDictionary } from './dictionaries';
 import FeaturedProjects from '@/components/FeaturedProjects';
-import { getFeaturedProjects, getLatestArticles } from '@/services/api';
+import { fetchArticles } from '@/services/content/articles';
+import { getContentfulData } from '@/services/contentful';
+import { IConstants, IPage } from '@/models/contentful/generated/contentful';
+import { pageSocialAdapter } from '@/adapters/pageSocialAdapter';
+import { pageContentAdapter } from '@/adapters/pageContentAdapter';
+import { getPageData } from '@/services/notion';
 
 interface Props {
   params: {
     lang: string;
   };
 }
-
+/*
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const homeFetch = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
@@ -29,25 +29,57 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 
   const homeResponse: PageContentSections = await homeFetch.json();
-
+  //@ts-ignore
   return metadataAdapter(homeResponse.seo);
-}
+}*/
 
 const HomePage = async ({ params }: Props) => {
-  const dataFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/pages/home`,
-    { cache: 'force-cache' }
-  );
-  const socialFetch = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_FETCH_URL}/${params.lang}/api/social`,
-    { next: { revalidate: 86400 } }
+  const databaseId = process.env.NEXT_PUBLIC_NOTION_PAGES_DATABASE_ID!;
+
+  const dataRaw = await getContentfulData<IPage>({
+    content_type: 'page',
+    locale: params.lang,
+    include: 3,
+    ['fields.name']: 'home',
+  }).then((data) => pageContentAdapter(data[0].fields.sections));
+
+  const seo = await getPageData(
+    {
+      databaseId,
+      filter: {
+        and: [
+          {
+            property: 'SeoPath',
+            formula: {
+              string: {
+                equals: 'home',
+              },
+            },
+          },
+          {
+            property: 'Locale',
+            select: {
+              equals: params.lang,
+            },
+          },
+        ],
+      },
+      pageSize: 1,
+    },
+    { seo: true }
   );
 
-  const data: PageContentSections = await dataFetch.json();
-  const social: PageSocial = await socialFetch.json();
-  const articles = await getLatestArticles(params.lang);
+  const data: PageContentSections = { ...dataRaw, ...seo };
+  const social = await getContentfulData<IConstants>({
+    locale: params.lang,
+    content_type: 'constants',
+    include: 3,
+  }).then((data) => pageSocialAdapter(data[0].fields));
 
-  data.latestArticles.content.articles = articles;
+  const articles = await fetchArticles(params.lang);
+  const latestArticles = articles?.slice(0, 2);
+
+  data.latestArticles.content.articles = latestArticles!;
 
   const dict = await getDictionary(params.lang);
 

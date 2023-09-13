@@ -27,7 +27,7 @@ const ArticlePage = async ({ params }: Props) => {
 
   if (!article) return redirect(`../../${params.lang}/blog/not-found`);
 
-  const { formattedDate } = useDate(new Date(article.publishedAt));
+  const { long } = useDate(new Date(article.publishedAt));
 
   return (
     <>
@@ -57,7 +57,7 @@ const ArticlePage = async ({ params }: Props) => {
         </div>
         <article>{article.content}</article>
         <p>
-          {dict.pageIndex.published} {formattedDate[params.lang]}
+          {dict.pageIndex.published} {long[params.lang]}
         </p>
       </div>
       <div className='sidebar'>

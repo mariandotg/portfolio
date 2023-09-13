@@ -7,7 +7,7 @@ import { fetchArticles } from '@/services/content/articles';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { Meta } from '@/models/blog/blog.models';
+import { Meta, PreviewArticle } from '@/models/blog/blog.models';
 import useDate from '@/hooks/useDate';
 
 interface Props {
@@ -36,7 +36,7 @@ const BlogPage = async ({ params }: Props) => {
                 return (
                   <li
                     key={article.id}
-                    className='grid grid-cols-1 mobile:grid-cols-3 group mobile:col-span-3'
+                    className='grid grid-cols-1 mobile:grid-cols-3 mobile:col-span-3'
                   >
                     <p className='col-span-1 text-secondary text-light-text dark:text-dark-text'>
                       {long[params.lang]}

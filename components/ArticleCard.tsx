@@ -1,21 +1,17 @@
-import { Article } from '@/models/domain/Article';
 import Link from 'next/link';
 import React from 'react';
 import { MdArrowForward } from 'react-icons/md';
-import useDate from '@/hooks/useDate';
 import { PreviewArticle } from '@/models/blog/blog.models';
 
 interface Props {
   article: PreviewArticle;
-  locale: string;
+  displayDescription?: boolean;
   path: string;
 }
 
-const ArticleCard = ({ article, locale, path }: Props) => {
-  const { formattedDate } = useDate(new Date(article.publishedAt));
-
+const ArticleCard = ({ article, displayDescription, path }: Props) => {
   return (
-    <div className='flex flex-col col-span-1 gap-y-2'>
+    <div className='flex flex-col col-span-1 mobile:col-span-2 gap-y-2'>
       <Link href={path} className='flex flex-col gap-y-2'>
         <div className='relative flex w-full overflow-hidden h-[135px] tablet:h-[135px] rounded'>
           <span className='absolute z-20 px-2 py-1 font-black uppercase rounded-sm text-secondary top-2 left-2 text-dark-headlines font-monospace bg-dark/75'>
@@ -33,6 +29,11 @@ const ArticleCard = ({ article, locale, path }: Props) => {
         <h3 className='font-medium text text-dark-headlines font-display'>
           {article.title}
         </h3>
+        {displayDescription && (
+          <p className='text-secondary dark:text-dark-text text-light-text'>
+            {article.description}
+          </p>
+        )}
       </Link>
     </div>
   );

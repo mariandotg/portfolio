@@ -47,11 +47,7 @@ const ArticleLayout = async ({ children, params }: Props) => {
                     : 'mobile:col-span-1'
                 }`}
               >
-                <ArticleCard
-                  article={article}
-                  path={`blog/${article.path}`}
-                  locale={params.lang}
-                />
+                <ArticleCard article={article} path={`blog/${article.path}`} />
               </li>
             ))}
           </ul>

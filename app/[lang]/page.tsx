@@ -194,7 +194,6 @@ const HomePage = async ({ params }: Props) => {
                   <ArticleCard
                     article={article}
                     path={`${params.lang}/blog/${article.path}`}
-                    locale={params.lang}
                   />
                 </li>
               ))

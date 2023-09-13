@@ -31,90 +31,23 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:col-span-3 tablet:gap-4'>
-          <Suspense
+        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
+          {/* @ts-expect-error Async Server Component */}
+          <CustomCard
+            lang={params.lang}
+            iterableArray={projects}
             fallback={
-              <div className='flex flex-col tablet:col-span-2 gap-y-4'>
-                <div className='flex flex-col gap-y-4'>
-                  <div className='flex flex-col col-span-2 gap-y-2'>
-                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
-                    <div className='flex flex-col col-span-2 gap-y-1'>
-                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
-                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
-                    </div>
-                  </div>
-                  <div className='flex gap-x-1'>
-                    {[...Array(5).keys()].map((item) => (
-                      <div
-                        key={item}
-                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
-                      ></div>
-                    ))}
-                  </div>
-                </div>
-                <div className='flex flex-col gap-y-4'>
-                  <div className='flex flex-col col-span-2 gap-y-2'>
-                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
-                    <div className='flex flex-col col-span-2 gap-y-1'>
-                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
-                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
-                    </div>
-                  </div>
-                  <div className='flex gap-x-1'>
-                    {[...Array(5).keys()].map((item) => (
-                      <div
-                        key={item}
-                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
-                      ></div>
-                    ))}
-                  </div>
-                </div>
-                <div className='flex flex-col gap-y-4'>
-                  <div className='flex flex-col col-span-2 gap-y-2'>
-                    <div className='w-full rounded h-[135px] bg-tertiary animate-pulse'></div>
-                    <div className='flex flex-col col-span-2 gap-y-1'>
-                      <div className='w-1/3 h-6 rounded bg-tertiary animate-pulse'></div>
-                      <div className='w-full h-6 rounded bg-tertiary animate-pulse'></div>
-                    </div>
-                  </div>
-                  <div className='flex gap-x-1'>
-                    {[...Array(5).keys()].map((item) => (
-                      <div
-                        key={item}
-                        className={`w-1/3 h-6 rounded bg-tertiary animate-pulse`}
-                      ></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <p className='col-span-1 dark:text-dark-text text-light-text'>
+                No se encontró proyectos que cumplan con el filtro ingresado
+              </p>
             }
           >
-            {/* @ts-expect-error Async Server Component */}
-            <CustomCard
-              lang={params.lang}
-              iterableArray={projects}
-              fallback={
-                <p className='col-span-1 dark:text-dark-text text-light-text'>
-                  No se encontró proyectos que cumplan con el filtro ingresado
-                </p>
-              }
-            >
-              <ProjectCard
-                className='mobile:col-span-1'
-                locale={params.lang}
-                featured={false}
-              />
-            </CustomCard>
-          </Suspense>
-        </div>
-
-        <div className='sidebar'>
-          <div className='sidebar-group'>
-            <h3 className='sidebar-group-title'>tags</h3>
-            <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
-              <FilterByTag />
-            </ul>
-          </div>
+            <ProjectCard
+              className='mobile:col-span-1'
+              locale={params.lang}
+              featured={false}
+            />
+          </CustomCard>
         </div>
       </Section>
     </PageLayout>

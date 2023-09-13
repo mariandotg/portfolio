@@ -3,12 +3,12 @@ import PageLayout from '../../../components/PageLayout';
 import Section from '@/components/Section';
 import ArticleCard from '@/components/ArticleCard';
 import { getDictionary } from '../dictionaries';
-import FilterByTag from '@/components/FilterByTag';
 import { fetchArticles } from '@/services/content/articles';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Meta } from '@/models/blog/blog.models';
+import useDate from '@/hooks/useDate';
 
 interface Props {
   params: {
@@ -28,33 +28,27 @@ const BlogPage = async ({ params }: Props) => {
   return (
     <PageLayout>
       <Section>
-        <div className=''>
-          <div className='sidebar-group'>
-            <h3 className='sidebar-group-title'>tags</h3>
-            <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
-              <FilterByTag />
-            </ul>
-          </div>
-        </div>
         <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>
             {articles !== undefined ? (
-              articles.map((article, index) => (
-                <li
-                  key={article.id}
-                  className={`cursor-pointer group ${
-                    index === 0
-                      ? 'mobile:col-span-2 tablet:col-span-1'
-                      : 'mobile:col-span-1'
-                  }`}
-                >
-                  <ArticleCard
-                    article={article}
-                    path={`blog/${article.path}`}
-                    locale={params.lang}
-                  />
-                </li>
-              ))
+              articles.map((article) => {
+                const { long } = useDate(new Date(article.publishedAt));
+                return (
+                  <li
+                    key={article.id}
+                    className='grid grid-cols-1 mobile:grid-cols-3 group mobile:col-span-3'
+                  >
+                    <p className='col-span-1 text-secondary text-light-text dark:text-dark-text'>
+                      {long[params.lang]}
+                    </p>
+                    <ArticleCard
+                      article={article}
+                      path={`blog/${article.path}`}
+                      displayDescription
+                    />
+                  </li>
+                );
+              })
             ) : (
               <p className='col-span-1 dark:text-dark-text text-light-text'>
                 {dict.blog.notFound}

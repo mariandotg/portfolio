@@ -38,6 +38,7 @@ export interface PreviewArticle {
   publishedAt: string;
   category: string;
   path: string;
+  description: string;
   image: {
     url: string;
     name: string;

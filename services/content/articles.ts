@@ -92,6 +92,7 @@ export const fetchArticles = async (
         publishedAt: meta.date,
         category: meta.category,
         path: meta.path,
+        description: meta.description,
         image: {
           url: meta.image,
           name: meta.title,

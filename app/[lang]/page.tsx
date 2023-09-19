@@ -183,19 +183,11 @@ const HomePage = async ({ params }: Props) => {
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {data.latestArticles.content.articles.length !== 0 ? (
               data.latestArticles.content.articles.map((article, index) => (
-                <li
-                  key={article.id}
-                  className={`cursor-pointer group ${
-                    index === 0
-                      ? 'mobile:col-span-2 tablet:col-span-1'
-                      : 'mobile:col-span-1'
-                  }`}
-                >
-                  <ArticleCard
-                    article={article}
-                    path={`${params.lang}/blog/${article.path}`}
-                  />
-                </li>
+                <ArticleCard
+                  article={article}
+                  path={`${params.lang}/blog/${article.path}`}
+                  locale={params.lang}
+                />
               ))
             ) : (
               <p className='col-span-1 dark:text-dark-text text-light-text'>

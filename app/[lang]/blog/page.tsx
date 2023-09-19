@@ -7,8 +7,7 @@ import { fetchArticles } from '@/services/content/articles';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { Meta, PreviewArticle } from '@/models/blog/blog.models';
-import useDate from '@/hooks/useDate';
+import { Meta } from '@/models/blog/blog.models';
 
 interface Props {
   params: {
@@ -31,24 +30,16 @@ const BlogPage = async ({ params }: Props) => {
         <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>
             {articles !== undefined ? (
-              articles.map((article) => {
-                const { long } = useDate(new Date(article.publishedAt));
-                return (
-                  <li
-                    key={article.id}
-                    className='grid grid-cols-1 mobile:grid-cols-3 mobile:col-span-3'
-                  >
-                    <p className='col-span-1 text-secondary text-light-text dark:text-dark-text'>
-                      {long[params.lang]}
-                    </p>
-                    <ArticleCard
-                      article={article}
-                      path={`blog/${article.path}`}
-                      displayDescription
-                    />
-                  </li>
-                );
-              })
+              articles.map((article) => (
+                <ArticleCard
+                  article={article}
+                  path={`blog/${article.path}`}
+                  locale={params.lang}
+                  displayDescription
+                  displayDate
+                  preview='large'
+                />
+              ))
             ) : (
               <p className='col-span-1 dark:text-dark-text text-light-text'>
                 {dict.blog.notFound}

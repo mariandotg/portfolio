@@ -7,6 +7,7 @@ import Share from '@/components/Share';
 import { getArticleMetadata } from '@/services/api';
 import { fetchArticleByPath } from '@/services/content/articles';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export const revalidate = 86400;
 
@@ -31,6 +32,7 @@ const ArticlePage = async ({ params }: Props) => {
 
   return (
     <>
+      <Link href={`../../${params.lang}/blog`}>go Back</Link>
       <div className='flex flex-col col-span-4 gap-y-2'>
         <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
           <img
@@ -41,39 +43,31 @@ const ArticlePage = async ({ params }: Props) => {
           />
         </div>
       </div>
-      <div className='flex flex-col gap-y-4 tablet:col-span-2'>
+      <div className='flex flex-col gap-y-4 tablet:col-span-3'>
         <div className='flex flex-col gap-y-4'>
           <div className='flex flex-col gap-y-2'>
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {article.title}
             </h1>
+            <p className='dark:text-dark-text text-light-text'>
+              {article.description}
+            </p>
+            <p>
+              {dict.pageIndex.published} {long[params.lang]}
+            </p>
             <span className='flex px-2 italic font-medium rounded font-monospace text-dark-headlines bg-dark-tertiary-hover dark:bg-light-tertiary-hover w-fit'>
               {article.category.toLocaleUpperCase()}
             </span>
           </div>
-          <p className='dark:text-dark-text text-light-text'>
-            {article.description}
-          </p>
         </div>
-        <article>{article.content}</article>
-        <p>
-          {dict.pageIndex.published} {long[params.lang]}
-        </p>
-      </div>
-      <div className='sidebar'>
-        <div className='sidebar-group'>
-          <h3 className='sidebar-group-title'>{dict.pageIndex.tags}</h3>
-          <ul className='flex flex-row flex-wrap items-center w-full gap-2'></ul>
+        <div className=''>
+          <h3 className=''>{dict.pageIndex.content}</h3>
+          <PageIndexes />
         </div>
-        <div className='sticky top-[73px] flex flex-col gap-y-4'>
-          <div className='hidden tablet:sidebar-group'>
-            <h3 className='sidebar-group-title'>{dict.pageIndex.content}</h3>
-            <PageIndexes />
-          </div>
-          <div className='sidebar-group'>
-            <h3 className='sidebar-group-title'>{dict.pageIndex.share}</h3>
-            <Share />
-          </div>
+        <article className='flex flex-col gap-4'>{article.content}</article>
+        <div className=''>
+          <h3 className=''>{dict.pageIndex.share}</h3>
+          <Share />
         </div>
       </div>
     </>

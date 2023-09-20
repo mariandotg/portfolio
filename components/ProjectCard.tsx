@@ -1,35 +1,28 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { MdArrowForward } from 'react-icons/md';
-
 import { PreviewProject } from '@/models/blog/blog.models';
 import { Tag } from '@/models/domain/Tag';
-
 import SkillItem from './SkillItem';
 import Link from 'next/link';
 
-export interface ProjectCardProps {
+export interface Props {
   project?: PreviewProject;
   className?: string;
   locale: string;
   featured: boolean;
 }
 
-const ProjectCard = (props: ProjectCardProps) => {
+const ProjectCard = (props: Props) => {
   if (!props.project)
     return <div className='bg-tertiary animate-pulse'>test placeholder</div>;
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const [restTags, setRestTags] = useState(0);
   const [numMaxTags, setNumMaxTags] = useState(0);
   const [displayedTags, setDisplayedTags] = useState<Tag[]>(props.project.tags);
-
-  const truncateString = (string: string, maxLength: number) => {
-    if (string.length >= maxLength) {
-      return string.slice(0, maxLength - 3) + '...';
-    }
-    return string;
-  };
 
   useEffect(() => {
     const container = containerRef.current!;
@@ -99,18 +92,32 @@ const ProjectCard = (props: ProjectCardProps) => {
     <Link
       className={`${props.className} relative group border border-transparent p-4 rounded dark:hover:border-light-text/30 hover:border-dark-text/30 bg-dark-headlines/30 dark:bg-light-headlines/50 mobile:col-span-1 overflow-hidden mobile:gap-4 tablet:col-span-1`}
       href={`projects/${props.project.path}`}
+      onMouseEnter={() => {
+        videoRef.current!.currentTime = 0;
+        videoRef.current!.play();
+      }}
+      onMouseLeave={() => {
+        videoRef.current!.pause();
+        videoRef.current!.load();
+      }}
     >
       <div className='z-10 flex flex-col justify-end w-full h-full cursor-pointer group dark:text-dark-text text-light-text'>
         <div className='flex flex-col gap-y-2'>
-          <div className='relative overflow-hidden w-full aspect-[344/197]'>
-            <img
-              src={props.project.image.url}
-              alt={
-                props.project.image.alternativeText ||
-                'missing alternative text'
-              }
-              className='flex object-cover w-full rounded-sm'
-            />
+          <div className='relative rounded-sm overflow-hidden w-full  h-[135px] tablet:h-[135px]'>
+            <video
+              ref={videoRef}
+              className='flex object-cover w-full h-full'
+              poster={props.project.image.url}
+              height={135}
+              width={344}
+              loop
+              muted
+            >
+              <source
+                src='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+                type='video/mp4'
+              />
+            </video>
           </div>
           <div className='flex flex-col gap-y-1'>
             <span className='flex items-center font-medium whitespace-nowrap text group-hover:gap-x-2 gap-x-1 font-display text-light-headlines dark:text-dark-headlines group-hover:text-primary'>

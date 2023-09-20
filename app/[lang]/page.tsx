@@ -1,5 +1,5 @@
 import PageLayout from '../../components/PageLayout';
-import { MdArrowOutward } from 'react-icons/md';
+import { MdArrowForward, MdArrowOutward } from 'react-icons/md';
 import Button from '../../components/Button';
 import Icon from '../../components/Icon';
 import Section from '../../components/Section';
@@ -36,7 +36,7 @@ const HomePage = async ({ params }: Props) => {
 
   const social = await fetchSocialMedia();
   const articles = await fetchArticles(params.lang);
-  const latestArticles = articles?.slice(0, 2);
+  const latestArticles = articles?.slice(0, 3);
   const dict = await getDictionary(params.lang);
 
   data!.latestArticles.content.articles = latestArticles!;
@@ -92,7 +92,13 @@ const HomePage = async ({ params }: Props) => {
       </Section>
 
       <Section>
-        <SectionTitle emoji={data.featuredProjects.emoji}>
+        <SectionTitle
+          emoji={data.featuredProjects.emoji}
+          additionalLink={{
+            href: `${params.lang}/projects`,
+            label: 'See all my projects',
+          }}
+        >
           {data.featuredProjects.title}
         </SectionTitle>
         <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
@@ -100,14 +106,17 @@ const HomePage = async ({ params }: Props) => {
             {/* @ts-expect-error Async Server Component */}
             <FeaturedProjects params={params} />
           </div>
-          <div>
-            <Button variant='tertiary'>See all my projects</Button>
-          </div>
         </div>
       </Section>
 
       <Section>
-        <SectionTitle emoji={data.skills.emoji}>
+        <SectionTitle
+          emoji={data.skills.emoji}
+          additionalLink={{
+            href: `https://www.linkedin.com/in/marianoguillaume/`,
+            label: 'See my certificates on LinkedIn',
+          }}
+        >
           {data.skills.title}
         </SectionTitle>
         <p className='col-span-4 text text-light-text dark:text-dark-text'>
@@ -138,9 +147,6 @@ const HomePage = async ({ params }: Props) => {
                 </div>
               );
             })}
-          </div>
-          <div>
-            <Button variant='tertiary'>See my certificates on LinkedIn</Button>
           </div>
         </div>
       </Section>
@@ -176,7 +182,13 @@ const HomePage = async ({ params }: Props) => {
       </Section>
 
       <Section>
-        <SectionTitle emoji={data.latestArticles.emoji}>
+        <SectionTitle
+          emoji={data.latestArticles.emoji}
+          additionalLink={{
+            href: `${params.lang}/blog`,
+            label: 'See my blog',
+          }}
+        >
           {data.latestArticles.title}
         </SectionTitle>
         <div className='flex w-full snap-x tablet:col-span-4'>

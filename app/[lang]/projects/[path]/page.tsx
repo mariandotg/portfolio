@@ -10,6 +10,8 @@ import { fetchProjectByPath } from '@/services/content/projects';
 import { redirect } from 'next/navigation';
 import CustomLink from '@/components/CustomLink';
 import useDate from '@/hooks/useDate';
+import LinkButton from '@/components/LinkButton';
+import { MdArrowOutward } from 'react-icons/md';
 
 export const revalidate = 86400;
 
@@ -75,13 +77,13 @@ const ProjectPage = async ({ params }: Props) => {
             {renderTags()}
           </ul>
         </div>
-        <div className='flex flex-row gap-x-4'>
-          <Button variant='secondary' url={project.repository}>
+        <div className='flex gap-4'>
+          <LinkButton href={project.repository} endContent={<MdArrowOutward />}>
             {dict.project.repository}
-          </Button>
-          <Button variant='primary' url={project.live}>
+          </LinkButton>
+          <LinkButton href={project.live} endContent={<MdArrowOutward />}>
             {dict.project.live}
-          </Button>
+          </LinkButton>
         </div>
         <div className=''>
           <h3 className=''>{dict.pageIndex.content}</h3>

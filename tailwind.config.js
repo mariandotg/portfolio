@@ -12,8 +12,8 @@ module.exports = {
   ],
   theme: {
     borderRadius: {
-      DEFAULT: '6px',
-      sm: '4px',
+      DEFAULT: '10px',
+      sm: '8px',
       full: '100%',
     },
     animation: {

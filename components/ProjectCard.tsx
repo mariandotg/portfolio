@@ -6,14 +6,14 @@ import { Tag } from '@/models/domain/Tag';
 import SkillItem from './SkillItem';
 import Link from 'next/link';
 
-export interface Props {
+export interface ProjectCardProps {
   project?: PreviewProject;
   className?: string;
   locale: string;
   featured: boolean;
 }
 
-const ProjectCard = (props: Props) => {
+const ProjectCard = (props: ProjectCardProps) => {
   if (!props.project)
     return <div className='bg-tertiary animate-pulse'>test placeholder</div>;
 

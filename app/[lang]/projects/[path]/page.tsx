@@ -8,6 +8,8 @@ import { getDictionary } from '../../dictionaries';
 import { getProjectMetadata } from '@/services/api';
 import { fetchProjectByPath } from '@/services/content/projects';
 import { redirect } from 'next/navigation';
+import CustomLink from '@/components/CustomLink';
+import useDate from '@/hooks/useDate';
 
 export const revalidate = 86400;
 
@@ -28,6 +30,8 @@ const ProjectPage = async ({ params }: Props) => {
 
   if (!project) return redirect(`../../${params.lang}/projects/not-found`);
 
+  const { long } = useDate(new Date(project.publishedAt));
+
   const renderTags = () =>
     project.tags.map((tag, index) => (
       <li>
@@ -37,6 +41,12 @@ const ProjectPage = async ({ params }: Props) => {
 
   return (
     <>
+      <CustomLink
+        href={`../../${params.lang}/projects`}
+        icon={{ position: 'before' }}
+      >
+        go Back
+      </CustomLink>
       <div className='flex flex-col col-span-4 gap-y-2'>
         <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
           <img
@@ -47,7 +57,7 @@ const ProjectPage = async ({ params }: Props) => {
           />
         </div>
       </div>
-      <div className='flex flex-col gap-y-4 tablet:col-span-2'>
+      <div className='flex flex-col gap-y-4 tablet:col-span-3'>
         <div className='flex flex-col gap-y-2'>
           <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
             {project.title}
@@ -55,6 +65,15 @@ const ProjectPage = async ({ params }: Props) => {
           <p className='dark:text-dark-text text-light-text'>
             {project.description}
           </p>
+          <p className='dark:text-dark-text text-light-text'>
+            {dict.pageIndex.published} {long[params.lang]}
+          </p>
+        </div>
+        <div>
+          <h3 className=''>{dict.pageIndex.tags}</h3>
+          <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
+            {renderTags()}
+          </ul>
         </div>
         <div className='flex flex-row gap-x-4'>
           <Button variant='secondary' url={project.repository}>
@@ -64,11 +83,25 @@ const ProjectPage = async ({ params }: Props) => {
             {dict.project.live}
           </Button>
         </div>
-        <div className='flex flex-col gap-y-4'>
-          <article>{project.content}</article>
+        <div className=''>
+          <h3 className=''>{dict.pageIndex.content}</h3>
+          <PageIndexes />
+        </div>
+        <article className='flex flex-col gap-4'>{project.content}</article>
+        <div className=''>
+          <h3 className=''>{dict.pageIndex.share}</h3>
+          <Share />
         </div>
       </div>
-      <div className='sidebar'>
+    </>
+  );
+};
+
+export default ProjectPage;
+
+{
+  /*
+<div className='sidebar'>
         <div className='sidebar-group'>
           <h3 className='sidebar-group-title'>{dict.pageIndex.tags}</h3>
           <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
@@ -86,8 +119,5 @@ const ProjectPage = async ({ params }: Props) => {
           </div>
         </div>
       </div>
-    </>
-  );
-};
-
-export default ProjectPage;
+*/
+}

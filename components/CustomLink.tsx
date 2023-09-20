@@ -5,12 +5,19 @@ import { MdArrowForward, MdArrowOutward } from 'react-icons/md';
 interface Props {
   children: ReactNode;
   href: string;
+  icon?: {
+    position: 'after' | 'before';
+  };
 }
 
 // TODO: El icon renderizado debe tener una animación de movimiento
 // TODO: Necesito agregar clases semánticas de tailwindcss
 
-const CustomLink = ({ children, href }: Props) => {
+const CustomLink = ({
+  children,
+  href,
+  icon = { position: 'after' },
+}: Props) => {
   const absoluteUrlPattern = /^(?:https?:\/\/|\/\/)/i;
 
   const hrefIsAbsolute = absoluteUrlPattern.test(href);
@@ -23,8 +30,9 @@ const CustomLink = ({ children, href }: Props) => {
         href={href}
         className='relative flex gap-2 font-medium underline cursor-pointer w-min whitespace-nowrap underline-offset-2 decoration-transparent hover:decoration-primary text-primary h-fit text-secondary'
       >
+        {icon && icon.position === 'before' && <MdArrowOutward />}
         {children}
-        <MdArrowOutward />
+        {icon && icon.position === 'after' && <MdArrowOutward />}
       </a>
     );
 
@@ -33,8 +41,11 @@ const CustomLink = ({ children, href }: Props) => {
       href={href}
       className='relative flex gap-2 font-medium underline cursor-pointer w-min whitespace-nowrap underline-offset-2 decoration-transparent hover:decoration-primary text-primary h-fit text-secondary'
     >
+      {icon && icon.position === 'before' && (
+        <MdArrowForward className='rotate-180' />
+      )}
       {children}
-      <MdArrowForward />
+      {icon && icon.position === 'after' && <MdArrowForward />}
     </Link>
   );
 };

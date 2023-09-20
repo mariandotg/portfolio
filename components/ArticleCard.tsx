@@ -50,7 +50,7 @@ const ArticleCard = ({
               className='top-0 left-0 object-cover w-full rounded aspect-video'
             />
           </div>
-          <h3 className='font-medium underline break-words transition-all duration-500 text text-light-headlines dark:text-dark-headlines font-display underline-offset-2 decoration-light-headlines dark:decoration-dark-headlines group-hover:decoration-primary group-hover:text-primary hyphens-auto'>
+          <h3 className='font-medium underline break-words transition-all duration-500 text text-light-headlines dark:text-dark-headlines font-display underline-offset-2 decoration-transparent group-hover:decoration-primary group-hover:text-primary hyphens-auto'>
             {article.title}
           </h3>
         </Link>

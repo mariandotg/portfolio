@@ -1,6 +1,4 @@
 import React from 'react';
-import SkillItem from '@/components/SkillItem';
-import Button from '@/components/Button';
 import { Metadata } from 'next';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
@@ -12,6 +10,7 @@ import CustomLink from '@/components/CustomLink';
 import useDate from '@/hooks/useDate';
 import LinkButton from '@/components/LinkButton';
 import { MdArrowOutward } from 'react-icons/md';
+import Chip from '@/components/Chip';
 
 export const revalidate = 86400;
 
@@ -36,9 +35,9 @@ const ProjectPage = async ({ params }: Props) => {
 
   const renderTags = () =>
     project.tags.map((tag, index) => (
-      <li>
-        <SkillItem key={tag.id} skill={tag.name} variant='base' />
-      </li>
+      <Chip key={tag.id}>
+        {tag.name.charAt(0).toUpperCase() + tag.name.slice(1)}
+      </Chip>
     ));
 
   return (

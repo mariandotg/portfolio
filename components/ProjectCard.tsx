@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MdArrowForward } from 'react-icons/md';
 import { PreviewProject } from '@/models/blog/blog.models';
 import { Tag } from '@/models/domain/Tag';
-import SkillItem from './SkillItem';
 import Link from 'next/link';
+import Chip from './Chip';
 
 export interface ProjectCardProps {
   project?: PreviewProject;
@@ -17,7 +17,7 @@ const ProjectCard = (props: ProjectCardProps) => {
   if (!props.project)
     return <div className='bg-tertiary animate-pulse'>test placeholder</div>;
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLUListElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [restTags, setRestTags] = useState(0);
@@ -125,19 +125,19 @@ const ProjectCard = (props: ProjectCardProps) => {
               <MdArrowForward className='duration-[0ms] text-light-headlines dark:text-dark-headlines h-4 w-4 group-hover:text-primary' />
             </span>
           </div>
-          <div
+          <ul
             className='flex flex-row items-center w-full gap-2'
             ref={containerRef}
           >
             {displayedTags.map((tag, index) => (
-              <SkillItem key={tag.id} skill={tag.name} variant='base' />
+              <Chip key={tag.id}>{tag.name}</Chip>
             ))}
             {restTags !== 0 && (
               <span className='h-[24px] w-[24px] flex justify-center items-center rounded-[50px] bg-light-text dark:bg-dark-text text-dark-headlines dark:text-light-headlines font-medium text-[12px]'>
                 +{restTags}
               </span>
             )}
-          </div>
+          </ul>
         </div>
       </div>
     </Link>

@@ -15,6 +15,7 @@ import { fetchSocialMedia } from '@/services/content/social-media';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
+import Chip from '@/components/Chip';
 
 interface Props {
   params: {
@@ -139,11 +140,11 @@ const HomePage = async ({ params }: Props) => {
                   <h3 className='font-medium dark:text-dark-headlines text text-light-headlines'>
                     {skillCard.title}
                   </h3>
-                  <div className='flex flex-wrap gap-2'>
+                  <ul className='flex flex-wrap gap-2'>
                     {skillCard.skills.map((skill, index) => (
-                      <SkillItem key={index} skill={skill} variant='base' />
+                      <Chip key={index}>{skill}</Chip>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               );
             })}

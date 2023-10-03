@@ -15,6 +15,22 @@ body {
   @apply font-display bg-light h-full w-full dark:bg-dark overflow-x-hidden;
 }
 
+pre > code {
+  @apply rounded;
+}
+
+code:not(pre code) {
+  @apply inline-flex dark:bg-dark-tertiary-hover/25 bg-light-tertiary-hover/25 py-1 dark:text-dark-headlines text-light-headlines text-secondary px-2 rounded-sm;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply dark:text-dark-headlines text-light-headlines;
+}
+
+p, strong, italic {
+  @apply dark:text-dark-text text-light-text;
+}
+
 ::-webkit-scrollbar {
   @apply w-2;
 }

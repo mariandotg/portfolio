@@ -5,6 +5,7 @@ import {
   PreviewArticle,
 } from '@/models/blog/blog.models';
 import { compileMDX } from 'next-mdx-remote/rsc';
+import rehypeHighlight from 'rehype-highlight';
 
 type Filetree = [
   {
@@ -37,7 +38,13 @@ export const fetchArticleByPath = async (
 
   const { frontmatter, content } = await compileMDX<ArticleMeta>({
     source: rawMDX,
-    options: { parseFrontmatter: true },
+    options: {
+      parseFrontmatter: true,
+      mdxOptions: {
+        //@ts-ignore
+        rehypePlugins: [rehypeHighlight],
+      },
+    },
   });
 
   const blogPostObj: FullArticle = {
@@ -67,7 +74,7 @@ export const fetchArticles = async (
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      cache: 'force-cache',
+      cache: 'no-cache',
     }
   );
 

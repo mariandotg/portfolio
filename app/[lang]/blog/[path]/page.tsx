@@ -8,6 +8,7 @@ import { getArticleMetadata } from '@/services/api';
 import { fetchArticleByPath } from '@/services/content/articles';
 import { redirect } from 'next/navigation';
 import CustomLink from '@/components/CustomLink';
+import 'highlight.js/styles/base16/material-darker.css';
 
 export const revalidate = 86400;
 

@@ -39,20 +39,11 @@ const ArticleLayout = async ({ children, params }: Props) => {
         <div className='flex w-full snap-x tablet:col-span-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
             {latestArticles!.map((article, index) => (
-              <li
-                key={article.id}
-                className={`cursor-pointer group ${
-                  index === 0
-                    ? 'mobile:col-span-2 tablet:col-span-1'
-                    : 'mobile:col-span-1'
-                }`}
-              >
-                <ArticleCard
-                  article={article}
-                  path={`blog/${article.path}`}
-                  locale={params.lang}
-                />
-              </li>
+              <ArticleCard
+                article={article}
+                path={`blog/${article.path}`}
+                locale={params.lang}
+              />
             ))}
           </ul>
         </div>

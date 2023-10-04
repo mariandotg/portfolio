@@ -29,6 +29,7 @@ const FeaturedProjects = async ({ params }: Props) => {
       project={project}
       locale={params.lang}
       featured={true}
+      delay={0.5 + index * 0.1}
     />
   ));
 };

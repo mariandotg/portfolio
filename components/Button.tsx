@@ -52,6 +52,7 @@ const Button = ({
         onClick={onClick}
         disabled={disabled}
         aria-label={icon ? ariaLabel : undefined}
+        type='submit'
       >
         {children}
       </button>

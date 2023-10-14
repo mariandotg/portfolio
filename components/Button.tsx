@@ -28,7 +28,7 @@ const Button = ({
     tertiary: 'btn-tertiary',
   };
   const styles = `${variants[variant]} ${className ? className : ''} ${
-    icon ? 'p-[6px] w-fit rounded-[8px]' : 'px-6 py-3 w-full'
+    icon ? 'p-[6px] w-fit rounded-[8px] bg-transparent' : 'px-6 py-3 w-full'
   } border italic text-center ${
     disabled && 'disabled:opacity-30 disabled:pointer-events-none'
   } flex items-center justify-center gap-2 text-secondary whitespace-nowrap transition rounded font-monospace`;

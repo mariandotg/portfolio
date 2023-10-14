@@ -15,7 +15,7 @@ const Footer = async ({ locale }: Props) => {
   const dict = await getDictionary(locale);
 
   return (
-    <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-primary'>
+    <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-light-subtle-edges dark:border-dark-subtle-edges'>
       <div className='flex justify-center'>
         <div className='flex flex-col w-screen tablet:max-w-[800px] px-4 tablet:p-0 gap-16'>
           <div className='grid grid-cols-1 gap-8 mobile:grid-cols-4'>

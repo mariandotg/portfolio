@@ -18,13 +18,13 @@ const NavLink = ({ href, children }: Props) => {
 
   const isActive = isMounted && sections[2] === currentSection[2];
   const active = isActive
-    ? ' text-dark-headlines underline font-medium underline-offset-2 decoration-2 text-primary decoration-primary dark:hover:text-dark-primary-hover hover:text-light-primary-hover'
-    : ' dark:text-dark-headlines text-light-headlines dark:hover:text-primary hover:text-primary';
+    ? 'text-light-secondary dark:text-dark-secondary'
+    : 'text-light-secondary/60 dark:text-dark-secondary/60';
 
   return (
     <Link
       href={href}
-      className={`font-light cursor-pointer w-fit text-secondary ${active}`}
+      className={`font-medium cursor-pointer w-fit text-secondary hover:text-light-secondary/80 dark:hover:text-dark-secondary/80 ${active}`}
     >
       {children}
     </Link>

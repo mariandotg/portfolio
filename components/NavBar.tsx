@@ -9,17 +9,20 @@ import ToTopButton from './ToTopButton';
 import { getDictionary } from '@/app/[lang]/dictionaries';
 import BrandLogo from '../public/public/logo-v2-4.svg';
 import Button from './Button';
-import { FaGithub, FaTwitter } from 'react-icons/fa';
+import { fetchSocialMedia } from '@/services/content/social-media';
+import Icon from './Icon';
 interface Props {
   locale: string;
 }
 
 const NavBar = async ({ locale }: Props) => {
+  const constants = await fetchSocialMedia();
+
   const dict = await getDictionary(locale);
 
   return (
-    <header className='border-b-[1px] border-light-subtle-edges dark:border-dark-subtle-edges bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full px-4 py-3 backdrop-blur'>
-      <nav className='relative flex items-center w-screen tablet:max-w-[800px] justify-between gap-16 mobile:gap-4'>
+    <header className='border-b-[1px] border-light-subtle-edges dark:border-dark-subtle-edges bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full backdrop-blur'>
+      <nav className='relative px-4 py-3 flex items-center w-screen tablet:max-w-[1440px] justify-between gap-16 mobile:gap-4'>
         <Link
           href={`/${locale}`}
           className='absolute flex items-center h-full -translate-x-1/2 left-2/4 w-fit group'
@@ -45,15 +48,22 @@ const NavBar = async ({ locale }: Props) => {
         </div>
         <HamburgerMenu locale={locale} />
         <div className='relative flex items-center gap-0'>
-          <div className='hidden mr-2 mobile:flex'>
+          <div className='hidden mobile:flex'>
             <LangSelector locale={locale} />
+            <div className='ml-2 flex'>
+              {constants!.map((social) => (
+                <Button
+                  variant='primary'
+                  icon
+                  url={social.url}
+                  key={social.id}
+                  ariaLabel={social.alt}
+                >
+                  <Icon value={social.icon.toLocaleLowerCase()} />
+                </Button>
+              ))}
+            </div>
           </div>
-          <Button variant='primary' icon ariaLabel='test 1'>
-            <FaGithub />
-          </Button>
-          <Button variant='primary' icon ariaLabel='test 1'>
-            <FaTwitter />
-          </Button>
           <ThemeButton />
           <ToTopButton />
         </div>

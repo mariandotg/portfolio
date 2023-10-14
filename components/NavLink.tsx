@@ -7,9 +7,10 @@ import useIsMounted from '@/hooks/useIsMounted';
 interface Props {
   href: string;
   children: ReactNode;
+  className?: string;
 }
 
-const NavLink = ({ href, children }: Props) => {
+const NavLink = ({ href, children, className }: Props) => {
   const pathname = usePathname();
   const isMounted = useIsMounted();
 
@@ -24,7 +25,7 @@ const NavLink = ({ href, children }: Props) => {
   return (
     <Link
       href={href}
-      className={`font-medium cursor-pointer w-fit text-secondary hover:text-light-secondary/80 dark:hover:text-dark-secondary/80 ${active}`}
+      className={`font-medium cursor-pointer w-fit text-secondary hover:text-light-secondary/80 dark:hover:text-dark-secondary/80 ${active} ${className}`}
     >
       {children}
     </Link>

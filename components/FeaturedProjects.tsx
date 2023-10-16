@@ -14,7 +14,7 @@ interface ProjectCardsStyles {
 
 const FeaturedProjects = async ({ params }: Props) => {
   const projects = await fetchProjects(params.lang);
-  const featuredProjects = projects?.slice(0, 2);
+  const featuredProjects = projects?.slice(0, 4);
 
   const projectCardsStyles: ProjectCardsStyles = {
     '0': 'tablet:col-span-1 tablet:row-span-1',

@@ -11,6 +11,7 @@ type Filetree = [
   {
     name: string;
     path: string;
+    type: string;
   }
 ];
 
@@ -19,7 +20,7 @@ export const fetchProjectByPath = async (
   lang: string = 'en'
 ): Promise<FullProject | undefined> => {
   const response = await fetch(
-    `https://raw.githubusercontent.com/mariandotg/portfolio-content/main/projects/${lang}/${path}.mdx`,
+    `https://raw.githubusercontent.com/mariandotg/portfolio-content/main/projects/${path}/${lang}/content.mdx`,
     {
       headers: {
         Accept: 'application/vnd.github+json',
@@ -71,7 +72,7 @@ export const fetchProjects = async (
   lang: string = 'en'
 ): Promise<PreviewProject[] | undefined> => {
   const response = await fetch(
-    `https://api.github.com/repos/mariandotg/portfolio-content/contents/projects/${lang}?recursive=1`,
+    `https://api.github.com/repos/mariandotg/portfolio-content/contents/projects?recursive=1`,
     {
       headers: {
         Accept: 'application/vnd.github+json',
@@ -87,9 +88,8 @@ export const fetchProjects = async (
   const repoFiletree: Filetree = await response.json();
 
   const filesArray = repoFiletree
-    .map((obj) => obj.name)
-    .filter((path) => path.endsWith('.mdx'))
-    .map((path) => path.replace('.mdx', ''));
+    .filter((obj) => obj.type === 'dir')
+    .map((obj) => obj.name);
 
   const posts: PreviewProject[] = [];
 

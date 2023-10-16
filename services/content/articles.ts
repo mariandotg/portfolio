@@ -11,6 +11,7 @@ type Filetree = [
   {
     name: string;
     path: string;
+    type: string;
   }
 ];
 
@@ -19,7 +20,7 @@ export const fetchArticleByPath = async (
   lang: string = 'en'
 ): Promise<FullArticle | undefined> => {
   const response = await fetch(
-    `https://raw.githubusercontent.com/mariandotg/portfolio-content/main/articles/${lang}/${path}.mdx`,
+    `https://raw.githubusercontent.com/mariandotg/portfolio-content/main/articles/${path}/${lang}/content.mdx`,
     {
       headers: {
         Accept: 'application/vnd.github+json',
@@ -67,14 +68,14 @@ export const fetchArticles = async (
   lang: string = 'en'
 ): Promise<PreviewArticle[] | undefined> => {
   const response = await fetch(
-    `https://api.github.com/repos/mariandotg/portfolio-content/contents/articles/${lang}?recursive=1`,
+    `https://api.github.com/repos/mariandotg/portfolio-content/contents/articles?recursive=1`,
     {
       headers: {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      cache: 'no-cache',
+      cache: 'force-cache',
     }
   );
 
@@ -83,9 +84,8 @@ export const fetchArticles = async (
   const repoFiletree: Filetree = await response.json();
 
   const filesArray = repoFiletree
-    .map((obj) => obj.name)
-    .filter((path) => path.endsWith('.mdx'))
-    .map((path) => path.replace('.mdx', ''));
+    .filter((obj) => obj.type === 'dir')
+    .map((obj) => obj.name);
 
   const posts: PreviewArticle[] = [];
 

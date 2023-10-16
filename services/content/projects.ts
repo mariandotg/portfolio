@@ -109,6 +109,7 @@ export const fetchProjects = async (
           placeholder: meta.title,
           alternativeText: meta.imageAlt,
         },
+        description: meta.description,
       };
       posts.push(previewProject);
     }

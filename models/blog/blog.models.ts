@@ -86,6 +86,7 @@ export interface PreviewProject {
     alternativeText?: string;
     url: string;
   };
+  description: string;
 }
 
 export interface RawFullArticle {

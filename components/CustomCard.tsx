@@ -1,7 +1,7 @@
 'use client';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { PreviewProject } from '@/models/blog/blog.models';
-import { ProjectCardProps } from './ProjectCard';
+import { ProjectCardProps } from './OldProjectCard';
 
 interface Props {
   lang: string;

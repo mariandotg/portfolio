@@ -103,7 +103,9 @@ const HomePage = async ({ params }: Props) => {
           {data.featuredProjects.title}
         </SectionTitle>
         <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
-          <div className='flex flex-col w-full gap-y-8 mobile:grid mobile:grid-cols-2 mobile:gap-4 tablet:grid-cols-3 tablet:grid-rows-1'>
+          <div
+            className='grid w-full grid-cols-4 gap-y-8 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 mobile:gap-4 tablet:grid-cols-6 tablet:col-span-4 tablet:gap-4'
+          >
             {/* @ts-expect-error Async Server Component */}
             <FeaturedProjects params={params} />
           </div>
@@ -162,18 +164,18 @@ const HomePage = async ({ params }: Props) => {
               className='flex tablet:grid tablet:grid-cols-3 tablet:col-span-3'
               key={jobCard.id}
             >
-              <div className='hidden p-4 mb-1 leading-none tablet:m-0 text text-light-text dark:text-dark-text tablet:flex tablet:border-r tablet:border-primary tablet:col-span-1 tablet:justify-end tablet:mr-[2px]'>
-                <p className='tablet:mr-1'>{jobCard.period}</p>
+              <div className='hidden pr-4 mb-1 leading-none tablet:m-0 text text-light-secondary/60 dark:text-dark-secondary/60 tablet:flex tablet:border-r tablet:border-primary tablet:col-span-1 tablet:justify-end tablet:mr-[2px]'>
+                <p className='tablet:mr-1 desktop:m-0'>{jobCard.period}</p>
               </div>
-              <div className='p-4 ml-4 rounded tablet:relative bg-dark-headlines/30 dark:bg-light-headlines/50 tablet:col-span-2 tablet:mb-4'>
-                <div className='absolute w-[13px] h-[13px] text-light-text rounded-[50px] tablet:mt-1.5 -left-[7px] border tablet:-left-[25px] border-light dark:border-dark bg-primary'></div>
-                <p className='mb-1 leading-none text-secondary text-light-text dark:text-dark-text tablet:hidden'>
+              <div className='ml-4 rounded tablet:relative tablet:col-span-2 tablet:mb-4'>
+                <div className='absolute w-[13px] h-[13px] text-light-secondary/60 rounded-[50px] tablet:mt-1.5 -left-[7px] border tablet:-left-[25px] border-light dark:border-dark bg-primary'></div>
+                <p className='mb-1 leading-none text-secondary text-light-secondary/60 dark:text-dark-secondary/60 tablet:hidden'>
                   {jobCard.period}
                 </p>
                 <h3 className='flex font-medium text gap-x-4 dark:text-dark-headlines font-display text-light-headlines'>
                   {jobCard.position} - {jobCard.company}
                 </h3>
-                <p className='mb-4 text text-light-text dark:text-dark-text'>
+                <p className='mb-4 text text-light-secondary/60 dark:text-dark-secondary/60'>
                   {jobCard.responsabilities}
                 </p>
               </div>

@@ -25,28 +25,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ProjectsPage = async ({ searchParams, params }: Props) => {
-  const projectsTest = await fetchProjects(params.lang);
-  const projects = [
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-    ...projectsTest,
-  ];
+  const projects = await fetchProjects(params.lang);
   const dict = await getDictionary(params.lang);
 
   return (
     <PageLayout>
       <Section>
-        <div className='flex flex-col gap-y-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
-          <h1 className='col-span-3 text-title text-light-headlines dark:text-dark-headlines h-[300px]'>
+        <div className='grid grid-cols-4 gap-y-8 mobile:grid-cols-5 mobile:gap-4 tablet:grid-cols-6 tablet:col-span-4 tablet:gap-4'>
+          <h1 className='col-span-4 mobile:col-span-5 tablet:col-span-6 text-title text-light-headlines dark:text-dark-headlines h-[300px]'>
             Welcome to my blog. I'm Oli, and this is where I share my passion
             about programming and design. I believe in a practical approach, so
             here I document my latest explorations.

@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import PageIndexes from '@/components/PageIndexes';
 import Share from '@/components/Share';
-import { getDictionary } from '../../dictionaries';
+import { getDictionary } from '../dictionaries';
 import { getProjectMetadata } from '@/services/api';
 import { fetchProjectByPath } from '@/services/content/projects';
 import { redirect } from 'next/navigation';
@@ -29,7 +29,7 @@ const ProjectPage = async ({ params }: Props) => {
   const dict = await getDictionary(params.lang);
   const project = await fetchProjectByPath(params.path, params.lang);
 
-  if (!project) return redirect(`../../${params.lang}/projects/not-found`);
+  if (!project) return redirect(`../../${params.lang}/not-found`);
 
   const { long } = useDate(new Date(project.publishedAt));
 

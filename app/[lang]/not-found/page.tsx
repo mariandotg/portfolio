@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getDictionary } from '../../dictionaries';
+import { getDictionary } from '../dictionaries';
 
 interface Props {
   params: {

@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import Emoji from './Emoji';
 import CustomLink from './CustomLink';
 
-interface AdditionalLink {
+export interface AdditionalLink {
   href: string;
   label: string;
 }

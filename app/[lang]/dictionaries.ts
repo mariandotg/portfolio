@@ -1,6 +1,6 @@
 import 'server-only';
 
-interface Dictionary {
+export interface Dictionary {
   [key: string]: { [index: string]: string };
 }
 

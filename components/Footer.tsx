@@ -4,6 +4,7 @@ import Icon from './Icon';
 import NavLink from './NavLink';
 import { getDictionary } from '@/app/[lang]/dictionaries';
 import { fetchSocialMedia } from '@/services/content/social-media';
+import Contact from './Contact';
 
 interface Props {
   locale: string;
@@ -17,7 +18,7 @@ const Footer = async ({ locale }: Props) => {
   return (
     <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-light-subtle-edges dark:border-dark-subtle-edges'>
       <div className='flex justify-center'>
-        <div className='flex flex-col w-screen tablet:max-w-[800px] px-4 tablet:p-0 gap-16'>
+        <div className='flex flex-col w-screen tablet:max-w-[800px] px-4 tablet:p-0 gap-48'>
           <div className='grid grid-cols-1 gap-8 mobile:grid-cols-4'>
             <div className='col-span-1'>
               <h3 className='font-medium text-title whitespace-nowrap font-display dark:text-dark-headlines text-light-headlines'>

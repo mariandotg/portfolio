@@ -41,7 +41,7 @@ const LatestArticles = ({ data, latestArticles, locale, dict }: Props) => {
         {data.title}
       </SectionTitle>
       <div className='flex w-full snap-x tablet:col-span-4'>
-        <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
+        <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2'>
           {renderLatestArticles()}
         </ul>
       </div>

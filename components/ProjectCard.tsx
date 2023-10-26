@@ -21,7 +21,7 @@ const ProjectCard = (props: Props) => {
         <span>{year}</span>
       </div>
       <Link
-        href={`/${props.project.path}`}
+        href={`${props.locale}/${props.project.path}`}
         className='flex flex-col col-span-3 gap-1 p-2 rounded-sm mobile:col-span-4 tablet:col-span-5 hover:bg-light-secondary/5 dark:hover:bg-dark-secondary/5 text-light-secondary/60 dark:text-dark-secondary/60'
       >
         <h4 className='text-article'>{props.project.title}</h4>

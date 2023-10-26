@@ -6,6 +6,7 @@ import Section from '../Section';
 import { AboutContent } from '@/models/domain/FormattedData/FormattedContent';
 import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection';
 import { SocialMedia } from '@/models/domain/SocialMedia';
+import LinkButton from '../LinkButton';
 
 interface Props {
   data: FormattedSection<AboutContent>;
@@ -44,22 +45,17 @@ const AboutMe = ({ data, social }: Props) => {
         </p>
       </div>
       <div className='flex flex-col gap-4 tablet:col-start-3 tablet:gap-4 mobile:col-span-2 mobile:grid mobile:grid-cols-2'>
-        <Button
-          variant={data.content.secondaryCta.variant}
-          url={data.content.secondaryCta.url}
-          className='tablet:col-span-1'
+        <LinkButton
+          href={data.content.secondaryCta.url!!}
+          className='tablet:w-full'
         >
           {data.content.secondaryCta.label}
           <MdArrowOutward />
-        </Button>
-        <Button
-          variant={data.content.cta.variant}
-          url={data.content.cta.url}
-          className='tablet:col-span-1'
-        >
+        </LinkButton>
+        <LinkButton href={data.content.cta.url!!} className='tablet:w-full'>
           {data.content.cta.label}
           <Icon value='mail' />
-        </Button>
+        </LinkButton>
       </div>
     </Section>
   );

@@ -1,4 +1,5 @@
 import { DiJava } from 'react-icons/di';
+import { ImDatabase } from 'react-icons/im';
 import { AiOutlineLink } from 'react-icons/ai';
 import {
   MdBuild,
@@ -99,6 +100,8 @@ const icons: Icons = {
   tiktok: SiTiktok,
   'other tools': MdBuild,
   'otras herramientas': MdBuild,
+  databases: ImDatabase,
+  'bases de datos': ImDatabase,
   youtube: SiYoutube,
   default: SiReact,
 };

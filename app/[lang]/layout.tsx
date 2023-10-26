@@ -14,7 +14,7 @@ export default function LangLayout({
   };
 }) {
   return (
-    <div className='flex flex-col gap-y-[160px] justify-center'>
+    <div className='flex flex-col gap-y-[0px] justify-center'>
       {/* @ts-expect-error Async Server Component */}
       <Navbar locale={params.lang} />
       {children}

@@ -38,7 +38,7 @@ const HomePage = async ({ params }: Props) => {
   const featuredProjects = projects?.slice(0, 4);
 
   const articles = await fetchArticles(params.lang);
-  const latestArticles = articles?.slice(0, 3);
+  const latestArticles = articles?.slice(0, 4);
 
   const dict = await getDictionary(params.lang);
 

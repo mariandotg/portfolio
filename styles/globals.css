@@ -63,3 +63,20 @@ p, strong, italic {
     @apply italic font-medium font-monospace dark:text-dark-headlines text-light-headlines;
   }
 }
+
+.glowable-card {
+  background: radial-gradient(
+    800px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.06),
+    transparent 40%
+  );
+  
+}
+
+.card-border {
+  background: radial-gradient(
+    400px circle at var(--mouse-x) var(--mouse-y),
+    #7050D8,
+    transparent 40%
+  );
+}

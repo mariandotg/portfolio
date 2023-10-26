@@ -28,6 +28,23 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
   const projects = await fetchProjects(params.lang);
   const dict = await getDictionary(params.lang);
 
+  const renderProjectCards = () =>
+    projects !== undefined ? (
+      projects.map((project, index) => (
+        <ProjectCard
+          key={project.id}
+          locale={params.lang}
+          featured={false}
+          project={project}
+          delay={0.5 + index * 0.1}
+        />
+      ))
+    ) : (
+      <p className='col-span-1 dark:text-dark-text text-light-text'>
+        {dict.projects.notFound}
+      </p>
+    );
+
   return (
     <PageLayout>
       <Section>
@@ -37,21 +54,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
             about programming and design. I believe in a practical approach, so
             here I document my latest explorations.
           </h1>
-          {projects !== undefined ? (
-            projects.map((project, index) => (
-              <ProjectCard
-                key={project.id}
-                locale={params.lang}
-                featured={false}
-                project={project}
-                delay={0.5 + index * 0.1}
-              />
-            ))
-          ) : (
-            <p className='col-span-1 dark:text-dark-text text-light-text'>
-              {dict.projects.notFound}
-            </p>
-          )}
+          {renderProjectCards()}
         </div>
         <div className='w-full h-full bg-primary sidebar'>a</div>
       </Section>

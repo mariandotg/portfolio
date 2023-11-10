@@ -1,10 +1,11 @@
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import Contact from '@/components/Contact';
 import PageLayout from '@/components/PageLayout';
-import Section from '@/components/Section';
+import Section from '@/components/Sections/Section/Section';
 import { Meta } from '@/models/blog/blog.models';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
+import { getDictionary } from '../dictionaries';
 
 interface Props {
   params: {
@@ -22,10 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ContactPage = async ({ params }: Props) => {
+  const dict = await getDictionary(params.lang);
   return (
-    <PageLayout>
+    <PageLayout className='py-32'>
       <Section>
-        <Contact lang={params.lang} />
+        <Contact dict={dict} />
       </Section>
     </PageLayout>
   );

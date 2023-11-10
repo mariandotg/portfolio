@@ -7,12 +7,13 @@ import { fetchSocialMedia } from '@/services/content/social-media';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
-import AboutMe from '@/components/sections/AboutMe';
+import AboutMe from '@/components/Sections/AboutMe';
 import { fetchProjects } from '@/services/content/projects';
-import FeaturedProjects from '@/components/sections/FeaturedProjects';
-import Skills from '@/components/sections/Skills';
-import JobExperience from '@/components/sections/JobExperience';
-import LatestArticles from '@/components/sections/LatestArticles';
+import FeaturedProjects from '@/components/Sections/FeaturedProjects';
+import Skills from '@/components/Sections/Skills';
+import JobExperience from '@/components/Sections/JobExperience';
+import LatestArticles from '@/components/Sections/LatestArticles';
+import BrandLogo from '../../public/public/logo-v2-4.svg';
 
 interface Props {
   params: {
@@ -43,20 +44,21 @@ const HomePage = async ({ params }: Props) => {
   const dict = await getDictionary(params.lang);
 
   return (
-    <PageLayout>
+    <PageLayout className='py-32'>
       <AboutMe data={data.about} social={social} />
       <FeaturedProjects
         data={data.featuredProjects}
         locale={params.lang}
         featuredProjects={featuredProjects}
+        dict={dict}
       />
-      <Skills data={data.skills} />
+      <Skills data={data.skills} dict={dict} />
       <JobExperience data={data.jobExperience} />
       <LatestArticles
-        data={data.latestArticles}
         locale={params.lang}
         latestArticles={latestArticles}
         dict={dict}
+        basePath={`/${params.lang}/blog/`}
       />
     </PageLayout>
   );

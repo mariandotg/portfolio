@@ -161,8 +161,11 @@ export interface IJobCardFields {
   /** Position */
   position: string;
 
+  /** Tags */
+  tags: string[];
+
   /** Responsabilities */
-  responsabilities: string;
+  responsabilities: string[];
 
   /** Slug */
   slug?: string | undefined;
@@ -277,6 +280,9 @@ export interface ISection extends Entry<ISectionFields> {
 export interface ISkillsCardFields {
   /** Title */
   title: string;
+
+  /** Icon */
+  icon: string;
 
   /** Skills */
   skills: string[];

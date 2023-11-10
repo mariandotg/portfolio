@@ -5,7 +5,7 @@ interface Props {
   variant: 'primary' | 'secondary' | 'tertiary';
   children: ReactNode;
   icon?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: any) => void;
   className?: string;
   url?: string;
   disabled?: boolean;

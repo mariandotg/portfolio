@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
-import Emoji from './Emoji';
-import CustomLink from './CustomLink';
+import CustomLink from '../../CustomLink';
 
 export interface AdditionalLink {
   href: string;

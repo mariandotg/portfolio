@@ -2,13 +2,14 @@
 import useIsMounted from '@/hooks/useIsMounted';
 import useTheme from '@/hooks/useTheme';
 import { FaSpinner } from 'react-icons/fa';
-import { MdLightMode, MdDarkMode } from 'react-icons/md';
-import Button from './Button';
+import Button from '../Button';
+import Icon from '../icons/Icon';
 
 const ThemeButton = () => {
   const { theme, toggleTheme } = useTheme();
   const isMounted = useIsMounted();
 
+  const icon = theme === 'dark' ? 'solidLightTheme' : 'solidDarkTheme';
   return (
     <Button
       variant='primary'
@@ -16,13 +17,10 @@ const ThemeButton = () => {
       icon
       disabled={!isMounted}
       ariaLabel='Change theme'
+      className='text-light-headlines dark:text-dark-headlines'
     >
       {isMounted ? (
-        theme === 'dark' ? (
-          <MdLightMode className='duration-[0ms] w-[18px] h-[18px]' />
-        ) : (
-          <MdDarkMode className='duration-[0ms] w-[18px] h-[18px]' />
-        )
+        <Icon value={icon} width={18} height={18} />
       ) : (
         <FaSpinner className='duration-[0ms] w-[18px] h-[18px]' />
       )}

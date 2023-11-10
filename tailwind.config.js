@@ -33,7 +33,7 @@ module.exports = {
       DEFAULT: ['1rem', '1.5rem'],
       article: ['1rem', '1.175rem'],
       secondary: ['0.875rem', '1.05rem'],
-      title: ['1.25rem', '1.75rem'],
+      title: ['1.50rem', '1.75rem'],
     },
     screens: {
       mobile: '550px',
@@ -74,6 +74,7 @@ module.exports = {
     },
     animation: {
       'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      'rotate': 'rotate 20s linear infinite',
     },
     keyframes: {
       pulse: {
@@ -82,6 +83,19 @@ module.exports = {
         },
         "50%": {
           opacity: 0.4,
+        }
+      },
+      rotate: {
+        "from": {
+          rotate: "0deg",
+          scale: 1
+        },
+        "50%": {
+          scale: 1.5
+        },
+        "to": {
+          rotate: "360deg",
+          scale: 1
         }
       }
     }

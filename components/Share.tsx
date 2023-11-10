@@ -1,7 +1,7 @@
 'use client';
 import { SocialMedia } from '@/models/domain/SocialMedia';
-import Icon from './Icon';
 import { usePathname } from 'next/navigation';
+import Icon from './icons/Icon';
 
 const Share = () => {
   const path = usePathname();
@@ -30,7 +30,7 @@ const Share = () => {
       },
       {
         url: linkedInUrl,
-        icon: 'linkedin',
+        icon: 'linkedIn',
         alt: 'LinkedIn',
         id: 'linkedin',
       },
@@ -56,7 +56,7 @@ const Share = () => {
   };
 
   return (
-    <ul className='flex gap-x-2'>
+    <ul className='flex gap-x-4'>
       {generateSocialMediaLinks(pageUrl).map((social) => (
         <li key={social.id} className='flex'>
           <a
@@ -64,18 +64,16 @@ const Share = () => {
             target='_blank'
             rel='noopener noreferrer'
             aria-label={social.alt}
+            className='text-light-text duration-[0ms] dark:text-dark-text hover:text-primary dark:hover:text-primary'
           >
-            <Icon
-              value={social.icon.toLocaleLowerCase()}
-              className='duration-[0ms] w-5 h-5 fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
-            />
+            <Icon value={social.icon} />
           </a>
         </li>
       ))}
       <li className='cursor-pointer' onClick={() => copyToClipboard(pageUrl)}>
         <Icon
           value='url'
-          className='duration-[0ms] w-5 h-5 fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
+          className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
         />
       </li>
     </ul>

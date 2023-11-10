@@ -3,6 +3,9 @@ import React from 'react';
 import { MdArrowForward } from 'react-icons/md';
 import { PreviewArticle } from '@/models/blog/blog.models';
 import useDate from '@/hooks/useDate';
+import GlowableCard from './GlowableCard';
+import truncateString from '@/utils/truncateString';
+import Card from './Card';
 
 interface Props {
   article: PreviewArticle;
@@ -22,10 +25,10 @@ const ArticleCard = ({
   locale,
 }: Props) => {
   const { long } = useDate(new Date(article.publishedAt));
-
+  console.log({ long });
   const previews = {
     small: 'mobile:col-span-1',
-    large: 'mobile:grid-cols-3 mobile:col-span-3',
+    large: 'mobile:grid-cols-5 mobile:col-span-5 gap-4',
   };
 
   return (
@@ -35,9 +38,12 @@ const ArticleCard = ({
           {long[locale]}
         </p>
       )}
-      <div className='flex flex-col col-span-1 mobile:col-span-2 gap-y-2'>
-        <Link href={path} className='flex flex-col gap-y-2 group'>
-          <div className='relative flex w-full overflow-hidden h-[135px] tablet:h-[135px] rounded'>
+      <Link
+        href={path}
+        className='flex flex-col col-span-1 mobile:col-span-4 gap-y-2'
+      >
+        <Card as='div' className='flex flex-col gap-y-2 group'>
+          {/* <div className='relative flex w-full overflow-hidden h-[135px] tablet:h-[135px] rounded'>
             <span className='absolute z-20 px-2 py-1 font-black uppercase rounded-sm text-secondary top-2 left-2 text-dark-headlines font-monospace bg-dark/75'>
               {article.category}
             </span>
@@ -49,17 +55,17 @@ const ArticleCard = ({
               alt={`${article.image.alternativeText} image`}
               className='top-0 left-0 object-cover w-full rounded aspect-video'
             />
-          </div>
-          <h3 className='font-medium underline break-words transition-all duration-500 text text-light-headlines dark:text-dark-headlines font-display underline-offset-2 decoration-transparent group-hover:decoration-primary group-hover:text-primary hyphens-auto'>
-            {article.title}
+          </div> */}
+          <h3 className='font-medium break-words transition-all duration-500 text text-light-headlines dark:text-dark-headlines font-display hyphens-auto'>
+            {truncateString(article.title, 97)}
           </h3>
-        </Link>
-        {displayDescription && (
-          <p className='text-secondary dark:text-dark-text text-light-text'>
-            {article.description}
-          </p>
-        )}
-      </div>
+          {displayDescription && (
+            <p className='text-secondary dark:text-dark-text text-light-text w-fit'>
+              {truncateString(article.description, 147)}
+            </p>
+          )}
+        </Card>
+      </Link>
     </li>
   );
 };

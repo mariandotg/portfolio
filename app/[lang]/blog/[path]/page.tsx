@@ -37,41 +37,27 @@ const ArticlePage = async ({ params }: Props) => {
         href={`../../${params.lang}/blog`}
         icon={{ position: 'before' }}
       >
-        go Back
+        {dict.utils.goBack}
       </CustomLink>
-      <div className='flex flex-col col-span-4 gap-y-2'>
-        <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
-          <img
-            src={article.image}
-            alt='page header'
-            className='object-cover'
-            placeholder='blur'
-          />
-        </div>
-      </div>
-      <div className='flex flex-col gap-y-4 tablet:col-span-3'>
-        <div className='flex flex-col gap-y-4'>
-          <div className='flex flex-col gap-y-2'>
+      <div className='flex flex-col gap-y-4 tablet:col-span-4'>
+        <div className='flex flex-col mt-4 gap-y-5'>
+          <div className='flex flex-col gap-y-3'>
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {article.title}
             </h1>
-            <p className='dark:text-dark-text text-light-text'>
-              {article.description}
-            </p>
-            <p>
-              {dict.pageIndex.published} {long[params.lang]}
-            </p>
-            <span className='flex px-2 italic font-medium rounded font-monospace text-dark-headlines bg-dark-tertiary-hover dark:bg-light-tertiary-hover w-fit'>
+            <span className='px-2 py-1 font-black uppercase border rounded-sm text-secondary text-light-headlines dark:text-dark-headlines font-monospace bg-dark-secondary/10 dark:bg-light-secondary/10 border-light-subtle-edges dark:border-dark-subtle-edges w-fit'>
               {article.category.toLocaleUpperCase()}
             </span>
+            <p className='text-secondary dark:text-dark-text text-light-text'>
+              {dict.pageIndex.published} {long[params.lang]}
+            </p>
           </div>
-        </div>
-        <div className=''>
-          <h3 className=''>{dict.pageIndex.content}</h3>
-          <PageIndexes />
+          <p className='dark:text-dark-text text-light-text'>
+            {article.description}
+          </p>
         </div>
         <article className='flex flex-col gap-4'>{article.content}</article>
-        <div className=''>
+        <div className='flex flex-col gap-2'>
           <h3 className=''>{dict.pageIndex.share}</h3>
           <Share />
         </div>

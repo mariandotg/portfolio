@@ -24,7 +24,7 @@ export async function generateStaticParams() {
 
 const ProjectLayout = async ({ children, params }: Props) => {
   return (
-    <PageLayout>
+    <PageLayout className='pt-4 pb-32'>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
         {children}
       </div>

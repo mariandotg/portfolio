@@ -1,8 +1,8 @@
 'use client';
 import useScroll from '@/hooks/useScroll';
 import React from 'react';
-import { MdKeyboardArrowUp } from 'react-icons/md';
-import Button from './Button';
+import Button from '../Button';
+import Icon from '../icons/Icon';
 
 const ToTopButton = () => {
   const { visible, scrollToTop } = useScroll();
@@ -11,12 +11,12 @@ const ToTopButton = () => {
     <Button
       variant='primary'
       onClick={scrollToTop}
-      className='flex'
       icon
       disabled={!visible}
       ariaLabel='Scroll to the top'
+      className='flex text-light-headlines dark:text-dark-headlines'
     >
-      <MdKeyboardArrowUp className='duration-[0ms] w-[18px] h-[18px] ' />
+      <Icon value='outlineChevronUp' width={18} height={18} />
     </Button>
   );
 };

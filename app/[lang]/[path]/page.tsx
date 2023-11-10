@@ -9,8 +9,8 @@ import { redirect } from 'next/navigation';
 import CustomLink from '@/components/CustomLink';
 import useDate from '@/hooks/useDate';
 import LinkButton from '@/components/LinkButton';
-import { MdArrowOutward } from 'react-icons/md';
 import Chip from '@/components/Chip';
+import Icon from '@/components/icons/Icon';
 
 export const revalidate = 86400;
 
@@ -46,50 +46,45 @@ const ProjectPage = async ({ params }: Props) => {
         href={`../../${params.lang}/projects`}
         icon={{ position: 'before' }}
       >
-        go Back
+        {dict.utils.goBack}
       </CustomLink>
-      <div className='flex flex-col col-span-4 gap-y-2'>
-        <div className='relative h-64 overflow-hidden rounded tablet:col-span-4'>
-          <img
-            src={project.image}
-            alt='page header'
-            className='object-cover w-full'
-            placeholder='blur'
-          />
-        </div>
-      </div>
-      <div className='flex flex-col gap-y-4 tablet:col-span-3'>
-        <div className='flex flex-col gap-y-2'>
-          <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
-            {project.title}
-          </h1>
+      <div className='flex flex-col gap-y-4 tablet:col-span-4'>
+        <div className='flex flex-col mt-4 gap-y-5'>
+          <div className='flex flex-col gap-y-3'>
+            <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
+              {project.title}
+            </h1>
+            <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
+              {renderTags()}
+            </ul>
+            <p className='text-secondary dark:text-dark-text text-light-text'>
+              {dict.pageIndex.published} {long[params.lang]}
+            </p>
+          </div>
           <p className='dark:text-dark-text text-light-text'>
             {project.description}
           </p>
-          <p className='dark:text-dark-text text-light-text'>
-            {dict.pageIndex.published} {long[params.lang]}
-          </p>
-        </div>
-        <div>
-          <h3 className=''>{dict.pageIndex.tags}</h3>
-          <ul className='flex flex-row flex-wrap items-center w-full gap-2'>
-            {renderTags()}
-          </ul>
         </div>
         <div className='flex gap-4'>
-          <LinkButton href={project.repository} endContent={<MdArrowOutward />}>
+          <LinkButton
+            href={project.repository}
+            endContent={
+              <Icon value='miniArrowUpRight' width={18} height={18} />
+            }
+          >
             {dict.project.repository}
           </LinkButton>
-          <LinkButton href={project.live} endContent={<MdArrowOutward />}>
+          <LinkButton
+            href={project.live}
+            endContent={
+              <Icon value='miniArrowUpRight' width={18} height={18} />
+            }
+          >
             {dict.project.live}
           </LinkButton>
         </div>
-        <div className=''>
-          <h3 className=''>{dict.pageIndex.content}</h3>
-          <PageIndexes />
-        </div>
         <article className='flex flex-col gap-4'>{project.content}</article>
-        <div className=''>
+        <div className='flex flex-col gap-2'>
           <h3 className=''>{dict.pageIndex.share}</h3>
           <Share />
         </div>

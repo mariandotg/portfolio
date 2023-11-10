@@ -1,35 +1,69 @@
 {
-    "pageIndex": {
-        "content": "Content:",
-        "share": "Share:",
-        "tags": "Tags:",
-        "published": "Published:"
+  "pageIndex": {
+    "content": "Content:",
+    "share": "Share:",
+    "tags": "Tags:",
+    "published": "Published:"
+  },
+  "project": {
+    "repository": "Repository",
+    "live": "Live site",
+    "notFound": "This project doesn't exist",
+    "seoNotFound": "Project not found"
+  },
+  "footer": {
+    "emailCta": "Rather write me an email?",
+    "email": "mailto:marianguillaume.m@gmail.com",
+    "madeIn": "Made in Buenos Aires, Argentina",
+    "copyright": "2023 © Mariano Guillaume"
+  },
+  "contact": {
+    "subject": {
+      "placeholder": "Hello world!",
+      "label": "Subject"
     },
-    "project": {
-        "repository": "Repository",
-        "live": "Live site",
-        "notFound": "This project doesn't exist",
-        "seoNotFound": "Project not found"
+    "email": {
+      "placeholder": "darthvader@deathstar.com",
+      "label": "Email"
     },
-    "footer": {
-        "emailCta": "Rather write me an email?",
-        "email": "mailto:marianguillaume.m@gmail.com",
-        "madeIn": "Made in Buenos Aires, Argentina",
-        "copyright": "2023 © Mariano Guillaume"
+    "message": {
+      "placeholder": "Write your message here",
+      "label": "Message"
     },
-    "routes": {
-        "/": "Portfolio", 
-        "/projects": "Projects", 
-        "/blog": "Blog"
-    },
-    "latestArticles": {
-        "notFound": "We couldn't get the latest published articles"
-    },
-    "blog": {
-        "notFound": "We couldn't get the published articles"
-    },
-    "article": {
-        "notFound": "This article doesn't exist",
-        "seoNotFound": "Article not found"
+    "feedback": {
+      "required": "This field is required",
+      "error": {
+        "minCant": "The minimum number of characters is 4",
+        "validEmail": "This email is not valid. Please provide a valid email"
+      }
     }
+  },
+  "routes": {
+    "/": "Portfolio",
+    "/projects": "Projects",
+    "/blog": "Blog",
+    "/contact": "Contact"
+  },
+  "latestArticles": {
+    "notFound": "We couldn't get the latest published articles",
+    "additionalLink": "See my blog",
+    "title": "Latest Articles"
+  },
+  "featuredProjects": {
+    "additionalLink": "See all my projects"
+  },
+  "blog": {
+    "notFound": "We couldn't get the published articles"
+  },
+  "skills": {
+    "additionalLink": "See my certificates on LinkedIn"
+  },
+  "utils": {
+    "goBack": "Go back",
+    "submit": "Submit"
+  },
+  "article": {
+    "notFound": "This article doesn't exist",
+    "seoNotFound": "Article not found"
+  }
 }

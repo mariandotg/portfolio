@@ -1,35 +1,69 @@
 {
-    "pageIndex": {
-        "content": "Contenido:",
-        "share": "Compartir:",
-        "tags": "Etiquetas:",
-        "published": "Publicado:"
+  "pageIndex": {
+    "content": "Contenido:",
+    "share": "Compartir:",
+    "tags": "Etiquetas:",
+    "published": "Publicado:"
+  },
+  "project": {
+    "repository": "Repositorio",
+    "live": "Sitio online",
+    "notFound": "Este proyecto no existe",
+    "seoNotFound": "Proyecto no encontrado"
+  },
+  "footer": {
+    "emailCta": "¿Preferís mandarme un email?",
+    "email": "mailto:marianguillaume.m@gmail.com",
+    "madeIn": "Hecho en Buenos Aires, Argentina",
+    "copyright": "2023 © Mariano Guillaume"
+  },
+  "contact": {
+    "subject": {
+      "placeholder": "¡Hola mundo!",
+      "label": "Asunto"
     },
-    "project": {
-        "repository": "Repositorio",
-        "live": "Sitio online",
-        "notFound": "Este proyecto no existe",
-        "seoNotFound": "Proyecto no encontrado"
+    "email": {
+      "placeholder": "darthvader@deathstar.com",
+      "label": "Email"
     },
-    "footer": {
-        "emailCta": "¿Preferís mandarme un email?",
-        "email": "mailto:marianguillaume.m@gmail.com",
-        "madeIn": "Hecho en Buenos Aires, Argentina",
-        "copyright": "2023 © Mariano Guillaume"
+    "message": {
+      "placeholder": "Escribe tu mensaje aquí",
+      "label": "Mensaje"
     },
-    "routes": {
-        "/": "Portafolio", 
-        "/projects": "Proyectos", 
-        "/blog": "Blog"
-    },
-    "latestArticles": {
-        "notFound": "No pudimos obtener los articulos más recientes publicados"
-    },
-    "blog": {
-        "notFound": "No pudimos obtener los articulos publicados"
-    },
-    "article": {
-        "notFound": "Este artículo no existe",
-        "seoNotFound": "Artículo no encontrado"
+    "feedback": {
+      "required": "Este campo es obligatorio",
+      "error": {
+        "minCant": "El número mínimo de caracteres es 4",
+        "validEmail": "Este email no es válido. Por favor proporcione un email válido"
+      }
     }
+  },
+  "routes": {
+    "/": "Portafolio",
+    "/projects": "Proyectos",
+    "/blog": "Blog",
+    "/contact": "Contacto"
+  },
+  "featuredProjects": {
+    "additionalLink": "Mirá todos mis proyectos"
+  },
+  "latestArticles": {
+    "notFound": "No pudimos obtener los articulos más recientes publicados",
+    "additionalLink": "Mirá mi blog",
+    "title": "Artículos Recientes"
+  },
+  "skills": {
+    "additionalLink": "Mirá mis certificados en LinkedIn"
+  },
+  "blog": {
+    "notFound": "No pudimos obtener los articulos publicados"
+  },
+  "utils": {
+    "goBack": "Ir atrás",
+    "submit": "Enviar"
+  },
+  "article": {
+    "notFound": "Este artículo no existe",
+    "seoNotFound": "Artículo no encontrado"
+  }
 }

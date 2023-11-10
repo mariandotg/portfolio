@@ -1,9 +1,11 @@
 import React from 'react';
 import ArticleCard from '@/components/ArticleCard';
 import PageLayout from '@/components/PageLayout';
-import Section from '@/components/Section';
-import SectionTitle from '@/components/SectionTitle';
+import Section from '@/components/Sections/Section/Section';
+import SectionTitle from '@/components/Sections/Section/SectionTitle';
 import { fetchArticles } from '@/services/content/articles';
+import LatestArticles from '@/components/Sections/LatestArticles';
+import { getDictionary } from '../../dictionaries';
 
 interface Props {
   children: React.ReactNode;
@@ -28,26 +30,20 @@ export async function generateStaticParams() {
 const ArticleLayout = async ({ children, params }: Props) => {
   const articles = await fetchArticles(params.lang);
   const latestArticles = articles?.slice(0, 2);
+  const dict = await getDictionary(params.lang);
 
   return (
-    <PageLayout>
+    <PageLayout className='pt-4 pb-32'>
       <div className='flex flex-col gap-y-8 dark:text-dark-text text-light-text tablet:grid tablet:grid-cols-3 tablet:gap-4'>
         {children}
       </div>
-      <Section>
-        <SectionTitle emoji='article'>Latest Articles</SectionTitle>
-        <div className='flex w-full snap-x tablet:col-span-4'>
-          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2 tablet:grid-cols-3'>
-            {latestArticles!.map((article, index) => (
-              <ArticleCard
-                article={article}
-                path={`blog/${article.path}`}
-                locale={params.lang}
-              />
-            ))}
-          </ul>
-        </div>
-      </Section>
+      <LatestArticles
+        locale={params.lang}
+        latestArticles={latestArticles}
+        dict={dict}
+        hasAdditionalLink={false}
+        basePath=''
+      />
     </PageLayout>
   );
 };

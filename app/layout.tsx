@@ -1,4 +1,6 @@
+import CursorBlob from '@/components/CursorBlob';
 import '../styles/globals.css';
+import { LogoContextProvider } from '@/lib/Context';
 
 export default function RootLayout({
   children,
@@ -31,7 +33,9 @@ export default function RootLayout({
         />
         <link rel='icon' href='/public/favicon.ico' sizes='any' />
       </head>
-      <body>{children}</body>
+      <body>
+        <LogoContextProvider>{children}</LogoContextProvider>
+      </body>
     </html>
   );
 }

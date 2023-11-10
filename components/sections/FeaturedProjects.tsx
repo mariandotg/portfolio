@@ -1,36 +1,26 @@
 'use client';
 import React from 'react';
-import Section from '../Section';
-import SectionTitle, { AdditionalLink } from '../SectionTitle';
+import Section from './Section/Section';
+import SectionTitle, { AdditionalLink } from './Section/SectionTitle';
 import { ProjectsContent } from '@/models/domain/FormattedData/FormattedContent';
 import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection';
 import ProjectCard from '../ProjectCard';
 import { PreviewProject } from '@/models/blog/blog.models';
+import { Dictionary } from '@/app/[lang]/dictionaries';
 
 interface Props {
   data: FormattedSection<ProjectsContent>;
   featuredProjects: PreviewProject[] | undefined;
   locale: string;
+  dict: Dictionary;
 }
 
-const FeaturedProjects = ({ data, featuredProjects, locale }: Props) => {
-  //@ts-ignore
-  const handleOnMouseMove = (e) => {
-    const { currentTarget: target } = e;
-
-    const rect = target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    target.style.setProperty('--mouse-x', `${x}px`);
-    target.style.setProperty('--mouse-y', `${y}px`);
-    console.log({ x, y });
-  };
-
+const FeaturedProjects = ({ data, featuredProjects, locale, dict }: Props) => {
   const renderFeaturedProjects = () =>
     featuredProjects!.map((project, index) => (
       <ProjectCard
         key={project.id}
+        path={`${locale}/${project.path}`}
         project={project}
         locale={locale}
         featured={true}
@@ -40,7 +30,7 @@ const FeaturedProjects = ({ data, featuredProjects, locale }: Props) => {
 
   const additionalLink: AdditionalLink = {
     href: `${locale}/projects`,
-    label: 'See all my projects',
+    label: dict.featuredProjects.additionalLink,
   };
 
   return (
@@ -49,7 +39,7 @@ const FeaturedProjects = ({ data, featuredProjects, locale }: Props) => {
         {data.title}
       </SectionTitle>
       <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
-        <div className='grid w-full grid-cols-4 gap-y-8 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 mobile:gap-4 tablet:grid-cols-6 tablet:col-span-4 tablet:gap-4'>
+        <div className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
           {renderFeaturedProjects()}
         </div>
       </div>

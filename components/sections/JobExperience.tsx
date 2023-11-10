@@ -1,6 +1,6 @@
 import React from 'react';
-import Section from '../Section';
-import SectionTitle from '../SectionTitle';
+import Section from './Section/Section';
+import SectionTitle from './Section/SectionTitle';
 import { JobsContent } from '@/models/domain/FormattedData/FormattedContent';
 import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection';
 import Chip from '../Chip';
@@ -11,18 +11,28 @@ interface Props {
 
 const JobExperience = ({ data }: Props) => {
   const renderJobCards = () =>
-    data.content.jobCards.map((jobCard) => (
+    data.content.jobCards.map((jobCard, index) => (
       <li
-        className='grid w-full grid-cols-5 col-span-5 tablet:grid-cols-6 mobile:col-span-5 tablet:col-span-6 gap-y-8 mobile:grid-rows-1 mobile:gap-4'
+        className='grid w-full grid-cols-5 col-span-5 mobile:col-span-5 tablet:col-span-6 gap-y-8 mobile:grid-rows-1 mobile:gap-4 '
         key={jobCard.id}
       >
-        <div className='hidden col-span-1 py-2 text-light-secondary/60 mobile:flex mobile:col-span-1 mobile:justify-end mobile:mr-[2px] dark:text-dark-secondary/60 mobile:pr-2'>
-          <span className='relative mobile:before:content-[""] mobile:before:h-2 mobile:before:w-2 mobile:before:bg-primary mobile:before:absolute mobile:before:-right-[22px] mobile:before:top-[9px] mobile:before:rounded-full h-min'>
+        <div className='hidden col-span-1 py-2 text-light-secondary/60 mobile:flex mobile:col-span-1 mobile:justify-end mobile:mr-[2px] dark:text-dark-secondary/60 mobile:pr-2 '>
+          <span
+            className={`relative mobile:before:content-[""] mobile:before:z-[900] mobile:before:h-[9px] mobile:before:w-[9px]  mobile:before:absolute mobile:before:-right-[23px] mobile:before:top-[9px] mobile:before:rounded-full h-min text-secondary mobile:before:bg-primary mobile:before:shadow-md`}
+          >
             {jobCard.period}
           </span>
         </div>
-        <div className='grid w-full col-span-5 mobile:col-span-4 tablet:col-span-5 p-2 pl-4 mobile:relative gap-y-1 mobile:gap-y-2 mobile:before:content-[""] mobile:before:h-full mobile:before:w-[1px] mobile:before:bg-primary mobile:before:absolute mobile:before:-left-2'>
-          <p className='mb-1 leading-none text-secondary text-light-secondary/60 dark:text-dark-secondary/60 mobile:hidden relative before:content-[""] before:h-2 before:w-2 before:bg-primary before:absolute before:-left-[21px] before:top-[3px] before:rounded-full h-min'>
+        <div
+          className={`grid w-full col-span-5 mobile:col-span-4 p-2 pl-4 relative gap-y-1 mobile:gap-y-2 before:content-[""] before:h-full before:w-[1px] before:absolute before:left-0 mobile:before:-left-2 before:bg-primary ${
+            index === 0 &&
+            'before:bg-gradient-to-t before:from-primary dark:before:to-dark before:to-light before:from-85%'
+          } ${
+            index === data.content.jobCards.length - 1 &&
+            'before:bg-gradient-to-b before:from-primary dark:before:to-dark before:to-light before:to-85%'
+          }`}
+        >
+          <p className='mb-1 leading-none text-light-secondary/60 dark:text-dark-secondary/60 mobile:hidden relative before:content-[""] before:h-[9px] before:w-[9px] before:bg-primary before:shadow-md before:absolute before:-left-[20px] before:top-[3px] before:rounded-full h-min text-secondary'>
             {jobCard.period}
           </p>
           <div>
@@ -33,30 +43,17 @@ const JobExperience = ({ data }: Props) => {
               {jobCard.company}
             </h4>
           </div>
-          <p className='text-secondary text-light-secondary/60 dark:text-dark-secondary/60'>
-            {jobCard.responsabilities}
-          </p>
 
-          {
-            //future
-            /* <ul className='relative flex flex-wrap gap-2'>
-            {['react', 'typescript', 'kotlin', 'tailwindcss'].map(
-              (skill, index) => (
-                <Chip key={index}>{skill}</Chip>
-              )
-            )}
+          <ul className='relative flex flex-wrap gap-2'>
+            {jobCard.tags.map((skill, index) => (
+              <Chip key={index}>{skill}</Chip>
+            ))}
           </ul>
-          <ol className='mb-4 list-disc list-inside text-light-secondary/60 dark:text-dark-secondary/60'>
-            <li className='marker:mr-0 text-secondary'>trabajar hasta 18hs</li>
-            <li className='marker:mr-0 text-secondary'>
-              testear funciones unitarias
-            </li>
-            <li className='marker:mr-0 text-secondary'>
-              crear componentes de react que optimicen al 50% la eficiencia de
-              la web
-            </li>
-          </ol> */
-          }
+          <ol className='flex flex-col mb-8 list-disc list-inside mobile:mb-4 text-light-secondary/60 dark:text-dark-secondary/60 gap-y-1'>
+            {jobCard.responsabilities.map((responsability) => (
+              <li className='marker:mr-0 text-secondary'>{responsability}</li>
+            ))}
+          </ol>
         </div>
       </li>
     ));
@@ -64,7 +61,7 @@ const JobExperience = ({ data }: Props) => {
   return (
     <Section>
       <SectionTitle emoji={data.emoji}>{data.title}</SectionTitle>
-      <ol className='relative grid w-full grid-cols-5 border-l mobile:border-none border-primary gap-y-8 mobile:grid mobile:grid-rows-1 mobile:gap-0 tablet:grid-cols-6 mobile:col-span-4 tablet:gap-0'>
+      <ol className='relative grid w-full grid-cols-4 gap-0 mobile:grid mobile:grid-rows-1 mobile:grid-cols-5 mobile:col-span-4 tablet:gap-0'>
         {renderJobCards()}
       </ol>
     </Section>

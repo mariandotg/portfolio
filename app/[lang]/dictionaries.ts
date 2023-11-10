@@ -1,7 +1,10 @@
 import 'server-only';
 
+interface Obj {
+  [index: string]: string;
+}
 export interface Dictionary {
-  [key: string]: { [index: string]: string };
+  [key: string]: { [index: string]: any };
 }
 
 interface Dictionaries {

@@ -3,25 +3,36 @@ import { ArticlesContent } from '@/models/domain/FormattedData/FormattedContent'
 import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection';
 import React from 'react';
 import ArticleCard from '../ArticleCard';
-import Section from '../Section';
-import SectionTitle, { AdditionalLink } from '../SectionTitle';
+import Section from './Section/Section';
+import SectionTitle, { AdditionalLink } from './Section/SectionTitle';
 import { Dictionary } from '@/app/[lang]/dictionaries';
+import Card from '../Card';
 
 interface Props {
-  data: FormattedSection<ArticlesContent>;
   latestArticles: PreviewArticle[] | undefined;
   locale: string;
   dict: Dictionary;
+  hasAdditionalLink?: boolean;
+  basePath: string;
 }
 
-const LatestArticles = ({ data, latestArticles, locale, dict }: Props) => {
+const LatestArticles = ({
+  latestArticles,
+  locale,
+  dict,
+  hasAdditionalLink = true,
+  basePath,
+}: Props) => {
   const renderLatestArticles = () =>
     latestArticles?.length !== 0 ? (
       latestArticles?.map((article, index) => (
         <ArticleCard
           article={article}
-          path={`${locale}/blog/${article.path}`}
+          path={`${basePath}${article.path}`}
           locale={locale}
+          displayDescription
+          displayDate
+          preview='large'
         />
       ))
     ) : (
@@ -32,16 +43,18 @@ const LatestArticles = ({ data, latestArticles, locale, dict }: Props) => {
 
   const additionalLink: AdditionalLink = {
     href: `${locale}/blog`,
-    label: 'See my blog',
+    label: dict.latestArticles.additionalLink,
   };
 
   return (
     <Section>
-      <SectionTitle emoji={data.emoji} additionalLink={additionalLink}>
-        {data.title}
+      <SectionTitle
+        additionalLink={hasAdditionalLink ? additionalLink : undefined}
+      >
+        {dict.latestArticles.title}
       </SectionTitle>
       <div className='flex w-full snap-x tablet:col-span-4'>
-        <ul className='flex flex-col w-full gap-4 mobile:grid mobile:grid-cols-2'>
+        <ul className='flex flex-col w-full gap-8 mobile:gap-4 mobile:grid mobile:grid-cols-2 cards'>
           {renderLatestArticles()}
         </ul>
       </div>

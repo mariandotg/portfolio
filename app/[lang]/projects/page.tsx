@@ -1,7 +1,7 @@
 import React from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
-import Section from '@/components/Section';
+import Section from '@/components/Sections/Section/Section';
 import { fetchProjects } from '@/services/content/projects';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Meta } from '@/models/blog/blog.models';
@@ -33,6 +33,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
       projects.map((project, index) => (
         <ProjectCard
           key={project.id}
+          path={`${project.path}`}
           locale={params.lang}
           featured={false}
           project={project}
@@ -46,7 +47,7 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
     );
 
   return (
-    <PageLayout>
+    <PageLayout className='py-32'>
       <Section>
         <div className='grid grid-cols-4 gap-y-8 mobile:grid-cols-5 mobile:gap-4 tablet:grid-cols-6 tablet:col-span-4 tablet:gap-4'>
           <h1 className='col-span-4 mobile:col-span-5 tablet:col-span-6 text-title text-light-headlines dark:text-dark-headlines h-[300px]'>
@@ -56,7 +57,6 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
           </h1>
           {renderProjectCards()}
         </div>
-        <div className='w-full h-full bg-primary sidebar'>a</div>
       </Section>
     </PageLayout>
   );

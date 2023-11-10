@@ -31,6 +31,18 @@ p, strong, italic {
   @apply dark:text-dark-text text-light-text;
 }
 
+blockquote {
+  @apply p-4 bg-primary/10 rounded flex relative
+}
+
+blockquote::before {
+  @apply content-[""] bg-primary w-1 h-[calc(100%-32px)] rounded absolute
+}
+
+blockquote > p {
+  @apply ml-3
+}
+
 ::-webkit-scrollbar {
   @apply w-2;
 }
@@ -79,4 +91,41 @@ p, strong, italic {
     #7050D8,
     transparent 40%
   );
+}
+
+.gradient-backdrop {
+  backdrop-filter: blur(100px);
+}
+
+@media (min-width: 834px) {
+  .gradient-backdrop {
+    backdrop-filter: blur(200px);
+  }
+}
+
+.cursor-gradient {
+  animation: rotate 20s infinite
+}
+
+.cards:hover > .cardClass > .card-border {
+  opacity: 1;
+}
+
+@keyframes rotate {
+  from {
+    rotate: 0deg
+  }
+
+  50% {
+    scale: 1 1.5
+  }
+
+  to {
+    rotate: 360deg
+  }
+}
+
+input:checked ~ .dot {
+  transform: translateX(100%);
+  background-color: #48bb78;
 }

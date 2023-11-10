@@ -1,10 +1,9 @@
 import React from 'react';
 import { MdArrowOutward } from 'react-icons/md';
-import Icon from './Icon';
 import NavLink from './NavLink';
 import { getDictionary } from '@/app/[lang]/dictionaries';
 import { fetchSocialMedia } from '@/services/content/social-media';
-import Contact from './Contact';
+import Icon from './icons/Icon';
 
 interface Props {
   locale: string;
@@ -16,10 +15,10 @@ const Footer = async ({ locale }: Props) => {
   const dict = await getDictionary(locale);
 
   return (
-    <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-light-subtle-edges dark:border-dark-subtle-edges'>
+    <footer className='w-full flex flex-col gap-y-16 py-8 border-t-[1px] border-light-subtle-edges dark:border-dark-subtle-edges relative z-0'>
       <div className='flex justify-center'>
-        <div className='flex flex-col w-screen tablet:max-w-[800px] px-4 tablet:p-0 gap-48'>
-          <div className='grid grid-cols-1 gap-8 mobile:grid-cols-4'>
+        <div className='flex flex-col w-screen gap-16 px-4 tablet:max-w-2xl tablet:p-0'>
+          <div className='grid grid-cols-1 gap-8 px-4 mobile:grid-cols-4'>
             <div className='col-span-1'>
               <h3 className='font-medium text-title whitespace-nowrap font-display dark:text-dark-headlines text-light-headlines'>
                 {dict.footer.emailCta}
@@ -40,22 +39,25 @@ const Footer = async ({ locale }: Props) => {
                 {dict.routes['/projects']}
               </NavLink>
               <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
+              <NavLink href={`/${locale}/contact`}>
+                {dict.routes['/contact']}
+              </NavLink>
             </div>
           </div>
           <div className='flex flex-col items-center gap-y-8'>
             <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>
               {constants!.map((social) => (
-                <li key={social.id} className='flex'>
+                <li
+                  key={social.id}
+                  className='flex text-light-text duration-[0ms] dark:text-dark-text hover:text-primary dark:hover:text-primary'
+                >
                   <a
                     href={social.url}
                     target='_blank'
                     rel='noopener noreferrer'
                     aria-label={social.alt}
                   >
-                    <Icon
-                      value={social.icon.toLocaleLowerCase()}
-                      className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
-                    />
+                    <Icon value={social.icon} />
                   </a>
                 </li>
               ))}

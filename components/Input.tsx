@@ -20,6 +20,7 @@ interface Props {
   name: keyof IInitialValues;
   label: string;
   placeholder?: string;
+  className?: string;
 }
 
 const Input = ({
@@ -32,9 +33,12 @@ const Input = ({
   name,
   label,
   placeholder,
+  className,
 }: Props) => {
   return (
-    <div className='flex flex-col w-full gap-1 text-light-text dark:text-dark-text focus-within:text-primary'>
+    <div
+      className={`flex flex-col w-full gap-1 text-light-text dark:text-dark-text focus-within:text-primary ${className}`}
+    >
       <label
         className={`font-bold ${
           errors[name] && touched[name] && 'text-[#FF0000]'

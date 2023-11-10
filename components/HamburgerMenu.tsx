@@ -5,11 +5,13 @@ import { MdClose, MdMenu } from 'react-icons/md';
 import NavLink from './NavLink';
 import LangSelector from './LangSelector';
 import { FaGithub, FaLinkedin, FaTwitter } from 'react-icons/fa';
-import ThemeButton from './ThemeButton';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Dictionary } from '@/app/[lang]/dictionaries';
+import Icon from './icons/Icon';
 
 interface Props {
   locale: string;
+  dict: Dictionary;
 }
 
 interface Link {
@@ -44,6 +46,7 @@ const mobileLinkVars = {
       duration: 0.5,
       ease: [0.37, 0, 0.63, 1],
     },
+    opacity: 0,
   },
   open: {
     y: 0,
@@ -51,6 +54,7 @@ const mobileLinkVars = {
       ease: [0, 0.55, 0.45, 1],
       duration: 0.7,
     },
+    opacity: 1,
   },
 };
 
@@ -59,6 +63,7 @@ const containerVars = {
     transition: {
       staggerChildren: 0.09,
       staggerDirection: -1,
+      opacity: 0,
     },
   },
   open: {
@@ -66,6 +71,7 @@ const containerVars = {
       delayChildren: 0.3,
       staggerChildren: 0.09,
       staggerDirection: 1,
+      opacity: 1,
     },
   },
 };
@@ -82,7 +88,7 @@ const links: Link[] = [
   },
 ];
 
-const HamburgerMenu = ({ locale }: Props) => {
+const HamburgerMenu = ({ locale, dict }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -124,39 +130,49 @@ const HamburgerMenu = ({ locale }: Props) => {
               <li className='overflow-hidden'>
                 <motion.div
                   variants={mobileLinkVars}
-                  className='flex justify-center font-monospace italic'
+                  className='flex justify-center italic font-monospace'
                   onClick={() => setIsOpen((prev) => !prev)}
                 >
                   <NavLink href={`/${locale}`} className='text-title'>
-                    Portfolio
+                    {dict.routes['/']}
                   </NavLink>
                 </motion.div>
               </li>
               <li className='overflow-hidden'>
                 <motion.div
                   variants={mobileLinkVars}
-                  className='flex justify-center font-monospace italic'
+                  className='flex justify-center italic font-monospace'
                   onClick={() => setIsOpen((prev) => !prev)}
                 >
                   <NavLink href={`/${locale}/projects`} className='text-title'>
-                    Proyectos
+                    {dict.routes['/projects']}
                   </NavLink>
                 </motion.div>
               </li>
               <li className='overflow-hidden'>
                 <motion.div
                   variants={mobileLinkVars}
-                  className='flex justify-center font-monospace italic'
+                  className='flex justify-center italic font-monospace'
                   onClick={() => setIsOpen((prev) => !prev)}
                 >
                   <NavLink href={`/${locale}/blog`} className='text-title'>
-                    Blog
+                    {dict.routes['/blog']}
+                  </NavLink>
+                </motion.div>
+              </li>
+              <li className='overflow-hidden'>
+                <motion.div
+                  variants={mobileLinkVars}
+                  className='flex justify-center italic font-monospace'
+                  onClick={() => setIsOpen((prev) => !prev)}
+                >
+                  <NavLink href={`/${locale}/contact`} className='text-title'>
+                    {dict.routes['/contact']}
                   </NavLink>
                 </motion.div>
               </li>
             </motion.ul>
             <motion.div
-              className='overflow-hidden'
               variants={containerVars}
               initial='initial'
               animate='open'
@@ -164,18 +180,23 @@ const HamburgerMenu = ({ locale }: Props) => {
             >
               <motion.div
                 variants={mobileLinkVars}
-                className='flex gap-4 justify-center'
+                className='flex justify-center gap-2'
                 onClick={() => setIsOpen((prev) => !prev)}
               >
                 <LangSelector locale={locale} />
-                <Button variant='primary' icon ariaLabel='test 1'>
-                  <FaGithub />
+                <Button
+                  variant='primary'
+                  icon
+                  ariaLabel='Github'
+                  className='ml-2'
+                >
+                  <Icon value='github' width={18} height={18} />
                 </Button>
-                <Button variant='primary' icon ariaLabel='test 1'>
-                  <FaTwitter />
+                <Button variant='primary' icon ariaLabel='Twitter'>
+                  <Icon value='twitter' width={18} height={18} />
                 </Button>
-                <Button variant='primary' icon ariaLabel='test 1'>
-                  <FaLinkedin />
+                <Button variant='primary' icon ariaLabel='LinkedIn'>
+                  <Icon value='linkedIn' width={18} height={18} />
                 </Button>
               </motion.div>
             </motion.div>

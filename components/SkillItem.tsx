@@ -1,6 +1,5 @@
 import React from 'react';
-
-import Icon from './Icon';
+import { Icon } from './icons';
 
 interface Props {
   skill: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import PageLayout from '../../../components/PageLayout';
-import Section from '@/components/Section';
+import Section from '@/components/Sections/Section/Section';
 import ArticleCard from '@/components/ArticleCard';
 import { getDictionary } from '../dictionaries';
 import { fetchArticles } from '@/services/content/articles';
@@ -43,7 +43,7 @@ const BlogPage = async ({ params }: Props) => {
     );
 
   return (
-    <PageLayout>
+    <PageLayout className='py-32'>
       <Section>
         <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
           <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>

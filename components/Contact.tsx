@@ -5,7 +5,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Button from './Button';
 import Input from './Input';
-import { NEXT_PUBLIC_BASE_FETCH_URL } from '@/config';
+import { Dictionary } from '@/app/[lang]/dictionaries';
 
 export interface IInitialValues {
   subject: string;
@@ -14,10 +14,10 @@ export interface IInitialValues {
 }
 
 interface Props {
-  lang: string;
+  dict: Dictionary;
 }
 
-const Contact = ({ lang }: Props) => {
+const Contact = ({ dict }: Props) => {
   const initialValues: IInitialValues = {
     subject: '',
     from: '',
@@ -26,12 +26,12 @@ const Contact = ({ lang }: Props) => {
 
   const validationSchema = Yup.object().shape({
     subject: Yup.string()
-      .min(4, 'feedback.error.minCant')
-      .required('feedback.required'),
+      .min(4, dict.contact.feedback.error.minCant)
+      .required(dict.contact.feedback.required),
     from: Yup.string()
-      .email('feedback.error.validEmail')
-      .required('feedback.required'),
-    message: Yup.string().required('feedback.required'),
+      .email(dict.contact.feedback.error.validEmail)
+      .required(dict.contact.feedback.required),
+    message: Yup.string().required(dict.contact.feedback.required),
   });
 
   const onSubmit = () => {
@@ -67,48 +67,49 @@ const Contact = ({ lang }: Props) => {
   }, [resetForm]);
 
   return (
-    <section className='flex flex-col items-end gap-4 tablet:col-span-2'>
+    <section className='flex flex-col items-end gap-4 tablet:col-span-4'>
       <h2 className='self-start font-bold text text-light-headlines dark:text-dark-headlines'>
         Contact
       </h2>
       <form
         onSubmit={handleSubmit}
-        className='flex flex-col items-end w-full gap-4'
+        className='flex flex-col items-end w-full gap-4 tablet:grid tablet:grid-cols-2'
       >
         <Input
           errors={errors}
           handleBlur={handleBlur}
           handleChange={handleChange}
-          label='Asunto'
+          label={dict.contact.subject.label}
           name='subject'
           touched={touched}
           type='text'
           values={values}
-          placeholder='¡Hola mundo!'
+          placeholder={dict.contact.subject.placeholder}
         />
         <Input
           errors={errors}
           handleBlur={handleBlur}
           handleChange={handleChange}
-          label='Email'
+          label={dict.contact.email.label}
           name='from'
           touched={touched}
           type='text'
           values={values}
-          placeholder='darthvader@deathstar.com'
+          placeholder={dict.contact.email.placeholder}
         />
         <Input
           errors={errors}
           handleBlur={handleBlur}
           handleChange={handleChange}
-          label='Mensaje'
+          label={dict.contact.message.label}
           name='message'
           touched={touched}
           type='textarea'
           values={values}
-          placeholder='Escribe tu mensaje aquí'
+          placeholder={dict.contact.message.placeholder}
+          className='tablet:col-span-2'
         />
-        <Button variant='primary'>Submit</Button>
+        <Button variant='primary'>{dict.utils.submit}</Button>
       </form>
     </section>
   );

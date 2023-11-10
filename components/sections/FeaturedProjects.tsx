@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import Section from './Section/Section';
 import SectionTitle, { AdditionalLink } from './Section/SectionTitle';

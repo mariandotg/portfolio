@@ -45,7 +45,7 @@ const ArticlePage = async ({ params }: Props) => {
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {article.title}
             </h1>
-            <span className='px-2 py-1 font-black uppercase border rounded-sm text-secondary text-light-headlines dark:text-dark-headlines font-monospace bg-dark-secondary/10 dark:bg-light-secondary/10 border-light-subtle-edges dark:border-dark-subtle-edges w-fit'>
+            <span className='px-2 py-[3px] font-black uppercase border rounded-sm text-secondary text-light-headlines dark:text-dark-headlines font-monospace bg-dark-secondary/10 dark:bg-light-secondary/10 border-light-subtle-edges dark:border-dark-subtle-edges w-fit'>
               {article.category.toLocaleUpperCase()}
             </span>
             <p className='text-secondary dark:text-dark-text text-light-text'>

@@ -10,7 +10,7 @@ import BrandLogo from '../public/public/logo-v2-4.svg';
 import Button from './Button';
 import { fetchSocialMedia } from '@/services/content/social-media';
 import Icon from './icons/Icon';
-import NavLogo from './NavLogo';
+import NavLogo from './BodyLogoWrapper';
 import NavBarWrapper from './NavBarWrapper';
 import MenuButton from './Buttons/MenuButton/MenuButton';
 import LangSelectorMenuItem from './Menus/LangSelectorMenu/LangSelectorMenuItem';
@@ -18,6 +18,8 @@ import ThemeToggleInput from './ThemeToggleInput';
 import DropdownMenuItem from './Menus/DropdownMenu/DropdownMenuItem';
 import MenuLangSelector from './MenuLangSelector';
 import DropdownMenuSeparator from './Menus/DropdownMenu/DropdownMenuSeparator';
+import NavBarLogo from './NavBarWrapper';
+import DropdownMenuClose from './Menus/DropdownMenu/DropdownMenuClose';
 
 interface Props {
   locale: string;
@@ -52,7 +54,7 @@ const NavBar = async ({ locale }: Props) => {
   console.log(constants);
   return (
     <header className='border-b-[1px] border-light-subtle-edges dark:border-dark-subtle-edges bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex justify-center w-full backdrop-blur h-[57px]'>
-      {/* <div className='absolute top-0 left-0 w-screen h-screen bg-primary'></div> */}
+      <DropdownMenuClose />
       <nav className='relative flex items-center justify-end w-screen gap-16 px-4 py-3 tablet:max-w-2xl mobile:gap-4'>
         {/* <Link
           href={`/${locale}`}
@@ -70,47 +72,40 @@ const NavBar = async ({ locale }: Props) => {
             height={23}
           />
         </Link> */}
-        <NavBarWrapper>
-          <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
-            <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
-            <NavLink href={`/${locale}/projects`}>
-              {dict.routes['/projects']}
-            </NavLink>
-            <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
-            <NavLink href={`/${locale}/contact`}>
-              {dict.routes['/contact']}
-            </NavLink>
-          </div>
-          {/* <MenuButton label={{ open: 'open', closed: 'closed' }}>
-            {langsList.map((item, index) => (
-              <LangSelectorMenuItem key={index} item={item} locale={locale}>
-                {item.label[locale]}
-              </LangSelectorMenuItem>
-            ))}
-          </MenuButton> */}
+        <NavBarLogo />
+        <div className='items-center hidden gap-4 mobile:flex dark:text-light'>
+          <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
+          <NavLink href={`/${locale}/projects`}>
+            {dict.routes['/projects']}
+          </NavLink>
+          <NavLink href={`/${locale}/blog`}>{dict.routes['/blog']}</NavLink>
+          <NavLink href={`/${locale}/contact`}>
+            {dict.routes['/contact']}
+          </NavLink>
+        </div>
 
-          <div className='flex'>
-            <ThemeButton />
-            <MenuButton>
-              {constants?.map((item, index) => (
-                <DropdownMenuItem key={index} value={item.icon}>
-                  <a
-                    href={item.url}
-                    className='flex w-full h-full gap-x-2 text-secondary'
-                  >
-                    <Icon value={item.icon} width={18} height={18} />
-                    {item.alt}
-                  </a>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem key={'3'} value='lang'>
-                <MenuLangSelector locale={locale} />
+        <div className='flex'>
+          <ThemeButton />
+          <MenuButton>
+            {constants?.map((item, index) => (
+              <DropdownMenuItem key={index} value={item.icon}>
+                <a
+                  href={item.url}
+                  className='flex w-full h-full gap-x-2 text-secondary'
+                >
+                  <Icon value={item.icon} width={18} height={18} />
+                  {item.alt}
+                </a>
               </DropdownMenuItem>
-            </MenuButton>
-          </div>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem key={'3'} value='lang' className='p-0'>
+              <MenuLangSelector locale={locale} />
+            </DropdownMenuItem>
+          </MenuButton>
           <HamburgerMenu locale={locale} dict={dict} />
-          {/* <div className='relative flex items-center gap-0'>
+        </div>
+        {/* <div className='relative flex items-center gap-0'>
           <div className='hidden mobile:flex'>
             <LangSelector locale={locale} />
             <div className='flex ml-2'>
@@ -131,7 +126,6 @@ const NavBar = async ({ locale }: Props) => {
           <ThemeButton />
           <ToTopButton />
         </div> */}
-        </NavBarWrapper>
       </nav>
     </header>
   );

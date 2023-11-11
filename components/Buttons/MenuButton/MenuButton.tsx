@@ -2,25 +2,26 @@
 import DropdownMenu from '@/components/Menus/DropdownMenu/DropdownMenu';
 import DropdownMenuContent from '@/components/Menus/DropdownMenu/DropdownMenuContent';
 import DropdownMenuTrigger from '@/components/Menus/DropdownMenu/DropdownMenuTrigger';
-import { ReactNode, useState } from 'react';
+import { NavBarContext } from '@/lib/NavBarContext';
+import { ReactNode, useContext, useState } from 'react';
 
 interface Props {
   children: ReactNode;
 }
 
 const MenuButton = ({ children }: Props) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isMenuOpen, setIsMenuOpen } = useContext(NavBarContext);
 
   const handleOpenMenu = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen((prevValue: boolean) => !prevValue);
+    setIsMenuOpen((prev) => !prev);
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger isOpen={isOpen} onClick={handleOpenMenu} icon />
-      <DropdownMenuContent isOpen={isOpen} menuSize='xl'>
+    <DropdownMenu className='hidden mobile:flex'>
+      <DropdownMenuTrigger isOpen={isMenuOpen} onClick={handleOpenMenu} icon />
+      <DropdownMenuContent isOpen={isMenuOpen} menuSize='xl' className='top-8'>
         {children}
       </DropdownMenuContent>
     </DropdownMenu>

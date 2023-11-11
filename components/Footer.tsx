@@ -19,7 +19,7 @@ const Footer = async ({ locale }: Props) => {
       <div className='flex justify-center'>
         <div className='flex flex-col w-screen gap-16 px-4 tablet:max-w-2xl tablet:p-0'>
           <div className='grid grid-cols-1 gap-8 px-4 mobile:grid-cols-4'>
-            <div className='col-span-1'>
+            {/* <div className='col-span-1'>
               <h3 className='font-medium text-title whitespace-nowrap font-display dark:text-dark-headlines text-light-headlines'>
                 {dict.footer.emailCta}
               </h3>
@@ -32,8 +32,8 @@ const Footer = async ({ locale }: Props) => {
                 marianguillaume.m@gmail.com
                 <MdArrowOutward className='w-5 h-5 group-hover:-translate-y-1 group-hover:translate-x-1 fill-primary' />
               </a>
-            </div>
-            <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-4 gap-y-4'>
+            </div> */}
+            {/* <div className='grid grid-cols-2 col-span-1 mobile:flex mobile:flex-col mobile:col-start-4 gap-y-4'>
               <NavLink href={`/${locale}`}>{dict.routes['/']}</NavLink>
               <NavLink href={`/${locale}/projects`}>
                 {dict.routes['/projects']}
@@ -42,7 +42,7 @@ const Footer = async ({ locale }: Props) => {
               <NavLink href={`/${locale}/contact`}>
                 {dict.routes['/contact']}
               </NavLink>
-            </div>
+            </div> */}
           </div>
           <div className='flex flex-col items-center gap-y-8'>
             <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>

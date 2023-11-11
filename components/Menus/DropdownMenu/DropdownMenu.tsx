@@ -2,12 +2,13 @@ import { ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
+  className?: string;
 }
 
-const DropdownMenu = ({ children }: Props) => {
+const DropdownMenu = ({ children, className }: Props) => {
   return (
     <div
-      className={`relative flex flex-col justify-center select-none z-[9999] `}
+      className={`relative flex flex-col justify-center select-none z-[9999] ${className}`}
     >
       {children}
     </div>

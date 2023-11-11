@@ -1,10 +1,13 @@
 'use client';
-import { useContext, useRef, useEffect } from 'react';
-import BrandLogo from '../public/public/logo-v2-4.svg';
-import { LogoContext } from '@/lib/Context';
+import { useContext, useRef, useEffect, ReactNode } from 'react';
+import { NavBarContext } from '@/lib/NavBarContext';
 
-const NavLogo = () => {
-  const { setShowLogo } = useContext(LogoContext);
+interface Props {
+  children: ReactNode;
+}
+
+const BodyLogoWrapper = ({ children }: Props) => {
+  const { setShowLogo } = useContext(NavBarContext);
 
   const cardRef = useRef(null);
 
@@ -40,14 +43,7 @@ const NavLogo = () => {
     };
   }, []);
 
-  return (
-    <div ref={cardRef}>
-      <BrandLogo
-        className='flex tablet:dark:flex w-[164px] fill-dark dark:fill-light group-hover:fill-primary sticky mr-auto'
-        alt='brand marianoGuillaume logo'
-      />
-    </div>
-  );
+  return <div ref={cardRef}>{children}</div>;
 };
 
-export default NavLogo;
+export default BodyLogoWrapper;

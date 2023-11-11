@@ -6,7 +6,8 @@ import { SocialMedia } from '@/models/domain/SocialMedia';
 import LinkButton from '../LinkButton';
 import Icon from '../icons/Icon';
 import BrandLogo from '../../public/public/logo-v2-4.svg';
-import NavLogo from '../NavLogo';
+import NavLogo from '../BodyLogoWrapper';
+import BodyLogoWrapper from '../BodyLogoWrapper';
 
 interface Props {
   data: FormattedSection<AboutContent>;
@@ -38,7 +39,12 @@ const AboutMe = ({ data, social }: Props) => {
           {/* <h1 className='flex italic font-medium text-title text-light-headlines dark:text-dark-headlines font-monospace'>
             {data.title}
           </h1>*/}
-          <NavLogo />
+          <BodyLogoWrapper>
+            <BrandLogo
+              className='flex tablet:dark:flex w-[164px] fill-dark dark:fill-light group-hover:fill-primary sticky mr-auto'
+              alt='brand marianoGuillaume logo'
+            />
+          </BodyLogoWrapper>
           <ul className='flex gap-x-3'>{renderSocials()}</ul>
         </div>
         <p className='font-display text text-light-text dark:text-dark-text'>

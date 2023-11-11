@@ -45,16 +45,17 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
         {dict.projects.notFound}
       </p>
     );
-
   return (
     <PageLayout className='py-32'>
       <Section>
-        <div className='grid grid-cols-4 gap-y-8 mobile:grid-cols-5 mobile:gap-4 tablet:grid-cols-6 tablet:col-span-4 tablet:gap-4'>
-          <h1 className='col-span-4 mobile:col-span-5 tablet:col-span-6 text-title text-light-headlines dark:text-dark-headlines h-[300px]'>
-            Welcome to my blog. I'm Oli, and this is where I share my passion
-            about programming and design. I believe in a practical approach, so
-            here I document my latest explorations.
+        <div className='grid grid-cols-4 gap-y-8 mobile:grid-cols-5 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
+          <h1 className='col-span-4 mobile:col-span-5 text-title text-light-headlines dark:text-dark-headlines'>
+            Welcome to my projects.
           </h1>
+          <p className='col-span-4 mobile:col-span-5 font-display text text-light-text dark:text-dark-text'>
+            This is where I share the case studies of both my personal and
+            commercial projects.
+          </p>
           {renderProjectCards()}
         </div>
       </Section>

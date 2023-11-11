@@ -28,7 +28,9 @@ const ProjectCard = (props: Props) => {
         className='flex flex-col col-span-3 gap-1 rounded-sm mobile:col-span-4 text-light-secondary/60 dark:text-dark-secondary/60'
       >
         <Card as='div'>
-          <h4 className='text-article'>{props.project.title}</h4>
+          <h4 className='font-medium break-words transition-all duration-500 text text-light-headlines dark:text-dark-headlines font-display hyphens-auto'>
+            {props.project.title}
+          </h4>
           <p className='text-secondary'>{props.project.description}</p>
           <div className='flex gap-2 mt-1'>
             {props.project.tags.map((tag, index) => (

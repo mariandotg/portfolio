@@ -27,6 +27,14 @@ const ContactPage = async ({ params }: Props) => {
   return (
     <PageLayout className='py-32'>
       <Section>
+        <div className='flex flex-col col-span-4 gap-4 mobile:col-span-5 min-h-[96px]'>
+          <h1 className='self-start italic font-semibold text-article text-light-headlines dark:text-dark-headlines font-monospace'>
+            Contact
+          </h1>
+          <p className='font-display text text-light-text dark:text-dark-text'>
+            {dict.projects.description}
+          </p>
+        </div>
         <Contact dict={dict} />
       </Section>
     </PageLayout>

@@ -1,6 +1,7 @@
 import { FormikErrors, FormikTouched } from 'formik';
 import React, { ChangeEvent, FocusEvent } from 'react';
 import { IInitialValues } from './Contact';
+import { Icon } from './icons';
 
 interface Props {
   type: 'textarea' | 'text';
@@ -40,8 +41,8 @@ const Input = ({
       className={`flex flex-col w-full gap-1 text-light-text dark:text-dark-text focus-within:text-primary ${className}`}
     >
       <label
-        className={`font-bold ${
-          errors[name] && touched[name] && 'text-[#FF0000]'
+        className={`font-medium text-secondary ${
+          errors[name] && touched[name] && 'text-error'
         }`}
       >
         {label}
@@ -50,9 +51,9 @@ const Input = ({
         <div
           className={`${
             errors[name] && touched[name]
-              ? 'border-[#FF0000]'
-              : 'border-light-headlines dark:border-dark-headlines'
-          } h-[192px] px-4 py-3 rounded-[8px] focus:outline-none border focus-within:border-primary`}
+              ? 'border-error'
+              : 'dark:border-dark-subtle-edges border-light-subtle-edges'
+          } h-[156px] px-4 py-2 rounded-[8px] focus:outline-none border focus-within:border-primary`}
         >
           <textarea
             name={name}
@@ -60,27 +61,50 @@ const Input = ({
             value={values[name]}
             onChange={handleChange}
             onBlur={handleBlur}
-            className='w-full h-full bg-transparent outline-none resize-none text-light-text dark:text-dark-text'
+            className='w-full h-full bg-transparent outline-none resize-none text-light-text dark:text-dark-text '
           ></textarea>
         </div>
       ) : (
-        <input
-          name={name}
-          type='text'
-          placeholder={placeholder || 'placeholder text'}
-          value={values[name]}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          className={`${
-            errors[name] && touched[name]
-              ? 'border-[#FF0000]'
-              : 'border-light-headlines dark:border-dark-headlines'
-          } w-full px-4 py-3 rounded-[8px] bg-transparent border focus:outline-none focus:border-primary text-light-text dark:text-dark-text`}
-        ></input>
+        <div className='relative h-fit'>
+          <input
+            name={name}
+            type='text'
+            placeholder={placeholder || 'placeholder text'}
+            value={values[name]}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`${
+              errors[name] && touched[name]
+                ? 'border-error'
+                : touched[name]
+                ? 'border-success'
+                : 'dark:border-dark-subtle-edges border-light-subtle-edges'
+            } w-full px-4 py-2 rounded-[8px] bg-transparent border focus:outline-none focus:border-primary text-light-text dark:text-dark-text placeholder:text-light-secondary/60 dark:placeholder:text-dark-secondary/60`}
+          ></input>
+          {errors[name] && touched[name] ? (
+            <Icon
+              value='miniError'
+              width={20}
+              height={20}
+              className='absolute top-3 right-3 text-error'
+            />
+          ) : (
+            touched[name] && (
+              <Icon
+                value='miniSuccess'
+                width={20}
+                height={20}
+                className='absolute top-3 right-3 text-success'
+              />
+            )
+          )}
+        </div>
       )}
-      {errors[name] && touched[name] && (
-        <span className='text-[#FF0000]'>{errors[name]}</span>
-      )}
+      <div className='h-5'>
+        {errors[name] && touched[name] && (
+          <span className='text-error'>{errors[name]}</span>
+        )}
+      </div>
     </div>
   );
 };

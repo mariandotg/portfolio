@@ -1,11 +1,13 @@
 'use client';
-import { useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 
 import * as Yup from 'yup';
 import Button from './Button';
 import Input from './Input';
 import { Dictionary } from '@/app/[lang]/dictionaries';
+import { Icon } from './icons';
+import { NavBarContext } from '@/lib/NavBarContext';
 
 export interface IInitialValues {
   subject: string;
@@ -18,6 +20,8 @@ interface Props {
 }
 
 const Contact = ({ dict }: Props) => {
+  const { setToast } = useContext(NavBarContext);
+
   const initialValues: IInitialValues = {
     subject: '',
     from: '',
@@ -35,7 +39,7 @@ const Contact = ({ dict }: Props) => {
   });
 
   const onSubmit = () => {
-    fetch(`./api/contact`, {
+    fetch(`./api/contacst`, {
       method: 'POST',
       headers: {
         Accept: 'application/json, text/plain, */*',
@@ -46,7 +50,17 @@ const Contact = ({ dict }: Props) => {
       resetForm();
       console.log(res);
       if (res.status === 200) {
-        console.log('Response succeeded!');
+        setToast({
+          label: dict.utils.messageSent,
+          icon: 'miniSuccess',
+          variant: 'success',
+        });
+      } else {
+        setToast({
+          label: 'ERROR',
+          icon: 'miniError',
+          variant: 'error',
+        });
       }
     });
   };
@@ -68,9 +82,6 @@ const Contact = ({ dict }: Props) => {
 
   return (
     <section className='flex flex-col items-end gap-4 tablet:col-span-4'>
-      <h2 className='self-start font-bold text text-light-headlines dark:text-dark-headlines'>
-        Contact
-      </h2>
       <form
         onSubmit={handleSubmit}
         className='flex flex-col items-end w-full gap-4 tablet:grid tablet:grid-cols-2'
@@ -109,7 +120,10 @@ const Contact = ({ dict }: Props) => {
           placeholder={dict.contact.message.placeholder}
           className='tablet:col-span-2'
         />
-        <Button variant='primary'>{dict.utils.submit}</Button>
+        <Button variant='primary'>
+          {dict.utils.submit}
+          <Icon value='miniEnvelopeOpen' width={20} height={20} />
+        </Button>
       </form>
     </section>
   );

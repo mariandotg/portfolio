@@ -28,7 +28,7 @@ const ArticleCard = ({
   console.log({ long });
   const previews = {
     small: 'mobile:col-span-1',
-    large: 'mobile:grid-cols-5 mobile:col-span-5 gap-4',
+    large: 'mobile:grid-cols-5 mobile:col-span-5 col-span-4 gap-4',
   };
 
   return (

@@ -53,14 +53,22 @@
     "additionalLink": "See all my projects"
   },
   "blog": {
+    "title": "Welcome to my blog",
+    "description": "This is where I share my passion about programming and design. I believe in a practical approach, so here I document my latest explorations.",
     "notFound": "We couldn't get the published articles"
+  },
+  "projects": {
+    "title": "Welcome to my projects",
+    "description": "This is where I share the case studies of both my personal and commercial projects.",
+    "notFound": "We couldn't get the published case studies. Try reloading the page"
   },
   "skills": {
     "additionalLink": "See my certificates on LinkedIn"
   },
   "utils": {
     "goBack": "Go back",
-    "submit": "Submit"
+    "submit": "Submit",
+    "messageSent": "Message sent successfully"
   },
   "article": {
     "notFound": "This article doesn't exist",

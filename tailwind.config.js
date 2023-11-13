@@ -31,7 +31,7 @@ module.exports = {
     },
     fontSize: {
       DEFAULT: ['1rem', '1.5rem'],
-      article: ['1rem', '1.175rem'],
+      article: ['1rem', '1.25rem'],
       secondary: ['0.875rem', '1.05rem'],
       title: ['1.50rem', '1.75rem'],
     },
@@ -70,7 +70,10 @@ module.exports = {
       },
       transparent: 'transparent',
       primary: '#7050D8',
-      tertiary: '#373737'
+      tertiary: '#373737',
+      error: '#9A031E',
+      warning: '#FF8C42',
+      success: '#4CB963'
     },
     animation: {
       'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',

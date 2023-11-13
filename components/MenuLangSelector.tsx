@@ -54,7 +54,7 @@ const MenuLangSelector = ({ locale }: Props) => {
 
   return (
     <div
-      className='relative flex flex-col w-full p-2 justify-center select-none z-[9999]'
+      className='relative flex flex-col w-full justify-center select-none z-[9999]'
       onMouseEnter={() => setIsOpen((prev) => !prev)}
       onMouseLeave={() => setIsOpen((prev) => !prev)}
       onKeyDown={(e) => {

@@ -8,6 +8,7 @@ import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Meta } from '@/models/blog/blog.models';
+import { Icon } from '@/components/icons';
 
 interface Props {
   params: {
@@ -37,24 +38,25 @@ const BlogPage = async ({ params }: Props) => {
         />
       ))
     ) : (
-      <p className='col-span-1 dark:text-dark-text text-light-text'>
+      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
+        <Icon value='miniReload' width={20} height={20} />
         {dict.blog.notFound}
-      </p>
+      </li>
     );
 
   return (
     <PageLayout className='py-32'>
       <Section>
-        <div className='flex flex-col col-span-4 gap-8 mobile:grid mobile:grid-cols-3 mobile:gap-4 tablet:col-span-4 tablet:gap-4'>
-          <h1 className='mobile:col-span-3 text-title text-light-headlines dark:text-dark-headlines'>
-            Welcome to my blog.
-          </h1>
-          <p className='mobile:col-span-3 font-display text text-light-text dark:text-dark-text'>
-            This is where I share my passion about programming and design. I
-            believe in a practical approach, so here I document my latest
-            explorations.
-          </p>
-          <ul className='flex flex-col w-full gap-4 mobile:grid mobile:col-span-3 mobile:grid-cols-3'>
+        <div className='grid grid-cols-4 gap-y-8 mobile:grid-cols-5 mobile:gap-4 tablet:col-span-4'>
+          <div className='flex flex-col col-span-4 gap-4 mobile:col-span-5 min-h-[96px]'>
+            <h1 className='italic font-semibold text-article text-light-headlines dark:text-dark-headlines font-monospace'>
+              {dict.blog.title}
+            </h1>
+            <p className='font-display text text-light-text dark:text-dark-text'>
+              {dict.blog.description}
+            </p>
+          </div>
+          <ul className='grid w-full grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
             {renderArticleCards()}
           </ul>
         </div>

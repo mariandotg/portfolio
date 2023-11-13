@@ -6,6 +6,7 @@ import { FormattedSection } from '@/models/domain/FormattedData/FormattedSection
 import ProjectCard from '../ProjectCard';
 import { PreviewProject } from '@/models/blog/blog.models';
 import { Dictionary } from '@/app/[lang]/dictionaries';
+import { Icon } from '../icons';
 
 interface Props {
   data: FormattedSection<ProjectsContent>;
@@ -16,16 +17,23 @@ interface Props {
 
 const FeaturedProjects = ({ data, featuredProjects, locale, dict }: Props) => {
   const renderFeaturedProjects = () =>
-    featuredProjects!.map((project, index) => (
-      <ProjectCard
-        key={project.id}
-        path={`${locale}/${project.path}`}
-        project={project}
-        locale={locale}
-        featured={true}
-        delay={0.5 + index * 0.1}
-      />
-    ));
+    featuredProjects !== undefined ? (
+      featuredProjects.map((project, index) => (
+        <ProjectCard
+          key={project.id}
+          path={`${locale}/${project.path}`}
+          project={project}
+          locale={locale}
+          featured={true}
+          delay={0.5 + index * 0.1}
+        />
+      ))
+    ) : (
+      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
+        <Icon value='solidWarning' width={24} height={24} />
+        {dict.latestArticles.notFound}
+      </li>
+    );
 
   const additionalLink: AdditionalLink = {
     href: `${locale}/projects`,

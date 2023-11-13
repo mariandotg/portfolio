@@ -56,6 +56,17 @@ const icons: Icons = {
   miniDarkTheme: lazy(() => import('./darkTheme/MiniDarkTheme')),
   solidDarkTheme: lazy(() => import('./darkTheme/SolidDarkTheme')),
   closeMenu: lazy(() => import('./closeMenu/CloseMenu')),
+  reload: lazy(() => import('./reload/Reload')),
+  miniReload: lazy(() => import('./reload/MiniReload')),
+  miniError: lazy(() => import('./error/MiniError')),
+  outlineError: lazy(() => import('./error/OutlineError')),
+  solidError: lazy(() => import('./error/SolidError')),
+  miniWarning: lazy(() => import('./warning/MiniWarning')),
+  outlineWarning: lazy(() => import('./warning/OutlineWarning')),
+  solidWarning: lazy(() => import('./warning/SolidWarning')),
+  miniSuccess: lazy(() => import('./success/MiniSuccess')),
+  outlineSuccess: lazy(() => import('./success/OutlineSuccess')),
+  solidSuccess: lazy(() => import('./success/SolidSuccess')),
   github: lazy(() => import('./Github')),
   linkedIn: lazy(() => import('./LinkedIn')),
   twitter: lazy(() => import('./Twitter')),
@@ -64,9 +75,11 @@ const icons: Icons = {
   default: lazy(() => import('./envelope/OutlineEnvelope')),
 };
 
-const Icon = ({ value, width = 24, height = 24 }: Props) => {
+const Icon = ({ value, width = 24, height = 24, className }: Props) => {
   const SelectedIcon = icons[value] || icons.default;
-  return <SelectedIcon width={width} height={height} />;
+  return (
+    <SelectedIcon width={width} height={height} className={className || ''} />
+  );
 };
 
 export default Icon;

@@ -55,12 +55,20 @@
   "skills": {
     "additionalLink": "Mirá mis certificados en LinkedIn"
   },
+  "projects": {
+    "title": "Estos son mis proyectos",
+    "description": "Aquí es donde comparto los casos de estudio de proyectos tanto personales como comerciales.",
+    "notFound": "No pudimos obtener los casos de estudio publicados. Intentá recargar la página."
+  },
   "blog": {
+    "title": "Bienvenido a mi blog",
+    "description": "Aquí es donde comparto mi pasión por la programación y el diseño. Creo en un enfoque práctico, por eso aquí documento mis últimas exploraciones.",
     "notFound": "No pudimos obtener los articulos publicados"
   },
   "utils": {
     "goBack": "Ir atrás",
-    "submit": "Enviar"
+    "submit": "Enviar",
+    "messageSent": "Mensaje enviado correctamente"
   },
   "article": {
     "notFound": "Este artículo no existe",

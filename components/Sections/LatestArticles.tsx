@@ -7,6 +7,7 @@ import Section from './Section/Section';
 import SectionTitle, { AdditionalLink } from './Section/SectionTitle';
 import { Dictionary } from '@/app/[lang]/dictionaries';
 import Card from '../Card';
+import { Icon } from '../icons';
 
 interface Props {
   latestArticles: PreviewArticle[] | undefined;
@@ -23,9 +24,10 @@ const LatestArticles = ({
   hasAdditionalLink = true,
   basePath,
 }: Props) => {
+  console.log(latestArticles);
   const renderLatestArticles = () =>
-    latestArticles?.length !== 0 ? (
-      latestArticles?.map((article, index) => (
+    latestArticles !== undefined ? (
+      latestArticles.map((article, index) => (
         <ArticleCard
           article={article}
           path={`${basePath}${article.path}`}
@@ -36,9 +38,10 @@ const LatestArticles = ({
         />
       ))
     ) : (
-      <p className='col-span-1 dark:text-dark-text text-light-text'>
+      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
+        <Icon value='solidWarning' width={24} height={24} />
         {dict.latestArticles.notFound}
-      </p>
+      </li>
     );
 
   const additionalLink: AdditionalLink = {
@@ -54,7 +57,7 @@ const LatestArticles = ({
         {dict.latestArticles.title}
       </SectionTitle>
       <div className='flex w-full snap-x tablet:col-span-4'>
-        <ul className='flex flex-col w-full gap-8 mobile:gap-4 mobile:grid mobile:grid-cols-2 cards'>
+        <ul className='grid w-full grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
           {renderLatestArticles()}
         </ul>
       </div>

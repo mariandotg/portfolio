@@ -39,7 +39,7 @@ const Contact = ({ dict }: Props) => {
   });
 
   const onSubmit = () => {
-    fetch(`./api/contacst`, {
+    fetch(`./api/contact`, {
       method: 'POST',
       headers: {
         Accept: 'application/json, text/plain, */*',

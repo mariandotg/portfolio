@@ -13,10 +13,15 @@ interface Props {
 }
 
 const Notification = ({ icon, label, href, variant }: Props) => {
+  const variants = {
+    warning: 'bg-warning',
+    error: 'bg-error',
+    success: 'bg-success',
+  };
   if (!href)
     return (
       <div
-        className={`flex items-center justify-center w-screen h-5 font-medium bg-${variant} text-dark dark:text-light text-secondary gap-x-1`}
+        className={`flex items-center justify-center w-screen h-5 font-medium ${variants[variant]} text-dark dark:text-light text-secondary gap-x-1`}
       >
         {icon && <Icon value={icon} width={16} height={16} />}
         {label}

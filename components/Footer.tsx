@@ -47,17 +47,19 @@ const Footer = async ({ locale }: Props) => {
           <div className='flex flex-col items-center gap-y-8'>
             <ul className='flex justify-center w-full gap-4 text-light-text dark:text-dark-text'>
               {constants!.map((social) => (
-                <li
-                  key={social.id}
-                  className='flex text-light-text duration-[0ms] dark:text-dark-text hover:text-primary dark:hover:text-primary'
-                >
+                <li key={social.id}>
                   <a
                     href={social.url}
                     target='_blank'
                     rel='noopener noreferrer'
                     aria-label={social.alt}
                   >
-                    <Icon value={social.icon} />
+                    <Icon
+                      value={social.icon}
+                      width={20}
+                      height={20}
+                      className='duration-[0ms] text-light-text dark:text-dark-text hover:text-light-text-dark-secondary dark:hover:text-dark-secondary'
+                    />
                   </a>
                 </li>
               ))}

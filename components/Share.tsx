@@ -64,16 +64,22 @@ const Share = () => {
             target='_blank'
             rel='noopener noreferrer'
             aria-label={social.alt}
-            className='text-light-text duration-[0ms] dark:text-dark-text hover:text-primary dark:hover:text-primary'
           >
-            <Icon value={social.icon} />
+            <Icon
+              value={social.icon}
+              className='duration-[0ms] text-light-text dark:text-dark-text hover:text-light-text-dark-secondary dark:hover:text-dark-secondary'
+              width={20}
+              height={20}
+            />
           </a>
         </li>
       ))}
       <li className='cursor-pointer' onClick={() => copyToClipboard(pageUrl)}>
         <Icon
-          value='url'
-          className='duration-[0ms] fill-light-text dark:fill-dark-text hover:fill-primary dark:hover:fill-primary'
+          value='link'
+          className='duration-[0ms] text-light-text dark:text-dark-text hover:text-light-text-dark-secondary dark:hover:text-dark-secondary'
+          width={20}
+          height={20}
         />
       </li>
     </ul>

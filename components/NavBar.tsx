@@ -42,7 +42,7 @@ const NavBar = async ({ locale }: Props) => {
   const constants = await fetchSocialMedia();
   const dict = await getDictionary(locale);
   console.log(locale);
-  const newsFlag: Flag = {
+  const newsFlag: Flag | undefined = {
     label: 'Testing new notification flag component :)',
     variant: 'warning',
     href: { source: `/${locale}/contact`, navigation: 'external' },
@@ -51,9 +51,9 @@ const NavBar = async ({ locale }: Props) => {
 
   return (
     <>
+      {newsFlag && <div className='w-full h-5'></div>}
       <header className='flex-col border-b-[1px] border-light-subtle-edges dark:border-dark-subtle-edges bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex items-center w-full backdrop-blur h-fit'>
         <DropdownMenuClose />
-
         {newsFlag && (
           <Notification
             label={newsFlag.label}

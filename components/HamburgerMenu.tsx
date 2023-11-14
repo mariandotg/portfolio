@@ -106,7 +106,7 @@ const HamburgerMenu = ({ locale, dict }: Props) => {
           <MdMenu className='duration-[0ms] w-[18px] h-[18px]' />
         )}
       </Button>
-      <AnimatePresence mode='wait'>
+      <AnimatePresence>
         {isOpen && (
           <motion.div
             className={`absolute flex mobile:hidden h-screen flex-col justify-center gap-16 origin-top -z-20 w-screen px-6 py-3 left-0 top-0 bg-light dark:bg-dark`}
@@ -115,10 +115,6 @@ const HamburgerMenu = ({ locale, dict }: Props) => {
             animate='animate'
             exit='exit'
             key='menu-navbar'
-            transition={{
-              duration: 0.5,
-              ease: [0.12, 0, 0.39, 0],
-            }}
           >
             <motion.ul
               className='flex flex-col gap-8'

@@ -40,7 +40,7 @@ const ArticlePage = async ({ params }: Props) => {
         {dict.utils.goBack}
       </CustomLink>
       <div className='flex flex-col gap-y-4 tablet:col-span-4'>
-        <div className='flex flex-col mt-4 gap-y-5'>
+        <div className='flex flex-col gap-y-5'>
           <div className='flex flex-col gap-y-3'>
             <h1 className='font-medium text-title dark:text-dark-headlines text-light-headlines'>
               {article.title}

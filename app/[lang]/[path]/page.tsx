@@ -12,7 +12,7 @@ import LinkButton from '@/components/LinkButton';
 import Chip from '@/components/Chip';
 import Icon from '@/components/icons/Icon';
 
-export const revalidate = 86400;
+// export const revalidate = 86400;
 
 interface Props {
   params: {

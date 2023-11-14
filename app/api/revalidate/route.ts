@@ -22,15 +22,15 @@ export async function POST(request: NextRequest) {
 
   const tagsSet = new Set();
 
-  body.payload.commits[0].modified.forEach((edits: string) => {
+  body.commits[0].modified.forEach((edits: string) => {
     if (edits.startsWith('projects')) tagsSet.add('projects');
     else if (edits.startsWith('articles')) tagsSet.add('articles');
   });
-  body.payload.commits[0].added.forEach((edits: string) => {
+  body.commits[0].added.forEach((edits: string) => {
     if (edits.startsWith('projects')) tagsSet.add('projects');
     else if (edits.startsWith('articles')) tagsSet.add('articles');
   });
-  body.payload.commits[0].removed.forEach((edits: string) => {
+  body.commits[0].removed.forEach((edits: string) => {
     if (edits.startsWith('projects')) tagsSet.add('projects');
     else if (edits.startsWith('articles')) tagsSet.add('articles');
   });

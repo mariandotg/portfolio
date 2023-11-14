@@ -80,6 +80,9 @@ export const fetchProjects = async (
         'X-GitHub-Api-Version': '2022-11-28',
       },
       cache: 'force-cache',
+      next: {
+        tags: ['projects'],
+      },
     }
   );
 

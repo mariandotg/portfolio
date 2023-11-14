@@ -13,6 +13,9 @@ export const fetchPageByPath = async <T>(
         'X-GitHub-Api-Version': '2022-11-28',
       },
       cache: 'force-cache',
+      next: {
+        tags: ['pages'],
+      },
     }
   );
 

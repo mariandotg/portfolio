@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from './icons';
 import Link from 'next/link';
 
-interface Props {
+export interface Flag {
   icon?: string;
   label: string;
   href?: {
@@ -12,12 +12,13 @@ interface Props {
   variant: 'warning' | 'error' | 'success';
 }
 
-const Notification = ({ icon, label, href, variant }: Props) => {
+const Notification = ({ icon, label, href, variant }: Flag) => {
   const variants = {
     warning: 'bg-warning',
     error: 'bg-error',
     success: 'bg-success',
   };
+
   if (!href)
     return (
       <div

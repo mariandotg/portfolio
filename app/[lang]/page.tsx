@@ -23,9 +23,11 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await fetchPageByPath<PageContentSections>('home', params.lang);
-
-  //@ts-ignore
-  return metadataAdapter(data!.seo);
+  if (!data) return redirect(`../../not-found`);
+  console.log({ TESTSF: data.seo });
+  const test = metadataAdapter(data.seo);
+  console.log({ AAAAAAAAAAAAAAAAA: test });
+  return test;
 }
 
 const HomePage = async ({ params }: Props) => {
@@ -42,6 +44,7 @@ const HomePage = async ({ params }: Props) => {
   const latestArticles = articles?.slice(0, 4);
 
   const dict = await getDictionary(params.lang);
+  console.log(params.lang);
 
   return (
     <PageLayout className='py-32'>

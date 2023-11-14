@@ -20,7 +20,7 @@ import MenuLangSelector from './MenuLangSelector';
 import DropdownMenuSeparator from './Menus/DropdownMenu/DropdownMenuSeparator';
 import NavBarLogo from './NavBarLogo';
 import DropdownMenuClose from './Menus/DropdownMenu/DropdownMenuClose';
-import Notification from './Notification';
+import Notification, { Flag } from './Notification';
 import NavBarClientWrapper from './Toast';
 import Toast from './Toast';
 
@@ -41,18 +41,27 @@ interface MenuItem {
 const NavBar = async ({ locale }: Props) => {
   const constants = await fetchSocialMedia();
   const dict = await getDictionary(locale);
-  const newsFlag = { source: `/${locale}/contact`, navigation: 'external' };
+  console.log(locale);
+  const newsFlag: Flag = {
+    label: 'Testing new notification flag component :)',
+    variant: 'warning',
+    href: { source: `/${locale}/contact`, navigation: 'external' },
+    icon: 'miniWarning',
+  };
 
   return (
     <>
       <header className='flex-col border-b-[1px] border-light-subtle-edges dark:border-dark-subtle-edges bg-light/80 z-[9999] dark:bg-dark/70 backdrop-saturate-200 fixed top-0 flex items-center w-full backdrop-blur h-fit'>
         <DropdownMenuClose />
 
-        <Notification
-          label='Testing new notification flag component :)'
-          href={newsFlag}
-          variant='warning'
-        />
+        {newsFlag && (
+          <Notification
+            label={newsFlag.label}
+            href={newsFlag.href}
+            variant={newsFlag.variant}
+            icon={newsFlag.icon}
+          />
+        )}
         <nav className='relative flex items-center justify-end w-screen gap-16 px-4 py-3 tablet:max-w-2xl mobile:gap-4'>
           <Link href={`/${locale}`} className='mr-auto'>
             <NavBarLogo />

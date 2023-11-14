@@ -46,9 +46,9 @@ const FeaturedProjects = ({ data, featuredProjects, locale, dict }: Props) => {
         {data.title}
       </SectionTitle>
       <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
-        <div className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
+        <ul className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
           {renderFeaturedProjects()}
-        </div>
+        </ul>
       </div>
     </Section>
   );

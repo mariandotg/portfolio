@@ -41,11 +41,11 @@ const ProjectCard = (props: Props) => {
             {props.project.title}
           </h4>
           <p className='text-secondary'>{props.project.description}</p>
-          <div className='flex gap-2 mt-1'>
+          <ul className='flex gap-2 mt-1'>
             {props.project.tags.map((tag, index) => (
               <Chip key={tag.id}>{tag.name}</Chip>
             ))}
-          </div>
+          </ul>
         </Card>
       </Link>
     </li>

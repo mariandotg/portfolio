@@ -77,7 +77,7 @@ export const fetchArticles = async (
       },
       cache: 'force-cache',
       next: {
-        tags: ['articles'],
+        tags: [`articles-${lang}`],
       },
     }
   );

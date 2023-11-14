@@ -81,7 +81,7 @@ export const fetchProjects = async (
       },
       cache: 'force-cache',
       next: {
-        tags: ['projects'],
+        tags: [`projects-${lang}`],
       },
     }
   );

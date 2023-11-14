@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const tag = request.nextUrl.searchParams.get('tag') || '/';
   const body = await request.json();
 
-  console.log(body.payload.commits[0].modified);
+  console.log({ body });
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
   const tagsSet = new Set();

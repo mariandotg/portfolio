@@ -82,7 +82,7 @@ export const POST = async (request: NextRequest) => {
   });
 
   const arrayTags = Array.from(tagsSet) as string[];
-  const arrayPaths = Array.from(tagsSet) as string[];
+  const arrayPaths = Array.from(pathsSet) as string[];
   console.log({ arrayTags, arrayPaths });
 
   // arrayTags.forEach((tag) => {

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
-    } else if (edits === 'social-media.json') {
+    } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
     }
   });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
-    } else if (edits === 'social-media.json') {
+    } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
     }
   });
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
-    } else if (edits === 'social-media.json') {
+    } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
     }
   });

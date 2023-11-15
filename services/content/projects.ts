@@ -28,6 +28,9 @@ export const fetchProjectByPath = async (
         'X-GitHub-Api-Version': '2022-11-28',
       },
       cache: 'force-cache',
+      next: {
+        tags: [`projects-${lang}`],
+      },
     }
   );
 

@@ -29,6 +29,8 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+    } else if (edits === 'social-media.json') {
+      tagsSet.add('social-media');
     }
   });
   body.commits[0].added.forEach((edits: string) => {
@@ -38,6 +40,8 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+    } else if (edits === 'social-media.json') {
+      tagsSet.add('social-media');
     }
   });
   body.commits[0].removed.forEach((edits: string) => {
@@ -47,6 +51,8 @@ export async function POST(request: NextRequest) {
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+    } else if (edits === 'social-media.json') {
+      tagsSet.add('social-media');
     }
   });
 

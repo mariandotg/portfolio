@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export const POST = async (request: NextRequest) => {
   const secret = request.nextUrl.searchParams.get('secret');
@@ -21,46 +21,75 @@ export const POST = async (request: NextRequest) => {
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
   const tagsSet = new Set();
+  const pathsSet = new Set();
 
   body.commits[0].modified.forEach((edits: string) => {
     if (edits.startsWith('projects')) {
       tagsSet.add('projects-en');
       tagsSet.add('projects-es');
+
+      pathsSet.add('/[lang]/projects');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+
+      pathsSet.add('/[lang]/blog');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
+
+      pathsSet.add('/[lang]');
     }
   });
   body.commits[0].added.forEach((edits: string) => {
     if (edits.startsWith('projects')) {
       tagsSet.add('projects-en');
       tagsSet.add('projects-es');
+
+      pathsSet.add('/[lang]/projects');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+
+      pathsSet.add('/[lang]/blog');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
+
+      pathsSet.add('/[lang]');
     }
   });
   body.commits[0].removed.forEach((edits: string) => {
     if (edits.startsWith('projects')) {
       tagsSet.add('projects-en');
       tagsSet.add('projects-es');
+
+      pathsSet.add('/[lang]/projects');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('articles')) {
       tagsSet.add('articles-en');
       tagsSet.add('articles-es');
+
+      pathsSet.add('/[lang]/blog');
+      pathsSet.add('/[lang]');
     } else if (edits.startsWith('social-media')) {
       tagsSet.add('social-media');
+
+      pathsSet.add('/[lang]');
     }
   });
 
-  const array = Array.from(tagsSet) as string[];
-  console.log({ tagsSet, array });
+  const arrayTags = Array.from(tagsSet) as string[];
+  const arrayPaths = Array.from(tagsSet) as string[];
+  console.log({ arrayTags, arrayPaths });
 
-  array.forEach((tag) => {
-    revalidateTag(tag);
+  // arrayTags.forEach((tag) => {
+  //   revalidateTag(tag);
+  // });
+  arrayPaths.forEach((tag) => {
+    revalidatePath(tag);
   });
 
   return NextResponse.json({ revalidated: true });

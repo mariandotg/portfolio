@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
   const secret = request.nextUrl.searchParams.get('secret');
 
   if (secret !== process.env.MY_SECRET_TOKEN) {
@@ -64,4 +64,4 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ revalidated: true });
-}
+};

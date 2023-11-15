@@ -28,9 +28,6 @@ export const fetchArticleByPath = async (
         'X-GitHub-Api-Version': '2022-11-28',
       },
       cache: 'force-cache',
-      next: {
-        tags: [`articles`],
-      },
     }
   );
 
@@ -80,7 +77,7 @@ export const fetchArticles = async (
       },
       cache: 'force-cache',
       next: {
-        tags: [`articles`],
+        tags: [`articles-${lang}`],
       },
     }
   );

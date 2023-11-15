@@ -23,16 +23,31 @@ export async function POST(request: NextRequest) {
   const tagsSet = new Set();
 
   body.commits[0].modified.forEach((edits: string) => {
-    if (edits.startsWith('projects')) tagsSet.add('projects');
-    else if (edits.startsWith('articles')) tagsSet.add('articles');
+    if (edits.startsWith('projects')) {
+      tagsSet.add('projects-en');
+      tagsSet.add('projects-es');
+    } else if (edits.startsWith('articles')) {
+      tagsSet.add('articles-en');
+      tagsSet.add('articles-es');
+    }
   });
   body.commits[0].added.forEach((edits: string) => {
-    if (edits.startsWith('projects')) tagsSet.add('projects');
-    else if (edits.startsWith('articles')) tagsSet.add('articles');
+    if (edits.startsWith('projects')) {
+      tagsSet.add('projects-en');
+      tagsSet.add('projects-es');
+    } else if (edits.startsWith('articles')) {
+      tagsSet.add('articles-en');
+      tagsSet.add('articles-es');
+    }
   });
   body.commits[0].removed.forEach((edits: string) => {
-    if (edits.startsWith('projects')) tagsSet.add('projects');
-    else if (edits.startsWith('articles')) tagsSet.add('articles');
+    if (edits.startsWith('projects')) {
+      tagsSet.add('projects-en');
+      tagsSet.add('projects-es');
+    } else if (edits.startsWith('articles')) {
+      tagsSet.add('articles-en');
+      tagsSet.add('articles-es');
+    }
   });
 
   const array = Array.from(tagsSet) as string[];

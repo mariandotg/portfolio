@@ -29,7 +29,7 @@ export const fetchArticleByPath = async (
       },
       cache: 'force-cache',
       next: {
-        tags: [`articles-${lang}`],
+        tags: [`articles`],
       },
     }
   );
@@ -80,7 +80,7 @@ export const fetchArticles = async (
       },
       cache: 'force-cache',
       next: {
-        tags: [`articles-${lang}`],
+        tags: [`articles`],
       },
     }
   );

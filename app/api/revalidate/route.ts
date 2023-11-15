@@ -23,31 +23,16 @@ export async function POST(request: NextRequest) {
   const tagsSet = new Set();
 
   body.commits[0].modified.forEach((edits: string) => {
-    const en = edits.includes('/en/') && 'en';
-    const es = edits.includes('/es/') && 'es';
-    if (edits.startsWith('projects')) {
-      tagsSet.add(`projects-${en ? en : es}`);
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add(`articles-${en ? en : es}`);
-    }
+    if (edits.startsWith('projects')) tagsSet.add('projects');
+    else if (edits.startsWith('articles')) tagsSet.add('articles');
   });
   body.commits[0].added.forEach((edits: string) => {
-    const en = edits.includes('/en/') && 'en';
-    const es = edits.includes('/es/') && 'es';
-    if (edits.startsWith('projects')) {
-      tagsSet.add(`projects-${en ? en : es}`);
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add(`articles-${en ? en : es}`);
-    }
+    if (edits.startsWith('projects')) tagsSet.add('projects');
+    else if (edits.startsWith('articles')) tagsSet.add('articles');
   });
   body.commits[0].removed.forEach((edits: string) => {
-    const en = edits.includes('/en/') && 'en';
-    const es = edits.includes('/es/') && 'es';
-    if (edits.startsWith('projects')) {
-      tagsSet.add(`projects-${en ? en : es}`);
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add(`articles-${en ? en : es}`);
-    }
+    if (edits.startsWith('projects')) tagsSet.add('projects');
+    else if (edits.startsWith('articles')) tagsSet.add('articles');
   });
 
   const array = Array.from(tagsSet) as string[];

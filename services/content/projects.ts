@@ -29,7 +29,7 @@ export const fetchProjectByPath = async (
       },
       cache: 'force-cache',
       next: {
-        tags: [`projects-${lang}`],
+        tags: [`projects`],
       },
     }
   );
@@ -84,7 +84,7 @@ export const fetchProjects = async (
       },
       cache: 'force-cache',
       next: {
-        tags: [`projects-${lang}`],
+        tags: [`projects`],
       },
     }
   );

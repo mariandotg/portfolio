@@ -20,7 +20,7 @@ export const POST = async (request: NextRequest) => {
   console.log({ body });
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
-  const tagsSet = new Set();
+  const tagsSet = new Set<string>();
   const pathsSet = new Set();
 
   body.commits[0].modified.forEach((edits: string) => {
@@ -88,8 +88,8 @@ export const POST = async (request: NextRequest) => {
   // arrayTags.forEach((tag) => {
   //   revalidateTag(tag);
   // });
-  arrayPaths.forEach((tag) => {
-    revalidatePath(tag, 'page');
+  tagsSet.forEach((tag) => {
+    revalidateTag(tag);
   });
 
   return NextResponse.json({ revalidated: true });

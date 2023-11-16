@@ -89,7 +89,7 @@ export const POST = async (request: NextRequest) => {
   //   revalidateTag(tag);
   // });
   tagsSet.forEach((tag) => {
-    revalidateTag(tag);
+    revalidatePath(tag, 'page');
   });
 
   return NextResponse.json({ revalidated: true });

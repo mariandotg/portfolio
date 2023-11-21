@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
+export const runtime = 'edge';
+
 export const POST = async (request: NextRequest) => {
   const secret = request.nextUrl.searchParams.get('secret');
 
@@ -85,12 +87,12 @@ export const POST = async (request: NextRequest) => {
   const arrayPaths = Array.from(pathsSet) as string[];
   console.log({ arrayTags, arrayPaths });
 
-  // arrayTags.forEach((tag) => {
-  //   revalidateTag(tag);
-  // });
-  tagsSet.forEach((tag) => {
-    revalidatePath(tag, 'page');
+  arrayTags.forEach((tag) => {
+    revalidateTag(tag);
   });
+  // tagsSet.forEach((tag) => {
+  //   revalidatePath(tag, 'page');
+  // });
 
   return NextResponse.json({ revalidated: true });
 };

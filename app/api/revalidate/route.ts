@@ -3,7 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 
 export const runtime = 'edge';
 
-export const POST = async (request: NextRequest) => {
+export const GET = async (request: NextRequest) => {
   const secret = request.nextUrl.searchParams.get('secret');
 
   if (secret !== process.env.MY_SECRET_TOKEN) {
@@ -17,79 +17,80 @@ export const POST = async (request: NextRequest) => {
   }
 
   const tag = request.nextUrl.searchParams.get('tag') || '/';
-  const body = await request.json();
+  // const body = await request.json();
 
-  console.log({ body });
+  // console.log({ body });
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
-  const tagsSet = new Set<string>();
-  const pathsSet = new Set();
+  revalidateTag(tag);
+  // const tagsSet = new Set<string>();
+  // const pathsSet = new Set();
 
-  body.commits[0].modified.forEach((edits: string) => {
-    if (edits.startsWith('projects')) {
-      tagsSet.add('projects-en');
-      tagsSet.add('projects-es');
+  // body.commits[0].modified.forEach((edits: string) => {
+  //   if (edits.startsWith('projects')) {
+  //     tagsSet.add('projects-en');
+  //     tagsSet.add('projects-es');
 
-      pathsSet.add('/[lang]/projects');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add('articles-en');
-      tagsSet.add('articles-es');
+  //     pathsSet.add('/[lang]/projects');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('articles')) {
+  //     tagsSet.add('articles-en');
+  //     tagsSet.add('articles-es');
 
-      pathsSet.add('/[lang]/blog');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('social-media')) {
-      tagsSet.add('social-media');
+  //     pathsSet.add('/[lang]/blog');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('social-media')) {
+  //     tagsSet.add('social-media');
 
-      pathsSet.add('/[lang]');
-    }
-  });
-  body.commits[0].added.forEach((edits: string) => {
-    if (edits.startsWith('projects')) {
-      tagsSet.add('projects-en');
-      tagsSet.add('projects-es');
+  //     pathsSet.add('/[lang]');
+  //   }
+  // });
+  // body.commits[0].added.forEach((edits: string) => {
+  //   if (edits.startsWith('projects')) {
+  //     tagsSet.add('projects-en');
+  //     tagsSet.add('projects-es');
 
-      pathsSet.add('/[lang]/projects');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add('articles-en');
-      tagsSet.add('articles-es');
+  //     pathsSet.add('/[lang]/projects');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('articles')) {
+  //     tagsSet.add('articles-en');
+  //     tagsSet.add('articles-es');
 
-      pathsSet.add('/[lang]/blog');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('social-media')) {
-      tagsSet.add('social-media');
+  //     pathsSet.add('/[lang]/blog');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('social-media')) {
+  //     tagsSet.add('social-media');
 
-      pathsSet.add('/[lang]');
-    }
-  });
-  body.commits[0].removed.forEach((edits: string) => {
-    if (edits.startsWith('projects')) {
-      tagsSet.add('projects-en');
-      tagsSet.add('projects-es');
+  //     pathsSet.add('/[lang]');
+  //   }
+  // });
+  // body.commits[0].removed.forEach((edits: string) => {
+  //   if (edits.startsWith('projects')) {
+  //     tagsSet.add('projects-en');
+  //     tagsSet.add('projects-es');
 
-      pathsSet.add('/[lang]/projects');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('articles')) {
-      tagsSet.add('articles-en');
-      tagsSet.add('articles-es');
+  //     pathsSet.add('/[lang]/projects');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('articles')) {
+  //     tagsSet.add('articles-en');
+  //     tagsSet.add('articles-es');
 
-      pathsSet.add('/[lang]/blog');
-      pathsSet.add('/[lang]');
-    } else if (edits.startsWith('social-media')) {
-      tagsSet.add('social-media');
+  //     pathsSet.add('/[lang]/blog');
+  //     pathsSet.add('/[lang]');
+  //   } else if (edits.startsWith('social-media')) {
+  //     tagsSet.add('social-media');
 
-      pathsSet.add('/[lang]');
-    }
-  });
+  //     pathsSet.add('/[lang]');
+  //   }
+  // });
 
-  const arrayTags = Array.from(tagsSet) as string[];
-  const arrayPaths = Array.from(pathsSet) as string[];
-  console.log({ arrayTags, arrayPaths });
+  // const arrayTags = Array.from(tagsSet) as string[];
+  // const arrayPaths = Array.from(pathsSet) as string[];
+  // console.log({ arrayTags, arrayPaths });
 
-  arrayTags.forEach((tag) => {
-    revalidateTag(tag);
-  });
+  // arrayTags.forEach((tag) => {
+  //   revalidateTag(tag);
+  // });
   // tagsSet.forEach((tag) => {
   //   revalidatePath(tag, 'page');
   // });

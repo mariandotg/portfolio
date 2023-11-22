@@ -22,7 +22,7 @@ export const GET = async (request: NextRequest) => {
   // console.log({ body });
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
-  revalidateTag(tag);
+  revalidatePath(tag, 'page');
   // const tagsSet = new Set<string>();
   // const pathsSet = new Set();
 

@@ -79,7 +79,7 @@ export const fetchProjects = async (
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      cache: 'force-cache',
+      cache: 'no-cache',
       next: {
         tags: [`projects-${lang}`],
       },

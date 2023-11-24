@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '@/components/Sections/Section/Section';
 import ArticleCard from '@/components/ArticleCard';
@@ -9,6 +9,8 @@ import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { Meta } from '@/models/blog/blog.models';
 import { Icon } from '@/components/icons';
+import ArticlesListFallback from '@/components/ArticlesListFallback';
+import ArticlesList from '@/components/ArticlesList';
 
 interface Props {
   params: {
@@ -22,27 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const BlogPage = async ({ params }: Props) => {
-  const articles = await fetchArticles(params.lang);
   const dict = await getDictionary(params.lang);
-
-  const renderArticleCards = () =>
-    articles !== undefined ? (
-      articles.map((article) => (
-        <ArticleCard
-          article={article}
-          path={`blog/${article.path}`}
-          locale={params.lang}
-          displayDescription
-          displayDate
-          preview='large'
-        />
-      ))
-    ) : (
-      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
-        <Icon value='miniReload' width={20} height={20} />
-        {dict.blog.notFound}
-      </li>
-    );
 
   return (
     <PageLayout className='py-32'>
@@ -57,7 +39,10 @@ const BlogPage = async ({ params }: Props) => {
             </p>
           </div>
           <ul className='grid w-full grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
-            {renderArticleCards()}
+            <Suspense fallback={<ArticlesListFallback />}>
+              {/* @ts-ignore */}
+              <ArticlesList locale={params.lang} dict={dict} />
+            </Suspense>
           </ul>
         </div>
       </Section>

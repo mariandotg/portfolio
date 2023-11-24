@@ -45,6 +45,7 @@
     "/contact": "Contacto"
   },
   "featuredProjects": {
+    "title": "Proyectos Destacados",
     "additionalLink": "Mirá todos mis proyectos"
   },
   "latestArticles": {

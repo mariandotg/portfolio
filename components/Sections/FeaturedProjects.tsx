@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Section from './Section/Section';
 import SectionTitle, { AdditionalLink } from './Section/SectionTitle';
 import { ProjectsContent } from '@/models/domain/FormattedData/FormattedContent';
@@ -7,34 +7,17 @@ import ProjectCard from '../ProjectCard';
 import { PreviewProject } from '@/models/blog/blog.models';
 import { Dictionary } from '@/app/[lang]/dictionaries';
 import { Icon } from '../icons';
+import { fetchProjects } from '@/services/content/projects';
+import ProjectsList from '../ProjectsList';
+import ProjectsListFallback from '../ProjectsListFallback';
 
 interface Props {
-  data: FormattedSection<ProjectsContent>;
-  featuredProjects: PreviewProject[] | undefined;
+  featuredProjects?: PreviewProject[] | undefined;
   locale: string;
   dict: Dictionary;
 }
 
-const FeaturedProjects = ({ data, featuredProjects, locale, dict }: Props) => {
-  const renderFeaturedProjects = () =>
-    featuredProjects !== undefined ? (
-      featuredProjects.map((project, index) => (
-        <ProjectCard
-          key={project.id}
-          path={`${locale}/${project.path}`}
-          project={project}
-          locale={locale}
-          featured={true}
-          delay={0.5 + index * 0.1}
-        />
-      ))
-    ) : (
-      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
-        <Icon value='solidWarning' width={24} height={24} />
-        {dict.latestArticles.notFound}
-      </li>
-    );
-
+const FeaturedProjects = ({ featuredProjects, locale, dict }: Props) => {
   const additionalLink: AdditionalLink = {
     href: `${locale}/projects`,
     label: dict.featuredProjects.additionalLink,
@@ -42,12 +25,15 @@ const FeaturedProjects = ({ data, featuredProjects, locale, dict }: Props) => {
 
   return (
     <Section>
-      <SectionTitle emoji={data.emoji} additionalLink={additionalLink}>
-        {data.title}
+      <SectionTitle additionalLink={additionalLink}>
+        {dict.featuredProjects.title}
       </SectionTitle>
       <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
         <ul className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
-          {renderFeaturedProjects()}
+          <Suspense fallback={<ProjectsListFallback />}>
+            {/*@ts-ignore */}
+            <ProjectsList locale={locale} dict={dict} featured={true} />
+          </Suspense>
         </ul>
       </div>
     </Section>

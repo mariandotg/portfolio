@@ -37,32 +37,16 @@ const HomePage = async ({ params }: Props) => {
 
   const social = await fetchSocialMedia();
 
-  const projects = await fetchProjects(params.lang);
-  const featuredProjects = projects?.slice(0, 4);
-
-  const articles = await fetchArticles(params.lang);
-  const latestArticles = articles?.slice(0, 4);
-
   const dict = await getDictionary(params.lang);
   console.log(params.lang);
 
   return (
     <PageLayout className='py-32'>
       <AboutMe data={data.about} social={social} />
-      <FeaturedProjects
-        data={data.featuredProjects}
-        locale={params.lang}
-        featuredProjects={featuredProjects}
-        dict={dict}
-      />
+      <FeaturedProjects locale={params.lang} dict={dict} />
       <Skills data={data.skills} dict={dict} />
       <JobExperience data={data.jobExperience} />
-      <LatestArticles
-        locale={params.lang}
-        latestArticles={latestArticles}
-        dict={dict}
-        basePath={`/${params.lang}/blog/`}
-      />
+      <LatestArticles locale={params.lang} dict={dict} />
     </PageLayout>
   );
 };

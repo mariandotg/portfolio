@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import PageLayout from '../../../components/PageLayout';
 import ProjectCard from '@/components/ProjectCard';
 import Section from '@/components/Sections/Section/Section';
@@ -9,6 +9,8 @@ import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
 import { getDictionary } from '../dictionaries';
 import { Icon } from '@/components/icons';
+import ProjectsList from '@/components/ProjectsList';
+import ProjectsListFallback from '@/components/ProjectsListFallback';
 
 interface Props {
   params: {
@@ -26,27 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const ProjectsPage = async ({ searchParams, params }: Props) => {
-  const projects = await fetchProjects(params.lang);
   const dict = await getDictionary(params.lang);
 
-  const renderProjectCards = () =>
-    projects !== undefined ? (
-      projects.map((project, index) => (
-        <ProjectCard
-          key={project.id}
-          path={`${project.path}`}
-          locale={params.lang}
-          featured={false}
-          project={project}
-          delay={0.5 + index * 0.1}
-        />
-      ))
-    ) : (
-      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
-        <Icon value='miniReload' width={20} height={20} />
-        {dict.projects.notFound}
-      </li>
-    );
   return (
     <PageLayout className='py-32'>
       <Section>
@@ -60,7 +43,10 @@ const ProjectsPage = async ({ searchParams, params }: Props) => {
             </p>
           </div>
           <ul className='grid grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
-            {renderProjectCards()}
+            <Suspense fallback={<ProjectsListFallback />}>
+              {/*@ts-ignore */}
+              <ProjectsList locale={params.lang} dict={dict} />
+            </Suspense>
           </ul>
         </div>
       </Section>

@@ -75,7 +75,7 @@ export const fetchArticles = async (
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
-      cache: 'force-cache',
+      cache: 'no-cache',
       next: {
         tags: [`articles-${lang}`],
       },

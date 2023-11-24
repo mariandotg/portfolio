@@ -29,7 +29,7 @@ const Notification = ({ icon, label, href, variant }: Flag) => {
       </div>
     );
 
-  if (href.navigation !== 'internal')
+  if (href.navigation === 'internal')
     return (
       <Link
         className={`flex items-center justify-center w-screen h-5 font-medium bg-${variant} text-dark dark:text-light text-secondary gap-x-1`}

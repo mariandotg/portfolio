@@ -23,6 +23,7 @@ import DropdownMenuClose from './Menus/DropdownMenu/DropdownMenuClose';
 import Notification, { Flag } from './Notification';
 import NavBarClientWrapper from './Toast';
 import Toast from './Toast';
+import { fetchFlag } from '@/services/content/flag';
 
 interface Props {
   locale: string;
@@ -40,14 +41,9 @@ interface MenuItem {
 
 const NavBar = async ({ locale }: Props) => {
   const constants = await fetchSocialMedia();
+  const newsFlag = await fetchFlag();
   const dict = await getDictionary(locale);
   console.log(locale);
-  const newsFlag: Flag | undefined = {
-    label: 'Testing new notification flag component :)',
-    variant: 'warning',
-    href: { source: `/${locale}/contact`, navigation: 'external' },
-    icon: 'miniWarning',
-  };
 
   return (
     <>
@@ -56,10 +52,10 @@ const NavBar = async ({ locale }: Props) => {
         <DropdownMenuClose />
         {newsFlag && (
           <Notification
-            label={newsFlag.label}
-            href={newsFlag.href}
-            variant={newsFlag.variant}
-            icon={newsFlag.icon}
+            label={newsFlag[locale].label}
+            href={newsFlag[locale].href}
+            variant={newsFlag[locale].variant}
+            icon={newsFlag[locale].icon}
           />
         )}
         <nav className='relative flex items-center justify-end w-screen gap-16 px-4 py-3 tablet:max-w-2xl mobile:gap-4'>

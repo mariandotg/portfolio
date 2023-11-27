@@ -12,7 +12,9 @@ module.exports = {
   ],
   theme: {
     borderRadius: {
-      DEFAULT: '4px',
+      DEFAULT: '10px',
+      sm: '8px',
+      full: '100%',
     },
     animation: {
       'animate-image': 'fade-in 1s ease-out',
@@ -29,9 +31,9 @@ module.exports = {
     },
     fontSize: {
       DEFAULT: ['1rem', '1.5rem'],
-      article: ['1rem', '1.175rem'],
-      secondary: ['0.875rem', '0.875rem'],
-      title: ['1.25rem', '1.75rem'],
+      article: ['1rem', '1.25rem'],
+      secondary: ['0.875rem', '1.05rem'],
+      title: ['1.50rem', '1.75rem'],
     },
     screens: {
       mobile: '550px',
@@ -45,9 +47,11 @@ module.exports = {
     },
     colors: {
       dark: {
-        DEFAULT: '#0D0D0D',
+        DEFAULT: '#080808',
         headlines: '#E1E1E1',
         text: '#B1B1B1',
+        secondary: '#FAFAFA',
+        'subtle-edges': '#27272A',
         'primary-hover': '#856ADE',
         'primary-pressed': '#A28DE6',
         'tertiary-hover': '#555555',
@@ -57,6 +61,8 @@ module.exports = {
         DEFAULT: '#F8F8FA',
         headlines: '#0D0D0D',
         text: '#5E5E5E',
+        secondary: '#09090B',
+        'subtle-edges': '#e4e4e7',
         'primary-hover': '#6246CC',
         'primary-pressed': '#4A36B9',
         'tertiary-hover': '#313131',
@@ -64,8 +70,38 @@ module.exports = {
       },
       transparent: 'transparent',
       primary: '#7050D8',
-      tertiary: '#373737'
+      tertiary: '#373737',
+      error: '#9A031E',
+      warning: '#FF8C42',
+      success: '#4CB963'
     },
+    animation: {
+      'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      'rotate': 'rotate 20s linear infinite',
+    },
+    keyframes: {
+      pulse: {
+        "0%, 100%": {
+          opacity: 1,
+        },
+        "50%": {
+          opacity: 0.4,
+        }
+      },
+      rotate: {
+        "from": {
+          rotate: "0deg",
+          scale: 1
+        },
+        "50%": {
+          scale: 1.5
+        },
+        "to": {
+          rotate: "360deg",
+          scale: 1
+        }
+      }
+    }
   },
   plugins: [],
 };

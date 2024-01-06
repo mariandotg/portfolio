@@ -48,7 +48,13 @@ export const POST = async (request: NextRequest) => {
       } else if (edits.startsWith('social-media')) {
         tagsSet.add('/[lang]');
       } else if (edits.startsWith('pages')) {
-        tagsSet.add('/[lang]');
+        const content = edits.split('/');
+
+        if (content[2] === 'home') {
+          tagsSet.add(`/[lang]`);
+        } else {
+          tagsSet.add(`/[lang]/${content[2]}`);
+        }
       }
     });
     body.commits[0].added.forEach((edits: any) => {
@@ -70,6 +76,14 @@ export const POST = async (request: NextRequest) => {
         tagsSet.add(`/[lang]/blog/${content[1]}`);
       } else if (edits.startsWith('social-media')) {
         tagsSet.add('/[lang]');
+      } else if (edits.startsWith('pages')) {
+        const content = edits.split('/');
+
+        if (content[2] === 'home') {
+          tagsSet.add(`/[lang]`);
+        } else {
+          tagsSet.add(`/[lang]/${content[2]}`);
+        }
       }
     });
     body.commits[0].removed.forEach((edits: any) => {
@@ -91,6 +105,14 @@ export const POST = async (request: NextRequest) => {
         tagsSet.add(`/[lang]/blog/${content[1]}`);
       } else if (edits.startsWith('social-media')) {
         tagsSet.add('/[lang]');
+      } else if (edits.startsWith('pages')) {
+        const content = edits.split('/');
+
+        if (content[2] === 'home') {
+          tagsSet.add(`/[lang]`);
+        } else {
+          tagsSet.add(`/[lang]/${content[2]}`);
+        }
       }
     });
   } catch (error) {

@@ -50,10 +50,12 @@ export const POST = async (request: NextRequest) => {
       } else if (edits.startsWith('pages')) {
         const content = edits.split('/');
 
-        if (content[2] === 'home') {
+        const slugWithDot = content[2];
+        const slug = slugWithDot.split('.')[0];
+        if (slug === 'home') {
           tagsSet.add(`/[lang]`);
         } else {
-          tagsSet.add(`/[lang]/${content[2]}`);
+          tagsSet.add(`/[lang]/${slug}`);
         }
       }
     });
@@ -79,10 +81,12 @@ export const POST = async (request: NextRequest) => {
       } else if (edits.startsWith('pages')) {
         const content = edits.split('/');
 
-        if (content[2] === 'home') {
+        const slugWithDot = content[2];
+        const slug = slugWithDot.split('.')[0];
+        if (slug === 'home') {
           tagsSet.add(`/[lang]`);
         } else {
-          tagsSet.add(`/[lang]/${content[2]}`);
+          tagsSet.add(`/[lang]/${slug}`);
         }
       }
     });
@@ -107,11 +111,13 @@ export const POST = async (request: NextRequest) => {
         tagsSet.add('/[lang]');
       } else if (edits.startsWith('pages')) {
         const content = edits.split('/');
+        const slugWithDot = content[2];
+        const slug = slugWithDot.split('.')[0];
 
-        if (content[2] === 'home') {
+        if (slug === 'home') {
           tagsSet.add(`/[lang]`);
         } else {
-          tagsSet.add(`/[lang]/${content[2]}`);
+          tagsSet.add(`/[lang]/${slug}`);
         }
       }
     });

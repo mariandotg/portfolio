@@ -35,7 +35,7 @@ export const POST = async (request: NextRequest) => {
 
         tagsSet.add('/[lang]/projects');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/${content}`);
+        tagsSet.add(`/[lang]/${content[1]}`);
       } else if (edits.startsWith('articles')) {
         // tagsSet.add('articles-en');
         // tagsSet.add('articles-es');
@@ -44,8 +44,10 @@ export const POST = async (request: NextRequest) => {
 
         tagsSet.add('/[lang]/blog');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/blog/${content}`);
+        tagsSet.add(`/[lang]/blog/${content[1]}`);
       } else if (edits.startsWith('social-media')) {
+        tagsSet.add('/[lang]');
+      } else if (edits.startsWith('pages')) {
         tagsSet.add('/[lang]');
       }
     });
@@ -57,7 +59,7 @@ export const POST = async (request: NextRequest) => {
         const content = edits.split('/');
         tagsSet.add('/[lang]/projects');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/${content}`);
+        tagsSet.add(`/[lang]/${content[1]}`);
       } else if (edits.startsWith('articles')) {
         // tagsSet.add('articles-en');
         // tagsSet.add('articles-es');
@@ -65,7 +67,7 @@ export const POST = async (request: NextRequest) => {
         const content = edits.split('/');
         tagsSet.add('/[lang]/blog');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/blog/${content}`);
+        tagsSet.add(`/[lang]/blog/${content[1]}`);
       } else if (edits.startsWith('social-media')) {
         tagsSet.add('/[lang]');
       }
@@ -78,7 +80,7 @@ export const POST = async (request: NextRequest) => {
         const content = edits.split('/');
         tagsSet.add('/[lang]/projects');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/${content}`);
+        tagsSet.add(`/[lang]/${content[1]}`);
       } else if (edits.startsWith('articles')) {
         // tagsSet.add('articles-en');
         // tagsSet.add('articles-es');
@@ -86,7 +88,7 @@ export const POST = async (request: NextRequest) => {
         const content = edits.split('/');
         tagsSet.add('/[lang]/blog');
         tagsSet.add('/[lang]');
-        tagsSet.add(`/[lang]/blog/${content}`);
+        tagsSet.add(`/[lang]/blog/${content[1]}`);
       } else if (edits.startsWith('social-media')) {
         tagsSet.add('/[lang]');
       }
@@ -96,6 +98,7 @@ export const POST = async (request: NextRequest) => {
   } finally {
     const arrayTags = Array.from(tagsSet);
     arrayTags.forEach(async (tag) => {
+      console.log('revalidated', tag);
       revalidatePath(tag as string, 'page');
     });
     return NextResponse.json({ revalidated: true });

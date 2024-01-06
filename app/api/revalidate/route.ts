@@ -3,8 +3,9 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 
 export const runtime = 'edge';
 
-export const GET = async (request: NextRequest) => {
+export const POST = async (request: NextRequest) => {
   const secret = request.nextUrl.searchParams.get('secret');
+  const tagsSet = new Set();
 
   if (secret !== process.env.MY_SECRET_TOKEN) {
     return new NextResponse(JSON.stringify({ message: 'Invalid Token' }), {
@@ -17,12 +18,89 @@ export const GET = async (request: NextRequest) => {
   }
 
   const tag = request.nextUrl.searchParams.get('tag') || '/';
-  // const body = await request.json();
 
   // console.log({ body });
   console.log({ AAAAAAAASDDDDDDDDDDDD: tag });
 
-  revalidatePath(tag, 'page');
+  try {
+    const body = await request.json();
+    console.log({ body });
+
+    body.commits[0].modified.forEach((edits: any) => {
+      if (edits.startsWith('projects')) {
+        // tagsSet.add('projects-en');
+        // tagsSet.add('projects-es');
+
+        const content = edits.split('/');
+
+        tagsSet.add('/[lang]/projects');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/${content}`);
+      } else if (edits.startsWith('articles')) {
+        // tagsSet.add('articles-en');
+        // tagsSet.add('articles-es');
+
+        const content = edits.split('/');
+
+        tagsSet.add('/[lang]/blog');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/blog/${content}`);
+      } else if (edits.startsWith('social-media')) {
+        tagsSet.add('/[lang]');
+      }
+    });
+    body.commits[0].added.forEach((edits: any) => {
+      if (edits.startsWith('projects')) {
+        // tagsSet.add('projects-en');
+        // tagsSet.add('projects-es');
+
+        const content = edits.split('/');
+        tagsSet.add('/[lang]/projects');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/${content}`);
+      } else if (edits.startsWith('articles')) {
+        // tagsSet.add('articles-en');
+        // tagsSet.add('articles-es');
+
+        const content = edits.split('/');
+        tagsSet.add('/[lang]/blog');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/blog/${content}`);
+      } else if (edits.startsWith('social-media')) {
+        tagsSet.add('/[lang]');
+      }
+    });
+    body.commits[0].removed.forEach((edits: any) => {
+      if (edits.startsWith('projects')) {
+        // tagsSet.add('projects-en');
+        // tagsSet.add('projects-es');
+
+        const content = edits.split('/');
+        tagsSet.add('/[lang]/projects');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/${content}`);
+      } else if (edits.startsWith('articles')) {
+        // tagsSet.add('articles-en');
+        // tagsSet.add('articles-es');
+
+        const content = edits.split('/');
+        tagsSet.add('/[lang]/blog');
+        tagsSet.add('/[lang]');
+        tagsSet.add(`/[lang]/blog/${content}`);
+      } else if (edits.startsWith('social-media')) {
+        tagsSet.add('/[lang]');
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  } finally {
+    const arrayTags = Array.from(tagsSet);
+    arrayTags.forEach(async (tag) => {
+      revalidatePath(tag as string, 'page');
+    });
+    return NextResponse.json({ revalidated: true });
+  }
+  //revalidatePath(tag, 'page');
   // const tagsSet = new Set<string>();
   // const pathsSet = new Set();
 

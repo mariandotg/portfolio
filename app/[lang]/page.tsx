@@ -40,10 +40,19 @@ const HomePage = async ({ params }: Props) => {
   const dict = await getDictionary(params.lang);
   console.log(params.lang);
 
+  const projects = await fetchProjects(params.lang);
+  const featured = true;
+  const featuredProjects = featured ? projects?.slice(0, 4) : projects;
+
   return (
     <PageLayout className='py-32'>
       <AboutMe data={data.about} social={social} />
-      <FeaturedProjects locale={params.lang} dict={dict} />
+      <FeaturedProjects
+        data={featuredProjects}
+        locale={params.lang}
+        dict={dict}
+        featured={featured}
+      />
       <Skills data={data.skills} dict={dict} />
       <JobExperience data={data.jobExperience} />
       <LatestArticles locale={params.lang} dict={dict} />

@@ -12,16 +12,36 @@ import ProjectsList from '../ProjectsList';
 import ProjectsListFallback from '../ProjectsListFallback';
 
 interface Props {
-  featuredProjects?: PreviewProject[] | undefined;
+  data: PreviewProject[] | undefined;
   locale: string;
   dict: Dictionary;
+  featured: boolean;
 }
 
-const FeaturedProjects = ({ featuredProjects, locale, dict }: Props) => {
+const FeaturedProjects = ({ data, locale, dict, featured }: Props) => {
   const additionalLink: AdditionalLink = {
     href: `${locale}/projects`,
     label: dict.featuredProjects.additionalLink,
   };
+
+  const renderFeaturedProjects = () =>
+    data !== undefined ? (
+      data.map((project, index) => (
+        <ProjectCard
+          key={project.id}
+          path={featured ? `${locale}/${project.path}` : `/${project.path}`}
+          project={project}
+          locale={locale}
+          featured={true}
+          delay={0.5 + index * 0.1}
+        />
+      ))
+    ) : (
+      <li className='flex items-center col-span-4 gap-2 px-4 py-2 border rounded mobile:col-span-5 text-warning dark:text-warning border-warning bg-warning/25'>
+        <Icon value='solidWarning' width={24} height={24} />
+        {dict.latestArticles.notFound}
+      </li>
+    );
 
   return (
     <Section>
@@ -30,10 +50,11 @@ const FeaturedProjects = ({ featuredProjects, locale, dict }: Props) => {
       </SectionTitle>
       <div className='flex flex-col items-center tablet:col-span-4 gap-y-4'>
         <ul className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
-          <Suspense fallback={<ProjectsListFallback />}>
-            {/*@ts-ignore */}
+          {renderFeaturedProjects()}
+          {/* <Suspense fallback={<ProjectsListFallback />}>
+            {/*@ts-ignore }
             <ProjectsList locale={locale} dict={dict} featured={true} />
-          </Suspense>
+          </Suspense> */}
         </ul>
       </div>
     </Section>

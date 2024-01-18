@@ -38,11 +38,10 @@ const ArticleLayout = async ({ children, params }: Props) => {
         {children}
       </div>
       <LatestArticles
+        data={latestArticles}
         locale={params.lang}
-        latestArticles={latestArticles}
         dict={dict}
         hasAdditionalLink={false}
-        basePath=''
       />
     </PageLayout>
   );

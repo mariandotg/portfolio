@@ -16,6 +16,9 @@ interface Props {
   params: {
     lang: string;
   };
+  searchParams: {
+    page: number;
+  };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -23,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metadataAdapter(data!.seo);
 }
 
-const BlogPage = async ({ params }: Props) => {
+const BlogPage = async ({ params, searchParams = { page: 1 } }: Props) => {
   const dict = await getDictionary(params.lang);
 
   return (
@@ -44,6 +47,12 @@ const BlogPage = async ({ params }: Props) => {
               <ArticlesList locale={params.lang} dict={dict} />
             </Suspense>
           </ul>
+          <ul className='font-display text text-light-text dark:text-dark-text'>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+          </ul>
+          <span className='bg-primary'>{searchParams.page}</span>
         </div>
       </Section>
     </PageLayout>

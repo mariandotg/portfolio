@@ -41,8 +41,10 @@ const HomePage = async ({ params }: Props) => {
   console.log(params.lang);
 
   const projects = await fetchProjects(params.lang);
-  const featured = true;
-  const featuredProjects = featured ? projects?.slice(0, 4) : projects;
+  const featuredProjects = projects?.slice(0, 4);
+
+  const articles = await fetchArticles(params.lang);
+  const latestArticles = articles?.slice(0, 4);
 
   return (
     <PageLayout className='py-32'>
@@ -51,11 +53,10 @@ const HomePage = async ({ params }: Props) => {
         data={featuredProjects}
         locale={params.lang}
         dict={dict}
-        featured={featured}
       />
       <Skills data={data.skills} dict={dict} />
       <JobExperience data={data.jobExperience} />
-      <LatestArticles locale={params.lang} dict={dict} />
+      <LatestArticles data={latestArticles} locale={params.lang} dict={dict} />
     </PageLayout>
   );
 };

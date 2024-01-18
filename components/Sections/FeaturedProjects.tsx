@@ -15,10 +15,9 @@ interface Props {
   data: PreviewProject[] | undefined;
   locale: string;
   dict: Dictionary;
-  featured: boolean;
 }
 
-const FeaturedProjects = ({ data, locale, dict, featured }: Props) => {
+const FeaturedProjects = ({ data, locale, dict }: Props) => {
   const additionalLink: AdditionalLink = {
     href: `${locale}/projects`,
     label: dict.featuredProjects.additionalLink,
@@ -29,7 +28,7 @@ const FeaturedProjects = ({ data, locale, dict, featured }: Props) => {
       data.map((project, index) => (
         <ProjectCard
           key={project.id}
-          path={featured ? `${locale}/${project.path}` : `/${project.path}`}
+          path={`/${locale}/${project.path}`}
           project={project}
           locale={locale}
           featured={true}

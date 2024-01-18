@@ -3,19 +3,18 @@ import { fetchArticles } from '@/services/content/articles';
 import React from 'react';
 import ArticleCard from './ArticleCard';
 import { Icon } from './icons';
+import { PreviewArticle } from '@/models/blog/blog.models';
 
 interface Props {
+  data: PreviewArticle[] | undefined;
   locale: string;
   dict: Dictionary;
 }
 
-const ArticlesList = async ({ locale, dict }: Props) => {
-  const articles = await fetchArticles(locale);
-  const latestArticles = articles?.slice(0, 4);
-
+const ArticlesList = ({ data, locale, dict }: Props) => {
   const renderLatestArticles = () =>
-    latestArticles !== undefined ? (
-      latestArticles.map((article, index) => (
+    data !== undefined ? (
+      data.map((article) => (
         <ArticleCard
           article={article}
           path={`/${locale}/blog/${article.path}`}
@@ -32,7 +31,15 @@ const ArticlesList = async ({ locale, dict }: Props) => {
       </li>
     );
 
-  return renderLatestArticles();
+  return (
+    <ul className='grid w-full grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
+      {renderLatestArticles()}
+      {/* <Suspense fallback={<ArticlesListFallback />}>
+    { @ts-ignore }
+    <ArticlesList locale={locale} dict={dict} />
+  </Suspense> */}
+    </ul>
+  );
 };
 
 export default ArticlesList;

@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const BlogPage = async ({ params, searchParams = { page: 1 } }: Props) => {
   const dict = await getDictionary(params.lang);
 
+  const articles = await fetchArticles(params.lang);
   return (
     <PageLayout className='py-32'>
       <Section>
@@ -41,12 +42,7 @@ const BlogPage = async ({ params, searchParams = { page: 1 } }: Props) => {
               {dict.blog.description}
             </p>
           </div>
-          <ul className='grid w-full grid-cols-4 col-span-4 mobile:col-span-5 mobile:grid-cols-5 gap-y-4'>
-            <Suspense fallback={<ArticlesListFallback />}>
-              {/* @ts-ignore */}
-              <ArticlesList locale={params.lang} dict={dict} />
-            </Suspense>
-          </ul>
+          <ArticlesList data={articles} locale={params.lang} dict={dict} />
           <ul className='font-display text text-light-text dark:text-dark-text'>
             <li>1</li>
             <li>2</li>

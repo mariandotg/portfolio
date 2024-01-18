@@ -3,23 +3,21 @@ import React from 'react';
 import ProjectCard from './ProjectCard';
 import { Dictionary } from '@/app/[lang]/dictionaries';
 import { Icon } from './icons';
+import { PreviewProject } from '@/models/blog/blog.models';
 
 interface Props {
+  data: PreviewProject[] | undefined;
   locale: string;
   dict: Dictionary;
-  featured?: boolean;
 }
 
-const ProjectsList = async ({ locale, dict, featured = false }: Props) => {
-  const projects = await fetchProjects(locale);
-  const featuredProjects = featured ? projects?.slice(0, 4) : projects;
-
+const ProjectsList = ({ data, locale, dict }: Props) => {
   const renderFeaturedProjects = () =>
-    featuredProjects !== undefined ? (
-      featuredProjects.map((project, index) => (
+    data !== undefined ? (
+      data.map((project, index) => (
         <ProjectCard
           key={project.id}
-          path={featured ? `${locale}/${project.path}` : `/${project.path}`}
+          path={`/${locale}/${project.path}`}
           project={project}
           locale={locale}
           featured={true}
@@ -33,7 +31,11 @@ const ProjectsList = async ({ locale, dict, featured = false }: Props) => {
       </li>
     );
 
-  return renderFeaturedProjects();
+  return (
+    <ul className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
+      {renderFeaturedProjects()}
+    </ul>
+  );
 };
 
 export default ProjectsList;

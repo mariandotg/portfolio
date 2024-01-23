@@ -1,0 +1,13 @@
+name: Keep awake Planetscale database cron job
+on:
+  schedule:
+    - cron: '0 12 */3 * *'
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call endpoint to keep the planetscale database awake
+        run: |
+          curl --request PUT \
+            --url '${{ secrets.SITE_URL }}/api/keep-alive' \
+            --header 'keep-ps-awake-api-secret: ${{ secrets.PLANETSCALE_DATABASE_SECRET }}'

@@ -3,14 +3,19 @@ import PageLayout from '../../../components/PageLayout';
 import Section from '@/components/Sections/Section/Section';
 import ArticleCard from '@/components/ArticleCard';
 import { getDictionary } from '../dictionaries';
-import { fetchArticles } from '@/services/content/articles';
+import {
+  PaginatedResponse,
+  fetchArticles,
+  getPaginatedArticles,
+} from '@/services/content/articles';
 import { fetchPageByPath } from '@/services/content/pages';
 import { Metadata } from 'next';
 import { metadataAdapter } from '@/adapters/metadataAdapter';
-import { Meta } from '@/models/blog/blog.models';
+import { Meta, PreviewArticle } from '@/models/blog/blog.models';
 import { Icon } from '@/components/icons';
 import ArticlesListFallback from '@/components/ArticlesListFallback';
 import ArticlesList from '@/components/ArticlesList';
+import Pagination from '@/components/Pagination/Pagination';
 
 interface Props {
   params: {
@@ -29,7 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const BlogPage = async ({ params, searchParams = { page: 1 } }: Props) => {
   const dict = await getDictionary(params.lang);
 
-  const articles = await fetchArticles(params.lang);
+  const page = searchParams.page || 1;
+  const articles = await getPaginatedArticles(page, params.lang);
+
   return (
     <PageLayout className='py-32'>
       <Section>
@@ -42,13 +49,18 @@ const BlogPage = async ({ params, searchParams = { page: 1 } }: Props) => {
               {dict.blog.description}
             </p>
           </div>
-          <ArticlesList data={articles} locale={params.lang} dict={dict} />
-          <ul className='font-display text text-light-text dark:text-dark-text'>
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-          </ul>
-          <span className='bg-primary'>{searchParams.page}</span>
+          <ArticlesList
+            data={
+              'results' in articles
+                ? (articles as PaginatedResponse<PreviewArticle>).results
+                : undefined
+            }
+            locale={params.lang}
+            dict={dict}
+          />
+          <Pagination
+            totalPages={'message' in articles ? 0 : articles.totalPages}
+          />
         </div>
       </Section>
     </PageLayout>

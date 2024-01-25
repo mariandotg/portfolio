@@ -15,6 +15,18 @@ type Filetree = [
   }
 ];
 
+export interface PaginatedResponse<T> {
+  total: number;
+  totalPages: number;
+  pageSize: number;
+  page: number;
+  results: T[];
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
 export const fetchArticleByPath = async (
   path: string,
   lang: string = 'en'
@@ -114,4 +126,27 @@ export const fetchArticles = async (
     }
   }
   return posts; //.sort((a, b) => (a.date < b.date ? 1 : -1));
+};
+
+export const getPaginatedArticles = async (
+  page: number,
+  lang: string = 'en'
+): Promise<PaginatedResponse<PreviewArticle> | ErrorResponse> => {
+  const pageSize = 10;
+  const articles = await fetchArticles(lang);
+
+  if (!articles) return { message: 'Error running fetchArticles() method' };
+
+  const start = (page - 1) * pageSize;
+  const end = page * pageSize;
+  const results = articles.slice(start, end);
+  const totalPages = Math.ceil(articles.length / pageSize);
+
+  return {
+    total: articles.length,
+    totalPages,
+    pageSize,
+    page,
+    results,
+  };
 };

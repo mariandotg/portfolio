@@ -29,7 +29,7 @@ const LinkButton = ({
         rel='noreferrer'
         target='_blank'
         href={href}
-        className={`flex items-center justify-center gap-2 px-4 py-2 border border-transparent rounded hover:border-primary bg-primary/10 text-primary ${
+        className={`flex items-center justify-center gap-2 px-4 py-2 border border-transparent hover:border-primary rounded-[2px] bg-primary/10 text-primary ${
           startContent && 'pl-3'
         } ${endContent && 'pr-3'} font-medium duration-200 ${className}`}
       >
@@ -42,7 +42,7 @@ const LinkButton = ({
   return (
     <Link
       href={href}
-      className={`flex items-center justify-center gap-2 px-6 py-3 border border-transparent rounded hover:border-primary bg-primary/10 text-primary ${
+      className={`flex items-center justify-center gap-2 px-6 py-3 border border-transparent hover:border-primary rounded-[2px] bg-primary/10 text-primary ${
         startContent && 'pl-4'
       } ${endContent && 'pr-4'} font-medium duration-200 ${className}`}
     >

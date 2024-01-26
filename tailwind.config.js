@@ -49,7 +49,7 @@ module.exports = {
       dark: {
         DEFAULT: '#080808',
         headlines: '#E1E1E1',
-        text: '#B1B1B1',
+        text: '#D4D4D4',
         secondary: '#FAFAFA',
         'subtle-edges': '#27272A',
         'primary-hover': '#856ADE',

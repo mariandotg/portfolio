@@ -32,7 +32,7 @@ const ProjectsList = ({ data, locale, dict }: Props) => {
     );
 
   return (
-    <ul className='grid w-full grid-cols-4 gap-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
+    <ul className='grid w-full grid-cols-4 mobile:grid tablet:grid-rows-1 mobile:grid-cols-5 tablet:col-span-4'>
       {renderFeaturedProjects()}
     </ul>
   );

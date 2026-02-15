@@ -1,0 +1,24 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  btnLabel: string;
+  btnHref: string;
+}
+const { title, subtitle, btnLabel, btnHref } = Astro.props;
+---
+
+<section class="bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] dark:bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] border border-[color-mix(in_srgb,var(--color-primary)_20%,transparent)] rounded-[var(--radius-md)] p-8 sm:p-12 text-center">
+  <h2 class="text-2xl sm:text-3xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">
+    {title}
+  </h2>
+  {subtitle && (
+    <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6 max-w-lg mx-auto">{subtitle}</p>
+  )}
+  <a
+    href={btnHref}
+    class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary-hover)] transition-colors"
+  >
+    {btnLabel}
+  </a>
+</section>

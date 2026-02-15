@@ -1,0 +1,37 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import { getCollection } from "astro:content";
+import { getLangFromUrl, useTranslations } from "../../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const projects = await getCollection("work");
+const sorted = projects.sort((a, b) => a.data.order - b.data.order);
+---
+
+<PageLayout title={t.work.pageTitle} description={t.work.pageSubtitle}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <SectionHeader title={t.work.pageTitle} subtitle={t.work.pageSubtitle} />
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sorted.map((project) => (
+        <ProjectCard
+          slug={project.id}
+          title={project.data.title}
+          description={project.data.description}
+          tags={project.data.tags}
+          image={project.data.image}
+          imageAlt={project.data.imageAlt}
+          url={project.data.url}
+        />
+      ))}
+      {sorted.length === 0 && (
+        <p class="col-span-3 text-center text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] py-20">
+          Coming soon...
+        </p>
+      )}
+    </div>
+  </div>
+</PageLayout>

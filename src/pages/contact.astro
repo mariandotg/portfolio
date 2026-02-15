@@ -1,0 +1,74 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import ContactForm from "../components/ContactForm.tsx";
+import { SITE } from "../config";
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<PageLayout title={t.contact.pageTitle} description={t.contact.pageSubtitle}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <SectionHeader title={t.contact.pageTitle} subtitle={t.contact.pageSubtitle} />
+
+    <div class="grid md:grid-cols-2 gap-12">
+      <!-- Form -->
+      <ContactForm
+        client:load
+        labels={{
+          name: t.contact.formName,
+          email: t.contact.formEmail,
+          projectType: t.contact.formProjectType,
+          budget: t.contact.formBudget,
+          message: t.contact.formMessage,
+          submit: t.contact.formSubmit,
+          sending: t.contact.formSending,
+          success: t.contact.formSuccess,
+          error: t.contact.formError,
+        }}
+        projectTypes={t.contact.projectTypes}
+        budgetRanges={t.contact.budgetRanges}
+      />
+
+      <!-- Alternative contacts -->
+      <div class="flex flex-col gap-8">
+        <div>
+          <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">
+            {t.contact.alternativeTitle}
+          </h3>
+          <div class="space-y-4">
+            <a
+              href={`mailto:${SITE.email}`}
+              class="flex items-center gap-3 text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)] transition-colors"
+            >
+              <span class="text-xl">✉️</span>
+              <span>{SITE.email}</span>
+            </a>
+            <a
+              href={SITE.social.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)] transition-colors"
+            >
+              <span class="text-xl">💼</span>
+              <span>LinkedIn</span>
+            </a>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-3 text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
+                <span class="text-xl">📅</span>
+                <span class="font-medium text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">
+                  {t.contact.calTitle}
+                </span>
+              </div>
+              <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] ml-9">
+                {t.contact.calDesc}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</PageLayout>

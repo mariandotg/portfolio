@@ -1,0 +1,58 @@
+---
+import { SITE } from "../config";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  pubDate?: Date;
+  lang?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = "/og-default.png",
+  type = "website",
+  pubDate,
+  lang = "en",
+  noindex = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.title}`;
+const canonicalURL = new URL(Astro.url.pathname, SITE.url);
+const imageURL = image.startsWith("http") ? image : new URL(image, SITE.url).toString();
+---
+
+<!-- Primary Meta -->
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content={SITE.name} />
+<link rel="canonical" href={canonicalURL} />
+{noindex && <meta name="robots" content="noindex" />}
+
+<!-- Open Graph -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={imageURL} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content={lang === "es" ? "es_AR" : "en_US"} />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@mguillaume06" />
+<meta name="twitter:creator" content="@mguillaume06" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageURL} />
+
+<!-- hreflang -->
+<link rel="alternate" hreflang="en" href={new URL(Astro.url.pathname.replace(/^\/es/, ""), SITE.url)} />
+<link rel="alternate" hreflang="es" href={new URL(`/es${Astro.url.pathname.replace(/^\/es/, "")}`, SITE.url)} />
+<link rel="alternate" hreflang="x-default" href={new URL(Astro.url.pathname.replace(/^\/es/, ""), SITE.url)} />
+
+{pubDate && <meta property="article:published_time" content={pubDate.toISOString()} />}

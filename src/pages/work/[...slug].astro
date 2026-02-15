@@ -1,0 +1,107 @@
+---
+import { getCollection, render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import PageLayout from "../../layouts/PageLayout.astro";
+import TagList from "../../components/TagList.astro";
+import CTABanner from "../../components/CTABanner.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../i18n/utils";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("work");
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"work"> };
+const { Content } = await render(entry);
+const { title, description, client, date, tags, image, imageAlt, url, repo, challenge, approach, outcome } = entry.data;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const formattedDate = date.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
+  year: "numeric",
+  month: "long",
+});
+---
+
+<PageLayout title={title} description={description} image={image} type="article">
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-3 text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-4">
+        {client && <span>{client}</span>}
+        {client && <span>·</span>}
+        <time>{formattedDate}</time>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">
+        {title}
+      </h1>
+      <p class="text-lg text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6">{description}</p>
+      {tags.length > 0 && <TagList tags={tags} />}
+
+      <div class="flex gap-4 mt-6">
+        {url && (
+          <a href={url} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors">
+            {t.work.viewProject} ↗
+          </a>
+        )}
+        {repo && (
+          <a href={repo} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] hover:border-[var(--color-primary)] transition-colors">
+            {t.work.viewRepo} ↗
+          </a>
+        )}
+      </div>
+    </header>
+
+    {image && (
+      <img src={image} alt={imageAlt || title} class="w-full rounded-[var(--radius-md)] mb-10 aspect-video object-cover" />
+    )}
+
+    <!-- Case study sections -->
+    {challenge && (
+      <section class="mb-10">
+        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.challenge}</h2>
+        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{challenge}</p>
+      </section>
+    )}
+
+    {approach && (
+      <section class="mb-10">
+        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.approach}</h2>
+        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{approach}</p>
+      </section>
+    )}
+
+    {outcome && (
+      <section class="mb-10">
+        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.outcome}</h2>
+        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{outcome}</p>
+      </section>
+    )}
+
+    <!-- MDX content -->
+    <div class="prose prose-lg dark:prose-invert max-w-none">
+      <Content />
+    </div>
+
+    <!-- Tech Stack -->
+    {tags.length > 0 && (
+      <div class="mt-10 pt-8 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+        <h2 class="text-lg font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">{t.work.techStack}</h2>
+        <TagList tags={tags} />
+      </div>
+    )}
+
+    <!-- CTA -->
+    <div class="mt-16">
+      <CTABanner
+        title={t.work.ctaText}
+        btnLabel={t.work.ctaBtn}
+        btnHref={getLocalizedPath("/contact", lang)}
+      />
+    </div>
+  </article>
+</PageLayout>

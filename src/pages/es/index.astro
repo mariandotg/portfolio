@@ -1,0 +1,97 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import BlogPostCard from "../../components/BlogPostCard.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import CTABanner from "../../components/CTABanner.astro";
+import SocialLinks from "../../components/SocialLinks.astro";
+import { getCollection } from "astro:content";
+import { useTranslations, getLangFromUrl, getLocalizedPath } from "../../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const latestPosts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const allWork = await getCollection("work");
+const featuredWork = allWork
+  .filter((p) => p.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+
+const services = [
+  { anchor: "fullstack", icon: "⚡", title: t.services.fullstackTitle, desc: t.services.fullstackDesc },
+  { anchor: "consulting", icon: "🔍", title: t.services.consultingTitle, desc: t.services.consultingDesc },
+  { anchor: "frontend", icon: "🎨", title: t.services.frontendTitle, desc: t.services.frontendDesc },
+];
+---
+
+<PageLayout>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-16">
+    <div class="max-w-2xl">
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] leading-tight mb-6">
+        {t.home.heroHeadline}
+      </h1>
+      <p class="text-lg sm:text-xl text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-8 max-w-xl">
+        {t.home.heroSub}
+      </p>
+      <div class="flex flex-wrap gap-4 mb-10">
+        <a href={getLocalizedPath("/contact", lang)} class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary-hover)] transition-colors">
+          {t.home.heroCta}
+        </a>
+        <a href={getLocalizedPath("/work", lang)} class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] font-medium hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
+          {t.home.heroSecondary}
+        </a>
+      </div>
+      <SocialLinks />
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <SectionHeader title={t.home.servicesTitle} subtitle={t.home.servicesSubtitle} />
+    <div class="grid sm:grid-cols-3 gap-6">
+      {services.map(({ anchor, icon, title, desc }) => (
+        <a href={`${getLocalizedPath("/services", lang)}#${anchor}`} class="group flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] hover:border-[var(--color-primary)] transition-colors">
+          <span class="text-2xl">{icon}</span>
+          <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors">{title}</h3>
+          <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  {featuredWork.length > 0 && (
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+      <div class="flex items-end justify-between mb-10">
+        <SectionHeader title={t.home.workTitle} subtitle={t.home.workSubtitle} class="mb-0" />
+        <a href={getLocalizedPath("/work", lang)} class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap">{t.home.workCta} →</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {featuredWork.map((project) => (
+          <ProjectCard slug={project.id} title={project.data.title} description={project.data.description} tags={project.data.tags} image={project.data.image} imageAlt={project.data.imageAlt} url={project.data.url} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {latestPosts.length > 0 && (
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+      <div class="flex items-end justify-between mb-10">
+        <SectionHeader title={t.home.blogTitle} subtitle={t.home.blogSubtitle} class="mb-0" />
+        <a href={getLocalizedPath("/blog", lang)} class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap">{t.home.blogCta} →</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {latestPosts.map((post) => (
+          <BlogPostCard slug={post.id} title={post.data.title} description={post.data.description} pubDate={post.data.pubDate} tags={post.data.tags} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <CTABanner title={t.home.ctaBannerTitle} subtitle={t.home.ctaBannerSub} btnLabel={t.home.ctaBannerBtn} btnHref={getLocalizedPath("/contact", lang)} />
+  </section>
+</PageLayout>

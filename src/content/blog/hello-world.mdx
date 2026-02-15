@@ -1,0 +1,42 @@
+---
+title: "Hello World"
+description: "A sample blog post demonstrating MDX with React components."
+pubDate: 2025-02-15
+tags: ["MDX", "Astro", "React"]
+draft: false
+---
+
+import Counter from "../../components/Counter";
+import AlertBox from "../../components/AlertBox";
+
+Welcome to the blog! This post is written in **MDX**, so you can use React components inline.
+
+<AlertBox type="success" title="Great News!" client:load>
+  React components now work seamlessly in MDX files!
+</AlertBox>
+
+## Interactive Counter
+
+Here is an interactive counter component:
+
+<Counter client:load />
+
+## Alert Examples
+
+<AlertBox type="info" title="Information" client:load>
+  This is an informational alert.
+</AlertBox>
+
+<AlertBox type="warning" client:load>
+  This is a warning without a title.
+</AlertBox>
+
+<AlertBox type="error" title="Error" client:load>
+  Something went wrong!
+</AlertBox>
+
+## How It Works
+
+1. Import your React component at the top of the MDX file
+2. Use it with the `client:load` directive
+3. Pass props as normal React props

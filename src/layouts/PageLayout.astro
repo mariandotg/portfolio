@@ -1,0 +1,32 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  pubDate?: Date;
+  noindex?: boolean;
+  class?: string;
+}
+
+const { title, description, image, type, pubDate, noindex, class: className } = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={image}
+  type={type}
+  pubDate={pubDate}
+  noindex={noindex}
+>
+  <Nav />
+  <main class:list={["flex-1", className]}>
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>

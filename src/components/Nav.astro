@@ -1,0 +1,49 @@
+---
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
+import ThemeToggle from "./ThemeToggle.tsx";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
+import { SITE } from "../config";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const navLinks = [
+  { label: t.nav.work, href: getLocalizedPath("/work", lang) },
+  { label: t.nav.services, href: getLocalizedPath("/services", lang) },
+  { label: t.nav.blog, href: getLocalizedPath("/blog", lang) },
+  { label: t.nav.about, href: getLocalizedPath("/about", lang) },
+];
+---
+
+<header class="sticky top-0 z-50 w-full border-b border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] bg-[var(--color-light)]/90 dark:bg-[var(--color-dark)]/90 backdrop-blur-sm">
+  <nav class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href={getLocalizedPath("/", lang)} class="font-bold text-lg text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] hover:text-[var(--color-primary)] transition-colors">
+      {SITE.name}
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="hidden md:flex items-center gap-6">
+      {navLinks.map(({ label, href }) => (
+        <a
+          href={href}
+          class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)] transition-colors"
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+
+    <!-- Right side -->
+    <div class="flex items-center gap-3">
+      <LanguageSwitcher />
+      <ThemeToggle client:load />
+      <a
+        href={getLocalizedPath("/contact", lang)}
+        class="hidden md:inline-flex items-center px-4 py-2 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary-hover)] transition-colors"
+      >
+        {t.nav.hire}
+      </a>
+    </div>
+  </nav>
+</header>

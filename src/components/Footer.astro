@@ -1,0 +1,37 @@
+---
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import SocialLinks from "./SocialLinks.astro";
+import NewsletterCard from "./NewsletterCard.tsx";
+import { SITE } from "../config";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] mt-auto">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-4">
+    <NewsletterCard
+      client:visible
+      labels={{
+        title: t.newsletter.title,
+        description: t.newsletter.description,
+        placeholder: t.newsletter.placeholder,
+        subscribe: t.newsletter.subscribe,
+        subscribing: t.newsletter.subscribing,
+        success: t.newsletter.success,
+        error: t.newsletter.error,
+        privacy: t.newsletter.privacy,
+      }}
+    />
+  </div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
+      © {year} {SITE.name}. {t.footer.rights}
+    </p>
+    <div class="flex items-center gap-6">
+      <span class="text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{t.footer.madeWith}</span>
+      <SocialLinks />
+    </div>
+  </div>
+</footer>

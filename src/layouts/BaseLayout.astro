@@ -1,0 +1,49 @@
+---
+import SEO from "../components/SEO.astro";
+import "../styles/global.css";
+import { getLangFromUrl } from "../i18n/utils";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  pubDate?: Date;
+  noindex?: boolean;
+}
+
+const { title, description, image, type, pubDate, noindex } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+---
+
+<!doctype html>
+<html lang={lang} class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,700;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+    <SEO
+      title={title}
+      description={description}
+      image={image}
+      type={type}
+      pubDate={pubDate}
+      lang={lang}
+      noindex={noindex}
+    />
+    <script is:inline>
+      // Prevent flash of wrong theme
+      const stored = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (stored === "dark" || (!stored && prefersDark)) {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </head>
+  <body class="flex flex-col min-h-full font-[var(--font-family-display)]">
+    <slot />
+  </body>
+</html>

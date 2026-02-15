@@ -1,0 +1,60 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import CTABanner from "../../components/CTABanner.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const services = [
+  { id: "fullstack", icon: "⚡", title: t.services.fullstackTitle, desc: t.services.fullstackDesc, techs: ["React", "Next.js", "Astro", "Node.js", "TypeScript", "PostgreSQL"] },
+  { id: "consulting", icon: "🔍", title: t.services.consultingTitle, desc: t.services.consultingDesc, techs: ["Architecture", "Performance", "Tech Stack Review", "Code Review"] },
+  { id: "frontend", icon: "🎨", title: t.services.frontendTitle, desc: t.services.frontendDesc, techs: ["React", "Tailwind CSS", "Figma", "Storybook", "Accessibility"] },
+  { id: "modernization", icon: "🔄", title: t.services.modernTitle, desc: t.services.modernDesc, techs: ["Next.js → Astro", "JavaScript → TypeScript", "REST → GraphQL"] },
+];
+
+const steps = [
+  { n: "01", title: t.services.step1, desc: t.services.step1Desc },
+  { n: "02", title: t.services.step2, desc: t.services.step2Desc },
+  { n: "03", title: t.services.step3, desc: t.services.step3Desc },
+  { n: "04", title: t.services.step4, desc: t.services.step4Desc },
+];
+---
+
+<PageLayout title={t.services.pageTitle} description={t.services.pageSubtitle}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <SectionHeader title={t.services.pageTitle} subtitle={t.services.pageSubtitle} />
+    <div class="space-y-8 mb-20">
+      {services.map(({ id, icon, title, desc, techs }) => (
+        <div id={id} class="p-8 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] scroll-mt-24">
+          <div class="flex items-start gap-4 mb-4">
+            <span class="text-3xl">{icon}</span>
+            <div>
+              <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{title}</h2>
+              <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mt-2">{desc}</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            {techs.map((tech) => (
+              <span class="px-3 py-1 text-sm rounded-full bg-[var(--color-light-subtle)] dark:bg-[var(--color-dark-subtle)] text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{tech}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div class="mb-20">
+      <SectionHeader title={t.services.processTitle} />
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {steps.map(({ n, title, desc }) => (
+          <div class="flex flex-col gap-3">
+            <span class="text-3xl font-bold text-[var(--color-primary)] opacity-60">{n}</span>
+            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{title}</h3>
+            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+    <CTABanner title={t.services.ctaTitle} btnLabel={t.services.ctaBtn} btnHref={getLocalizedPath("/contact", lang)} />
+  </div>
+</PageLayout>

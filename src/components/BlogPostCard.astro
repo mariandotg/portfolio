@@ -1,0 +1,51 @@
+---
+import TagList from "./TagList.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
+
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags?: string[];
+  readingTime?: number;
+}
+
+const { slug, title, description, pubDate, tags = [], readingTime } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+
+const href = getLocalizedPath(`/blog/${slug}`, lang);
+---
+
+<article class="group flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] bg-white dark:bg-[#0f0f0f] hover:border-[var(--color-primary)] transition-colors">
+  <div class="flex items-center gap-2 text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
+    <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+    {readingTime && (
+      <>
+        <span>·</span>
+        <span>{readingTime} {t.blog.readingTime}</span>
+      </>
+    )}
+  </div>
+
+  <h3 class="text-lg font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors leading-snug">
+    <a href={href}>{title}</a>
+  </h3>
+
+  <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] line-clamp-2 flex-1">
+    {description}
+  </p>
+
+  {tags.length > 0 && <TagList tags={tags} />}
+
+  <a href={href} class="text-sm font-medium text-[var(--color-primary)] hover:underline mt-1">
+    {t.common.readMore}
+  </a>
+</article>

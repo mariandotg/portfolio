@@ -1,0 +1,56 @@
+---
+import TagList from "./TagList.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
+
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  tags?: string[];
+  image?: string;
+  imageAlt?: string;
+  url?: string;
+}
+
+const { slug, title, description, tags = [], image, imageAlt, url } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const href = getLocalizedPath(`/work/${slug}`, lang);
+---
+
+<article class="group flex flex-col rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] bg-white dark:bg-[#0f0f0f] hover:border-[var(--color-primary)] transition-colors overflow-hidden">
+  {image ? (
+    <img
+      src={image}
+      alt={imageAlt || title}
+      class="w-full aspect-video object-cover"
+    />
+  ) : (
+    <div class="w-full aspect-video bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] flex items-center justify-center">
+      <span class="text-4xl text-[var(--color-primary)] opacity-30">◆</span>
+    </div>
+  )}
+
+  <div class="flex flex-col gap-3 p-6 flex-1">
+    <h3 class="text-lg font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors">
+      <a href={href}>{title}</a>
+    </h3>
+
+    <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] line-clamp-2 flex-1">
+      {description}
+    </p>
+
+    {tags.length > 0 && <TagList tags={tags} />}
+
+    <div class="flex gap-3 mt-2">
+      <a href={href} class="text-sm font-medium text-[var(--color-primary)] hover:underline">
+        {t.common.readMore}
+      </a>
+      {url && (
+        <a href={url} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)]">
+          {t.work.viewProject} ↗
+        </a>
+      )}
+    </div>
+  </div>
+</article>

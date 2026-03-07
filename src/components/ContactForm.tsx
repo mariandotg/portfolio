@@ -4,22 +4,29 @@ interface ContactFormProps {
   labels: {
     name: string;
     email: string;
+    engagementModel: string;
     projectType: string;
     budget: string;
+    timeline: string;
+    selectPlaceholder: string;
     message: string;
     submit: string;
     sending: string;
     success: string;
     error: string;
   };
+  engagementModels: string[];
   projectTypes: string[];
   budgetRanges: string[];
+  timelines: string[];
 }
 
 export default function ContactForm({
   labels,
+  engagementModels,
   projectTypes,
   budgetRanges,
+  timelines,
 }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,8 +47,10 @@ export default function ContactForm({
     const data = {
       name: (form.elements.namedItem("name") as HTMLInputElement).value,
       email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      engagement_model: (form.elements.namedItem("engagement_model") as HTMLSelectElement).value,
       project_type: (form.elements.namedItem("project_type") as HTMLSelectElement).value,
       budget: (form.elements.namedItem("budget") as HTMLSelectElement).value,
+      timeline: (form.elements.namedItem("timeline") as HTMLSelectElement).value,
       message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
       _honeypot: (form.elements.namedItem("_honeypot") as HTMLInputElement).value,
     };
@@ -102,12 +111,31 @@ export default function ContactForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <label htmlFor="engagement_model" className={labelClass}>{labels.engagementModel}</label>
+        <select
+          id="engagement_model"
+          name="engagement_model"
+          required
+          defaultValue=""
+          className={inputClass}
+        >
+          <option value="" disabled>{labels.selectPlaceholder}</option>
+          {engagementModels.map((model) => (
+            <option key={model} value={model}>{model}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="project_type" className={labelClass}>{labels.projectType}</label>
         <select
           id="project_type"
           name="project_type"
+          required
+          defaultValue=""
           className={inputClass}
         >
+          <option value="" disabled>{labels.selectPlaceholder}</option>
           {projectTypes.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
@@ -119,10 +147,29 @@ export default function ContactForm({
         <select
           id="budget"
           name="budget"
+          required
+          defaultValue=""
           className={inputClass}
         >
+          <option value="" disabled>{labels.selectPlaceholder}</option>
           {budgetRanges.map((range) => (
             <option key={range} value={range}>{range}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="timeline" className={labelClass}>{labels.timeline}</label>
+        <select
+          id="timeline"
+          name="timeline"
+          required
+          defaultValue=""
+          className={inputClass}
+        >
+          <option value="" disabled>{labels.selectPlaceholder}</option>
+          {timelines.map((timeline) => (
+            <option key={timeline} value={timeline}>{timeline}</option>
           ))}
         </select>
       </div>

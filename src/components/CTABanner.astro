@@ -1,4 +1,6 @@
 ---
+import Button from "./Button.astro";
+
 interface Props {
   title: string;
   subtitle?: string;
@@ -15,10 +17,5 @@ const { title, subtitle, btnLabel, btnHref } = Astro.props;
   {subtitle && (
     <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6 max-w-lg mx-auto">{subtitle}</p>
   )}
-  <a
-    href={btnHref}
-    class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary-hover)] transition-colors"
-  >
-    {btnLabel}
-  </a>
+  <Button href={btnHref}>{btnLabel}</Button>
 </section>

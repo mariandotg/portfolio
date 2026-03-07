@@ -2,10 +2,12 @@
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import ThemeToggle from "./ThemeToggle.tsx";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
+import Button from "./Button.astro";
 import { SITE } from "../config";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const isBookingExternal = SITE.bookingUrl.startsWith("http");
 
 const navLinks = [
   { label: t.nav.work, href: getLocalizedPath("/work", lang) },
@@ -38,12 +40,15 @@ const navLinks = [
     <div class="flex items-center gap-3">
       <LanguageSwitcher />
       <ThemeToggle client:load />
-      <a
-        href={getLocalizedPath("/contact", lang)}
-        class="hidden md:inline-flex items-center px-4 py-2 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white text-sm font-medium hover:bg-[var(--color-primary-hover)] transition-colors"
+      <Button
+        href={SITE.bookingUrl}
+        target={isBookingExternal ? "_blank" : undefined}
+        rel={isBookingExternal ? "noopener noreferrer" : undefined}
+        size="sm"
+        class="hidden md:inline-flex"
       >
         {t.nav.hire}
-      </a>
+      </Button>
     </div>
   </nav>
 </header>

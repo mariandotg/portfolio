@@ -2,96 +2,396 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import SectionHeader from "../../components/SectionHeader.astro";
 import BlogPostCard from "../../components/BlogPostCard.astro";
-import ProjectCard from "../../components/ProjectCard.astro";
 import CTABanner from "../../components/CTABanner.astro";
+import Button from "../../components/Button.astro";
 import SocialLinks from "../../components/SocialLinks.astro";
+import TrustBar from "../../components/TrustBar.astro";
+import { SITE } from "../../config";
 import { getCollection } from "astro:content";
 import { useTranslations, getLangFromUrl, getLocalizedPath } from "../../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const isBookingExternal = SITE.bookingUrl.startsWith("http");
 
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 const latestPosts = allPosts
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 
-const allWork = await getCollection("work");
-const featuredWork = allWork
-  .filter((p) => p.data.featured)
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
+const painPoints = [
+  { icon: "🕐", title: t.home.pain1Title, desc: t.home.pain1Desc },
+  { icon: "🏗️", title: t.home.pain2Title, desc: t.home.pain2Desc },
+  { icon: "🤝", title: t.home.pain3Title, desc: t.home.pain3Desc },
+];
 
 const services = [
-  { anchor: "fullstack", icon: "⚡", title: t.services.fullstackTitle, desc: t.services.fullstackDesc },
-  { anchor: "consulting", icon: "🔍", title: t.services.consultingTitle, desc: t.services.consultingDesc },
-  { anchor: "frontend", icon: "🎨", title: t.services.frontendTitle, desc: t.services.frontendDesc },
+  {
+    icon: "⚡",
+    title: t.home.service1Title,
+    desc: t.home.service1Desc,
+    href: getLocalizedPath("/services", lang) + "#fullstack",
+  },
+  {
+    icon: "🔍",
+    title: t.home.service2Title,
+    desc: t.home.service2Desc,
+    href: getLocalizedPath("/services", lang) + "#consulting",
+  },
+  {
+    icon: "🔄",
+    title: t.home.service3Title,
+    desc: t.home.service3Desc,
+    href: getLocalizedPath("/services", lang) + "#modernization",
+  },
 ];
+
+const clientLogos = ["Renault", "Interbanking", "Banco Macro"];
+
+const steps = [
+  { n: "01", title: t.services.step1, desc: t.services.step1Desc },
+  { n: "02", title: t.services.step2, desc: t.services.step2Desc },
+  { n: "03", title: t.services.step3, desc: t.services.step3Desc },
+  { n: "04", title: t.services.step4, desc: t.services.step4Desc },
+];
+
+const stats = [
+  { value: t.home.stat1Value, label: t.home.stat1Label },
+  { value: t.home.stat2Value, label: t.home.stat2Label },
+  { value: t.home.stat3Value, label: t.home.stat3Label },
+  { value: t.home.stat4Value, label: t.home.stat4Label },
+];
+
+const outcomes = [
+  { value: t.home.proof1Value, label: t.home.proof1Label },
+  { value: t.home.proof2Value, label: t.home.proof2Label },
+  { value: t.home.proof3Value, label: t.home.proof3Label },
+];
+
+const engagementPaths = [
+  {
+    title: t.home.lane1Title,
+    desc: t.home.lane1Desc,
+    cta: t.home.lane1Cta,
+    href: SITE.bookingUrl,
+    external: isBookingExternal,
+  },
+  {
+    title: t.home.lane2Title,
+    desc: t.home.lane2Desc,
+    cta: t.home.lane2Cta,
+    href: getLocalizedPath("/contact", lang),
+    external: false,
+  },
+];
+
 ---
 
 <PageLayout>
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-16">
-    <div class="max-w-2xl">
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] leading-tight mb-6">
-        {t.home.heroHeadline}
+  <!-- Hero -->
+  <section class="flex justify-center px-4 pb-16 mx-auto max-w-5xl min-h-[calc(100vh-80px)] sm:px-6">
+    <div class="flex flex-col justify-center w-full">
+      <div class="hero-eyebrow mb-5">
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
+          <span class="size-1.5 rounded-full bg-[var(--color-primary)] inline-block"></span>
+          {t.home.available}
+        </span>
+      </div>
+      <h1 class="hero-title text-4xl sm:text-5xl lg:text-6xl font-extralight text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] leading-[1.15] mb-6">
+        {t.home.heroTitle}<br /><span class="font-medium gradient-text">{t.home.heroTitleAccent}</span>.
       </h1>
-      <p class="text-lg sm:text-xl text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-8 max-w-xl">
+      <p class="hero-sub mb-8 max-w-xl text-lg sm:text-xl text-[var(--color-light-text)] dark:text-[#f3f3f3] font-inter">
         {t.home.heroSub}
       </p>
-      <div class="flex flex-wrap gap-4 mb-10">
-        <a href={getLocalizedPath("/contact", lang)} class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary-hover)] transition-colors">
+      <div class="hero-cta flex flex-wrap gap-4 mb-10">
+        <Button
+          href={SITE.bookingUrl}
+          target={isBookingExternal ? "_blank" : undefined}
+          rel={isBookingExternal ? "noopener noreferrer" : undefined}
+        >
           {t.home.heroCta}
-        </a>
-        <a href={getLocalizedPath("/work", lang)} class="inline-flex items-center px-6 py-3 rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] font-medium hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
-          {t.home.heroSecondary}
-        </a>
+        </Button>
+        <Button href="#process" variant="secondary">{t.home.heroSecondary}</Button>
       </div>
-      <SocialLinks />
+      <div class="hero-proof grid gap-3 sm:grid-cols-3 mb-10 max-w-3xl">
+        {
+          outcomes.map(({ value, label }) => (
+            <div class="rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] px-4 py-3">
+              <p class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{value}</p>
+              <p class="text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{label}</p>
+            </div>
+          ))
+        }
+      </div>
+      <div class="hero-social mb-6">
+        <SocialLinks />
+      </div>
+      <div class="hero-trust">
+        <TrustBar />
+      </div>
     </div>
   </section>
 
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-    <SectionHeader title={t.home.servicesTitle} subtitle={t.home.servicesSubtitle} />
-    <div class="grid sm:grid-cols-3 gap-6">
-      {services.map(({ anchor, icon, title, desc }) => (
-        <a href={`${getLocalizedPath("/services", lang)}#${anchor}`} class="group flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] hover:border-[var(--color-primary)] transition-colors">
-          <span class="text-2xl">{icon}</span>
-          <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors">{title}</h3>
-          <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
-        </a>
+  <!-- Client Logos -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-12 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <p class="text-center text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6">{t.home.clientsTitle}</p>
+    <div class="flex flex-wrap justify-center items-center gap-8 sm:gap-12">
+      {clientLogos.map((name) => (
+        <span class="text-lg sm:text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] opacity-50 hover:opacity-80 transition-opacity">{name}</span>
       ))}
     </div>
   </section>
 
-  {featuredWork.length > 0 && (
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-      <div class="flex items-end justify-between mb-10">
-        <SectionHeader title={t.home.workTitle} subtitle={t.home.workSubtitle} class="mb-0" />
-        <a href={getLocalizedPath("/work", lang)} class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap">{t.home.workCta} →</a>
-      </div>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {featuredWork.map((project) => (
-          <ProjectCard slug={project.id} title={project.data.title} description={project.data.description} tags={project.data.tags} image={project.data.image} imageAlt={project.data.imageAlt} url={project.data.url} />
-        ))}
-      </div>
-    </section>
-  )}
+  <!-- Engagement Paths -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <SectionHeader title={t.home.lanesTitle} subtitle={t.home.lanesSubtitle} />
+    <div class="grid gap-6 md:grid-cols-2">
+      {
+        engagementPaths.map(({ title, desc, cta, href, external }) => (
+          <div class="flex flex-col gap-4 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{title}</h3>
+            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+            <a
+              href={href}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+              class="inline-flex w-fit items-center px-5 py-2.5 rounded-4xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors"
+            >
+              {cta}
+            </a>
+          </div>
+        ))
+      }
+    </div>
+  </section>
 
-  {latestPosts.length > 0 && (
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-      <div class="flex items-end justify-between mb-10">
-        <SectionHeader title={t.home.blogTitle} subtitle={t.home.blogSubtitle} class="mb-0" />
-        <a href={getLocalizedPath("/blog", lang)} class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap">{t.home.blogCta} →</a>
-      </div>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {latestPosts.map((post) => (
-          <BlogPostCard slug={post.id} title={post.data.title} description={post.data.description} pubDate={post.data.pubDate} tags={post.data.tags} />
-        ))}
-      </div>
-    </section>
-  )}
+  <!-- Pain Points -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <SectionHeader title={t.home.painTitle} subtitle={t.home.painSub} />
+    <div class="grid gap-6 sm:grid-cols-3">
+      {
+        painPoints.map(({ icon, title, desc }) => (
+          <div class="flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]" style="border-left: 3px solid var(--color-primary);">
+            <div class="w-10 h-10 rounded-[var(--radius-sm)] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] flex items-center justify-center text-xl">
+              {icon}
+            </div>
+            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">
+              {title}
+            </h3>
+            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
 
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-    <CTABanner title={t.home.ctaBannerTitle} subtitle={t.home.ctaBannerSub} btnLabel={t.home.ctaBannerBtn} btnHref={getLocalizedPath("/contact", lang)} />
+  <!-- Who I Work With -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <SectionHeader title={t.home.icpTitle} subtitle={t.home.icpSubtitle} />
+    <div class="grid gap-6 sm:grid-cols-3">
+      {[
+        { title: t.home.icp1Title, desc: t.home.icp1Desc },
+        { title: t.home.icp2Title, desc: t.home.icp2Desc },
+        { title: t.home.icp3Title, desc: t.home.icp3Desc },
+      ].map(({ title, desc }) => (
+        <div class="flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+          <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{title}</h3>
+          <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <div class="flex justify-between items-end mb-10">
+      <SectionHeader title={t.home.servicesTitle} subtitle={t.home.servicesSubtitle} class="mb-0" />
+      <a
+        href={getLocalizedPath("/services", lang)}
+        class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap hidden sm:block"
+      >
+        {t.home.servicesCta} →
+      </a>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2">
+      {
+        services.map(({ icon, title, desc, href }) => (
+          <a
+            href={href}
+            class="group flex flex-col gap-3 p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] hover:border-[var(--color-primary)] transition-colors"
+          >
+            <span class="text-2xl">{icon}</span>
+            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors">
+              {title}
+            </h3>
+            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+          </a>
+        ))
+      }
+    </div>
+    <div class="mt-6 sm:hidden">
+      <a href={getLocalizedPath("/services", lang)} class="text-sm font-medium text-[var(--color-primary)] hover:underline">
+        {t.home.servicesCta} →
+      </a>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section
+    id="process"
+    data-scroll
+    class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] scroll-mt-20"
+  >
+    <SectionHeader title={t.home.processTitle} subtitle={t.home.processSubtitle} />
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {
+        steps.map(({ n, title, desc }) => (
+          <div class="flex flex-col gap-3">
+            <span class="text-3xl font-bold text-[var(--color-primary)] opacity-60">{n}</span>
+            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">
+              {title}
+            </h3>
+            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{desc}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Credibility: Stats + Tech -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <SectionHeader title={t.home.credTitle} subtitle={t.home.credSubtitle} />
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-12">
+      {
+        stats.map(({ value, label }) => (
+          <div class="flex flex-col gap-1">
+            <span class="text-3xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">
+              {value}
+            </span>
+            <span class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{label}</span>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Latest Blog Posts -->
+  {
+    latestPosts.length > 0 && (
+      <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+        <div class="flex justify-between items-end mb-10">
+          <SectionHeader title={t.home.blogTitle} subtitle={t.home.blogSubtitle} class="mb-0" />
+          <a
+            href={getLocalizedPath("/blog", lang)}
+            class="text-sm font-medium text-[var(--color-primary)] hover:underline whitespace-nowrap"
+          >
+            {t.home.blogCta} →
+          </a>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {latestPosts.map((post) => (
+            <BlogPostCard
+              slug={post.id}
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- CTA Banner -->
+  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+    <CTABanner
+      title={t.home.ctaBannerTitle}
+      subtitle={t.home.ctaBannerSub}
+      btnLabel={t.home.ctaBannerBtn}
+      btnHref={SITE.bookingUrl}
+    />
   </section>
 </PageLayout>
+
+<style>
+  .hero-eyebrow,
+  .hero-title,
+  .hero-sub,
+  .hero-cta,
+  .hero-proof,
+  .hero-social,
+  .hero-trust,
+  [data-scroll] {
+    opacity: 0;
+  }
+</style>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero sequence
+  gsap.fromTo(
+    ".hero-eyebrow",
+    { opacity: 0, y: 10 },
+    { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+  );
+
+  gsap.fromTo(
+    ".hero-title",
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: 0, duration: 0.8, delay: 0.15, ease: "cubic-bezier(0.22, 1, 0.36, 1)" },
+  );
+
+  gsap.fromTo(
+    ".hero-sub",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.7, delay: 0.35, ease: "power2.out" },
+  );
+
+  gsap.fromTo(
+    ".hero-cta",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: "power2.out" },
+  );
+
+  gsap.fromTo(
+    ".hero-proof",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.7, delay: 0.62, ease: "power2.out" },
+  );
+
+  gsap.fromTo(
+    ".hero-social",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.7, delay: 0.74, ease: "power2.out" },
+  );
+
+  gsap.fromTo(
+    ".hero-trust",
+    { opacity: 0 },
+    { opacity: 1, duration: 0.6, delay: 0.92, ease: "power2.out" },
+  );
+
+  // Scroll-triggered sections
+  document.querySelectorAll<HTMLElement>("[data-scroll]").forEach((section) => {
+    gsap.fromTo(
+      section,
+      { opacity: 0, y: 40 },
+      {
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          toggleActions: "play none none none",
+        },
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        ease: "power2.out",
+      },
+    );
+  });
+</script>

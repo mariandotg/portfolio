@@ -1,42 +1,62 @@
 ---
-title: "Hello World"
-description: "A sample blog post demonstrating MDX with React components."
+title: "How I Scope Custom Web Products in 5 Working Days"
+description: "A practical framework for defining scope, timeline, and budget before writing production code."
 pubDate: 2025-02-15
-tags: ["MDX", "Astro", "React"]
+tags: ["Product Strategy", "MVP", "Client Work"]
 draft: false
 ---
 
-import Counter from "../../components/Counter";
-import AlertBox from "../../components/AlertBox";
+Most projects do not fail because of code quality.  
+They fail because scope, decision ownership, and success criteria are fuzzy at kickoff.
 
-Welcome to the blog! This post is written in **MDX**, so you can use React components inline.
+When I work with a new client, I use a five-day scoping process to reduce delivery risk before implementation starts.
 
-<AlertBox type="success" title="Great News!" client:load>
-  React components now work seamlessly in MDX files!
-</AlertBox>
+## Day 1: Business Context
 
-## Interactive Counter
+I map the problem to measurable business impact:
 
-Here is an interactive counter component:
+- What process is broken today?
+- What is the cost of not fixing it?
+- Who owns the outcome on the client side?
 
-<Counter client:load />
+Output: a one-page problem statement with explicit success metrics.
 
-## Alert Examples
+## Day 2: User Flows and Constraints
 
-<AlertBox type="info" title="Information" client:load>
-  This is an informational alert.
-</AlertBox>
+I define the critical user journeys and non-negotiable constraints:
 
-<AlertBox type="warning" client:load>
-  This is a warning without a title.
-</AlertBox>
+- Core paths users must complete
+- Compliance or security constraints
+- Existing system dependencies
 
-<AlertBox type="error" title="Error" client:load>
-  Something went wrong!
-</AlertBox>
+Output: annotated flow diagram and dependency map.
 
-## How It Works
+## Day 3: Scope Boundaries
 
-1. Import your React component at the top of the MDX file
-2. Use it with the `client:load` directive
-3. Pass props as normal React props
+I separate the first release into:
+
+- Must-have for launch
+- Should-have for next phase
+- Nice-to-have backlog
+
+Output: versioned scope document with explicit "not in v1" list.
+
+## Day 4: Delivery Plan
+
+I break the work into milestones with acceptance criteria:
+
+- Milestone owner
+- Delivery date
+- Demo checklist
+
+Output: timeline and milestone plan with weekly checkpoints.
+
+## Day 5: Budget and Risk Review
+
+I align budget and timeline against the scoped milestones, then call out the top delivery risks and mitigation strategy.
+
+Output: final proposal with transparent assumptions.
+
+## Why This Works
+
+A structured scoping week reduces ambiguity before development, shortens decision cycles, and gives both sides a clear operating model for delivery.

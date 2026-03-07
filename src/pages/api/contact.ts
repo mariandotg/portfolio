@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { name, email, message, project_type, budget, _honeypot } = body;
+  const { name, email, message, engagement_model, project_type, budget, timeline, _honeypot } = body;
 
   // Spam check
   if (_honeypot) {
@@ -29,9 +29,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   // Validation
-  if (!name || !email || !message) {
+  if (!name || !email || !engagement_model || !project_type || !budget || !timeline || !message) {
     return new Response(
-      JSON.stringify({ error: "Name, email, and message are required" }),
+      JSON.stringify({ error: "Please complete all required fields" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -49,13 +49,15 @@ export const POST: APIRoute = async ({ request }) => {
       from: "Portfolio Contact <onboarding@resend.dev>",
       to: SITE.email,
       reply_to: email,
-      subject: `New Contact: ${name}${project_type ? ` - ${project_type}` : ""}`,
+      subject: `New Contact: ${name} - ${engagement_model}`,
       html: `
         <h2>New contact form submission</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        ${project_type ? `<p><strong>Project Type:</strong> ${project_type}</p>` : ""}
-        ${budget ? `<p><strong>Budget:</strong> ${budget}</p>` : ""}
+        <p><strong>Engagement Model:</strong> ${engagement_model}</p>
+        <p><strong>Project Type:</strong> ${project_type}</p>
+        <p><strong>Budget:</strong> ${budget}</p>
+        <p><strong>Timeline:</strong> ${timeline}</p>
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, "<br>")}</p>
       `,

@@ -21,7 +21,8 @@
 
   --font-family-display: 'IBM Plex Sans', system-ui, sans-serif;
   --font-family-mono: 'IBM Plex Mono', system-ui, monospace;
-
+  --font-family-inter: 'Inter', system-ui, sans-serif;
+  
   --breakpoint-mobile: 550px;
   --breakpoint-tablet: 834px;
   --breakpoint-desktop: 1024px;
@@ -65,7 +66,26 @@ html.dark body {
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-light-headlines);
-  font-weight: 700;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg,rgba(42, 123, 155, 1) 0%, rgb(238, 82, 173) 50%, rgb(106, 151, 235) 100%);
+  
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-text 3s ease-in-out infinite;
+}
+
+@keyframes gradient-text {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 html.dark h1,
@@ -78,7 +98,6 @@ html.dark h6 {
 }
 
 a {
-  color: inherit;
   text-decoration: none;
 }
 
@@ -118,4 +137,8 @@ html.dark .prose {
 
 .prose {
   --tw-prose-links: var(--color-primary);
+}
+
+.font-inter {
+  font-family: var(--font-family-inter);
 }

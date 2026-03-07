@@ -2,11 +2,13 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import ContactForm from "../components/ContactForm.tsx";
+import Button from "../components/Button.astro";
 import { SITE } from "../config";
 import { getLangFromUrl, useTranslations } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const isBookingExternal = SITE.bookingUrl.startsWith("http");
 ---
 
 <PageLayout title={t.contact.pageTitle} description={t.contact.pageSubtitle}>
@@ -20,20 +22,41 @@ const t = useTranslations(lang);
         labels={{
           name: t.contact.formName,
           email: t.contact.formEmail,
+          engagementModel: t.contact.formEngagementModel,
           projectType: t.contact.formProjectType,
           budget: t.contact.formBudget,
+          timeline: t.contact.formTimeline,
+          selectPlaceholder: t.contact.formSelectPlaceholder,
           message: t.contact.formMessage,
           submit: t.contact.formSubmit,
           sending: t.contact.formSending,
           success: t.contact.formSuccess,
           error: t.contact.formError,
         }}
+        engagementModels={t.contact.engagementModels}
         projectTypes={t.contact.projectTypes}
         budgetRanges={t.contact.budgetRanges}
+        timelines={t.contact.timelines}
       />
 
       <!-- Alternative contacts -->
       <div class="flex flex-col gap-8">
+        <div class="p-6 rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)]">
+          <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-2">
+            {t.contact.calTitle}
+          </h3>
+          <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-4">
+            {t.contact.calDesc}
+          </p>
+          <Button
+            href={SITE.bookingUrl}
+            target={isBookingExternal ? "_blank" : undefined}
+            rel={isBookingExternal ? "noopener noreferrer" : undefined}
+          >
+            {t.contact.calCta}
+          </Button>
+        </div>
+
         <div>
           <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">
             {t.contact.alternativeTitle}
@@ -55,17 +78,6 @@ const t = useTranslations(lang);
               <span class="text-xl">💼</span>
               <span>LinkedIn</span>
             </a>
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-3 text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
-                <span class="text-xl">📅</span>
-                <span class="font-medium text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">
-                  {t.contact.calTitle}
-                </span>
-              </div>
-              <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] ml-9">
-                {t.contact.calDesc}
-              </p>
-            </div>
           </div>
         </div>
       </div>

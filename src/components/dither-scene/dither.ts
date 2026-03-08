@@ -7,6 +7,15 @@
  *
  * This produces the classic newspaper/halftone print aesthetic seen in the reference.
  */
+interface HalftoneOptions {
+  /** Clear the output canvas before drawing (default: true). */
+  clear?: boolean;
+  /** X offset where sourceData's (0,0) maps on the destination canvas. */
+  offsetX?: number;
+  /** Y offset where sourceData's (0,0) maps on the destination canvas. */
+  offsetY?: number;
+}
+
 export function applyHalftone(
   ctx: CanvasRenderingContext2D,
   sourceData: ImageData,
@@ -22,8 +31,12 @@ export function applyHalftone(
   fgB: number,
   /** Foreground dot opacity (0-1). Controls how visible the dots are over the page. */
   fgAlpha: number,
+  options?: HalftoneOptions,
 ): void {
-  const { data, width: srcW } = sourceData;
+  const { data, width: srcW, height: srcH } = sourceData;
+  const clear = options?.clear ?? true;
+  const offsetX = options?.offsetX ?? 0;
+  const offsetY = options?.offsetY ?? 0;
 
   /**
    * Maximum dot radius as a fraction of dotSpacing.
@@ -34,16 +47,23 @@ export function applyHalftone(
 
   const fillStyle = `rgba(${fgR},${fgG},${fgB},${fgAlpha})`;
 
-  ctx.clearRect(0, 0, canvasW, canvasH);
+  if (clear) ctx.clearRect(0, 0, canvasW, canvasH);
   ctx.fillStyle = fillStyle;
+
+  const startX = Math.max(0, Math.floor(offsetX / dotSpacing) * dotSpacing);
+  const startY = Math.max(0, Math.floor(offsetY / dotSpacing) * dotSpacing);
+  const endX = Math.min(canvasW, Math.ceil((offsetX + srcW) / dotSpacing) * dotSpacing);
+  const endY = Math.min(canvasH, Math.ceil((offsetY + srcH) / dotSpacing) * dotSpacing);
 
   // Walk a uniform grid over the canvas. At each cell, sample the grayscale
   // source and decide dot size.
-  for (let gy = 0; gy < canvasH; gy += dotSpacing) {
-    for (let gx = 0; gx < canvasW; gx += dotSpacing) {
+  for (let gy = startY; gy < endY; gy += dotSpacing) {
+    for (let gx = startX; gx < endX; gx += dotSpacing) {
+      if (gx < offsetX || gx >= offsetX + srcW || gy < offsetY || gy >= offsetY + srcH) continue;
+
       // Sample the source pixel at this grid position
-      const sx = Math.min(Math.round(gx), srcW - 1);
-      const sy = Math.min(Math.round(gy), (data.length / 4 / srcW) - 1);
+      const sx = Math.min(Math.max(Math.round(gx - offsetX), 0), srcW - 1);
+      const sy = Math.min(Math.max(Math.round(gy - offsetY), 0), srcH - 1);
       const i = (sy * srcW + sx) * 4;
 
       // Skip fully transparent pixels (no geometry was rendered here)

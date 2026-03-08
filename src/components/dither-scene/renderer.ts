@@ -6,7 +6,11 @@ import { applyHalftone } from "./dither";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface SceneObject {
+  /** Semantic role used to apply distinct motion behavior per shape. */
+  kind: "cube" | "sphere" | "cone";
   geometry: Geometry;
+  /** Base world-space anchor position [x, y, z]. */
+  anchor: Vec3;
   /** World-space position offset [x, y, z] — moves the shape in the scene.
    *  x: negative = left, positive = right
    *  y: negative = up,   positive = down
@@ -18,6 +22,10 @@ interface SceneObject {
   rotationSpeed: Vec3;
   /** Uniform scale multiplier for this shape (1 = geometry's native size) */
   scale: number;
+  /** Optional per-object dot spacing multiplier for the halftone pass. */
+  dotSpacingMul?: number;
+  /** Optional per-object alpha multiplier for the halftone pass. */
+  alphaMul?: number;
 }
 
 interface ThemeColors {
@@ -43,7 +51,7 @@ const DARK_THEME: ThemeColors = { r: 0xA2, g: 0x8D, b: 0xE6, alpha: 0.7 };
  * Change this to move the light source and affect which faces appear bright/dark.
  * Components: [x, y, z] where negative-y = light from above.
  */
-const LIGHT_DIR: Vec3 = normalize([0.3, -1.3, -0.5]);
+const BASE_LIGHT_DIR: Vec3 = normalize([0.3, -1.3, -0.5]);
 
 /**
  * Field-of-view distance for perspective projection.
@@ -60,11 +68,29 @@ const FPS = 60;
 const FRAME_MS = 1000 / FPS;
 const OUTLINE_WIDTH_CSS_PX = 5;
 const OUTLINE_GRAY = 20;
+const SECONDARY_OUTLINE_GRAY = 72;
+const SECONDARY_OUTLINE_ALPHA = 0.45;
+const TRAIL_FADE_ALPHA = 0.24;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getThemeColors(): ThemeColors {
   return document.documentElement.classList.contains("dark") ? DARK_THEME : LIGHT_THEME;
+}
+
+function wrapAngle(angle: number): number {
+  const tau = Math.PI * 2;
+  let wrapped = (angle + Math.PI) % tau;
+  if (wrapped < 0) wrapped += tau;
+  return wrapped - Math.PI;
+}
+
+function getAnimatedLightDir(timeSec: number): Vec3 {
+  return normalize([
+    BASE_LIGHT_DIR[0] + Math.sin(timeSec * 0.33) * 0.25,
+    BASE_LIGHT_DIR[1] + Math.cos(timeSec * 0.27) * 0.18,
+    BASE_LIGHT_DIR[2] + Math.sin(timeSec * 0.29 + 1.1) * 0.22,
+  ]);
 }
 
 /**
@@ -115,28 +141,40 @@ export function init(canvas: HTMLCanvasElement): () => void {
 
   const objects: SceneObject[] = [
     {
-      // CUBE — sits left and slightly below center
+      // CUBE — steady spin anchor
+      kind: "cube",
       geometry: createCube(100),
-      position: [-80, 60, 20],
-      rotation: [0.3, 0.5, 0],
-      rotationSpeed: [0.008, 0.012, 0.004],
+      anchor: [-82, 56, 22],
+      position: [-82, 56, 22],
+      rotation: [0.3, 0.45, 0.02],
+      rotationSpeed: [0.0045, 0.0072, 0.0013],
       scale: 1.3,
+      dotSpacingMul: 0.95,
+      alphaMul: 1.05,
     },
     {
-      // SPHERE — sits right-of-center, further back (depth overlap with cube)
+      // SPHERE — orbital motion anchor
+      kind: "sphere",
       geometry: createSphere(70, 28),
-      position: [60, -30, 60],
-      rotation: [0, 0.3, 0],
-      rotationSpeed: [0.005, 0.007, 0.003],
+      anchor: [72, -34, 78],
+      position: [72, -34, 78],
+      rotation: [0.08, 0.3, 0],
+      rotationSpeed: [0.0018, 0.0054, 0.0022],
       scale: 1.3,
+      dotSpacingMul: 1.08,
+      alphaMul: 0.9,
     },
     {
-      // CONE — selected profile (B rotation + C speed), placed behind others
+      // CONE — counter-rotation anchor (kept behind)
+      kind: "cone",
       geometry: createCone(50, 80, 14),
-      position: [-60, -90, 120],
+      anchor: [-40, -94, 140],
+      position: [-40, -94, 140],
       rotation: [0.28, -0.1, 0.08],
-      rotationSpeed: [0.0012, 0.009, 0.0008],
+      rotationSpeed: [0.0012, -0.0088, 0.0009],
       scale: 1.3,
+      dotSpacingMul: 0.9,
+      alphaMul: 1.08,
     },
   ];
 
@@ -145,6 +183,7 @@ export function init(canvas: HTMLCanvasElement): () => void {
   let lastFrame = 0;
   let running = true;
   let dpr = 1; // device pixel ratio (capped for perf)
+  let hasRendered = false;
   let cachedOutlineRadius = -1;
   let cachedOutlineOffsets: [number, number][] = [];
 
@@ -182,11 +221,12 @@ export function init(canvas: HTMLCanvasElement): () => void {
     maskCanvas.height = ph;
     outlineCanvas.width = pw;
     outlineCanvas.height = ph;
+    hasRendered = false;
   }
 
   // ─── Render one frame ───────────────────────────────────────────────────
 
-  function renderFrame() {
+  function renderFrame(timeSec = 0, forceClear = false) {
     const pw = canvas.width;
     const ph = canvas.height;
     if (pw === 0 || ph === 0) return;
@@ -203,19 +243,18 @@ export function init(canvas: HTMLCanvasElement): () => void {
     // centerX controls horizontal position, 0.45 pushes shapes slightly above vertical center.
     const cx = w * centerX;
     const cy = h * 0.45;
-
-    // ── Phase 1: Render grayscale geometry to offscreen canvas ───────────
-    // Each object is rendered independently to avoid cross-object face interleaving.
-    // Objects are sorted by center depth (far → near), then faces within each
-    // object are sorted by centroid depth. This prevents artifacts where long
-    // triangles (like cone sides) interleave with faces from other shapes.
-
-    offCtx.clearRect(0, 0, w, h);
+    const lightDir = getAnimatedLightDir(timeSec);
 
     type FaceData = {
       projected: [number, number][];
       depth: number;
       brightness: number;
+    };
+    type ObjectRender = {
+      centerDepth: number;
+      dotSpacingMul: number;
+      alphaMul: number;
+      faces: FaceData[];
     };
 
     /** Compute brightness from a normal vector and clamp to range.
@@ -223,12 +262,12 @@ export function init(canvas: HTMLCanvasElement): () => void {
      *  - 0.15: ambient base (lower = darker shadows)
      *  - Range 0.08–0.95 for good halftone contrast */
     function calcBrightness(n: Vec3): number {
-      const d = -dot(n, LIGHT_DIR);
+      const d = -dot(n, lightDir);
       return Math.max(0.08, Math.min(0.95, d * 0.9 + 0.15));
     }
 
     // Pre-compute each object's transformed vertices and center depth
-    const objectRenders: { centerDepth: number; faces: FaceData[] }[] = [];
+    const objectRenders: ObjectRender[] = [];
 
     for (const obj of objects) {
       const { geometry, position, rotation, scale: objScale } = obj;
@@ -287,9 +326,7 @@ export function init(canvas: HTMLCanvasElement): () => void {
 
         // Cap faces (e.g. cone base) get a depth bias so they sort behind
         // side faces, preventing cap-over-side artifacts.
-        if (fi >= capStart) {
-          centroidDepth += 50;
-        }
+        if (fi >= capStart) centroidDepth += 50;
 
         objFaces.push({
           projected: [[pa[0], pa[1]], [pb[0], pb[1]], [pc[0], pc[1]]],
@@ -298,14 +335,38 @@ export function init(canvas: HTMLCanvasElement): () => void {
         });
       }
 
-      objectRenders.push({ centerDepth: centerZ, faces: objFaces });
+      objectRenders.push({
+        centerDepth: centerZ,
+        dotSpacingMul: obj.dotSpacingMul ?? 1,
+        alphaMul: obj.alphaMul ?? 1,
+        faces: objFaces,
+      });
+    }
+
+    if (forceClear || !hasRendered) {
+      ctx.clearRect(0, 0, w, h);
+      hasRendered = true;
+    } else {
+      // Keep a short ghost trail so motion feels richer and more present.
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = `rgba(0,0,0,${TRAIL_FADE_ALPHA})`;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
     }
 
     // Sort objects far-to-near (draw distant objects first)
     objectRenders.sort((a, b) => b.centerDepth - a.centerDepth);
+    const nearDepth = Math.min(...objectRenders.map((o) => o.centerDepth));
+    const farDepth = Math.max(...objectRenders.map((o) => o.centerDepth));
+    const depthSpan = Math.max(1, farDepth - nearDepth);
 
-    // Draw each object: sort its own faces far-to-near, then fill
+    // Draw each object to a temporary grayscale layer, then halftone it with
+    // depth-aware dot spacing/alpha for stronger separation.
     for (const objRender of objectRenders) {
+      if (objRender.faces.length === 0) continue;
+      offCtx.clearRect(0, 0, w, h);
+
       objRender.faces.sort((a, b) => b.depth - a.depth);
       let minX = Infinity;
       let minY = Infinity;
@@ -334,43 +395,44 @@ export function init(canvas: HTMLCanvasElement): () => void {
         offCtx.fill();
       }
 
-      // Build an object silhouette mask from visible faces, then keep only
-      // the outer ring (dilated mask minus original). This outlines the model
-      // without drawing triangle/facet borders.
-      if (objRender.faces.length > 0 && minX !== Infinity) {
-        const outlinePx = Math.max(1, Math.round(OUTLINE_WIDTH_CSS_PX * dpr));
-        const sourceX0 = Math.max(0, Math.floor(minX) - 2);
-        const sourceY0 = Math.max(0, Math.floor(minY) - 2);
-        const sourceX1 = Math.min(w, Math.ceil(maxX) + 2);
-        const sourceY1 = Math.min(h, Math.ceil(maxY) + 2);
-        const sourceW = sourceX1 - sourceX0;
-        const sourceH = sourceY1 - sourceY0;
+      if (minX === Infinity) continue;
 
-        if (sourceW <= 0 || sourceH <= 0) continue;
+      // Build an object silhouette mask from visible faces, then keep ring
+      // bands around it (secondary + primary contours).
+      const outlinePx = Math.max(1, Math.round(OUTLINE_WIDTH_CSS_PX * dpr));
+      const secondaryOutlinePx = outlinePx + Math.max(1, Math.round(1.5 * dpr));
 
-        const destX0 = Math.max(0, sourceX0 - outlinePx);
-        const destY0 = Math.max(0, sourceY0 - outlinePx);
-        const destX1 = Math.min(w, sourceX1 + outlinePx);
-        const destY1 = Math.min(h, sourceY1 + outlinePx);
-        const destW = destX1 - destX0;
-        const destH = destY1 - destY0;
+      const sourceX0 = Math.max(0, Math.floor(minX) - 2);
+      const sourceY0 = Math.max(0, Math.floor(minY) - 2);
+      const sourceX1 = Math.min(w, Math.ceil(maxX) + 2);
+      const sourceY1 = Math.min(h, Math.ceil(maxY) + 2);
+      const sourceW = sourceX1 - sourceX0;
+      const sourceH = sourceY1 - sourceY0;
+      if (sourceW <= 0 || sourceH <= 0) continue;
 
-        if (destW <= 0 || destH <= 0) continue;
+      maskCtx.clearRect(sourceX0, sourceY0, sourceW, sourceH);
+      maskCtx.fillStyle = "#fff";
+      for (const face of objRender.faces) {
+        maskCtx.beginPath();
+        maskCtx.moveTo(face.projected[0][0], face.projected[0][1]);
+        maskCtx.lineTo(face.projected[1][0], face.projected[1][1]);
+        maskCtx.lineTo(face.projected[2][0], face.projected[2][1]);
+        maskCtx.closePath();
+        maskCtx.fill();
+      }
 
-        maskCtx.clearRect(sourceX0, sourceY0, sourceW, sourceH);
-        maskCtx.fillStyle = "#fff";
-        for (const face of objRender.faces) {
-          maskCtx.beginPath();
-          maskCtx.moveTo(face.projected[0][0], face.projected[0][1]);
-          maskCtx.lineTo(face.projected[1][0], face.projected[1][1]);
-          maskCtx.lineTo(face.projected[2][0], face.projected[2][1]);
-          maskCtx.closePath();
-          maskCtx.fill();
-        }
+      function drawContour(radius: number, gray: number, alpha: number) {
+        const ringX0 = Math.max(0, sourceX0 - radius);
+        const ringY0 = Math.max(0, sourceY0 - radius);
+        const ringX1 = Math.min(w, sourceX1 + radius);
+        const ringY1 = Math.min(h, sourceY1 + radius);
+        const ringW = ringX1 - ringX0;
+        const ringH = ringY1 - ringY0;
+        if (ringW <= 0 || ringH <= 0) return;
 
-        outlineCtx.clearRect(destX0, destY0, destW, destH);
+        outlineCtx.clearRect(ringX0, ringY0, ringW, ringH);
         outlineCtx.globalCompositeOperation = "source-over";
-        const offsets = getOutlineOffsets(outlinePx);
+        const offsets = getOutlineOffsets(radius);
         for (const [dx, dy] of offsets) {
           outlineCtx.drawImage(
             maskCanvas,
@@ -389,32 +451,85 @@ export function init(canvas: HTMLCanvasElement): () => void {
         outlineCtx.drawImage(maskCanvas, sourceX0, sourceY0, sourceW, sourceH, sourceX0, sourceY0, sourceW, sourceH);
 
         outlineCtx.globalCompositeOperation = "source-in";
-        outlineCtx.fillStyle = `rgb(${OUTLINE_GRAY},${OUTLINE_GRAY},${OUTLINE_GRAY})`;
-        outlineCtx.fillRect(destX0, destY0, destW, destH);
+        outlineCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
+        outlineCtx.fillRect(ringX0, ringY0, ringW, ringH);
 
         outlineCtx.globalCompositeOperation = "source-over";
-        offCtx.drawImage(outlineCanvas, destX0, destY0, destW, destH, destX0, destY0, destW, destH);
+        offCtx.save();
+        offCtx.globalAlpha = alpha;
+        offCtx.drawImage(outlineCanvas, ringX0, ringY0, ringW, ringH, ringX0, ringY0, ringW, ringH);
+        offCtx.restore();
       }
-    }
 
-    // ── Phase 2: Halftone post-process ──────────────────────────────────
-    // Read the grayscale offscreen buffer, then draw halftone dots on the main canvas.
-    // The dot size at each grid point is proportional to the darkness of the source pixel.
-    const imageData = offCtx.getImageData(0, 0, w, h);
-    applyHalftone(
-      ctx!,
-      imageData,
-      w,
-      h,
-      scaledDot,
-      colors.r,
-      colors.g,
-      colors.b,
-      colors.alpha,
-    );
+      drawContour(secondaryOutlinePx, SECONDARY_OUTLINE_GRAY, SECONDARY_OUTLINE_ALPHA);
+      drawContour(outlinePx, OUTLINE_GRAY, 1);
+
+      const samplePad = secondaryOutlinePx + Math.ceil(scaledDot);
+      const sampleX0 = Math.max(0, Math.floor(minX) - samplePad);
+      const sampleY0 = Math.max(0, Math.floor(minY) - samplePad);
+      const sampleX1 = Math.min(w, Math.ceil(maxX) + samplePad);
+      const sampleY1 = Math.min(h, Math.ceil(maxY) + samplePad);
+      const sampleW = sampleX1 - sampleX0;
+      const sampleH = sampleY1 - sampleY0;
+      if (sampleW <= 0 || sampleH <= 0) continue;
+
+      const depthT = (objRender.centerDepth - nearDepth) / depthSpan; // 0 near, 1 far
+      const objectDotSpacing = scaledDot * (0.82 + depthT * 0.38) * objRender.dotSpacingMul;
+      const objectAlpha = Math.max(
+        0.05,
+        Math.min(1, colors.alpha * (1.12 - depthT * 0.42) * objRender.alphaMul),
+      );
+
+      const imageData = offCtx.getImageData(sampleX0, sampleY0, sampleW, sampleH);
+      applyHalftone(
+        ctx,
+        imageData,
+        w,
+        h,
+        objectDotSpacing,
+        colors.r,
+        colors.g,
+        colors.b,
+        objectAlpha,
+        { clear: false, offsetX: sampleX0, offsetY: sampleY0 },
+      );
+    }
   }
 
   // ─── Animation loop ─────────────────────────────────────────────────────
+
+  function updateSceneMotion(timeSec: number) {
+    // Pulse occasionally nudges rotations toward a shared heading, creating
+    // periodic visual "alignment" moments without locking motion.
+    const alignPulse = Math.pow((Math.sin(timeSec * 0.65) + 1) * 0.5, 8);
+    const alignTarget = timeSec * 0.9;
+
+    for (const obj of objects) {
+      obj.rotation[0] += obj.rotationSpeed[0];
+      obj.rotation[1] += obj.rotationSpeed[1];
+      obj.rotation[2] += obj.rotationSpeed[2];
+
+      if (obj.kind === "cube") {
+        // Steady spin with a subtle hover.
+        obj.position[0] = obj.anchor[0] + Math.sin(timeSec * 0.55) * 8;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.9 + 0.6) * 6;
+        obj.position[2] = obj.anchor[2] + Math.cos(timeSec * 0.4) * 8;
+      } else if (obj.kind === "sphere") {
+        // Wide orbit to create clear depth/foreground interplay.
+        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.5) * 36;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.8 + 0.7) * 14;
+        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.5) * 30;
+      } else {
+        // Counter-rotating cone with restrained drift (stays behind).
+        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.38 + 1.8) * 14;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.72 + 2.1) * 9;
+        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.38 + 1.8) * 16;
+      }
+
+      const alignStrength = obj.kind === "sphere" ? 0.035 : 0.024;
+      obj.rotation[1] += wrapAngle(alignTarget - obj.rotation[1]) * alignStrength * alignPulse;
+    }
+  }
 
   function animate(time: number) {
     if (!running) return;
@@ -424,14 +539,9 @@ export function init(canvas: HTMLCanvasElement): () => void {
     if (time - lastFrame < FRAME_MS) return;
     lastFrame = time;
 
-    // Update rotations for each shape
-    for (const obj of objects) {
-      obj.rotation[0] += obj.rotationSpeed[0];
-      obj.rotation[1] += obj.rotationSpeed[1];
-      obj.rotation[2] += obj.rotationSpeed[2];
-    }
-
-    renderFrame();
+    const timeSec = time * 0.001;
+    updateSceneMotion(timeSec);
+    renderFrame(timeSec, false);
   }
 
   // ─── Initialization ─────────────────────────────────────────────────────
@@ -442,7 +552,7 @@ export function init(canvas: HTMLCanvasElement): () => void {
   resize();
 
   if (reducedMotion) {
-    renderFrame();
+    renderFrame(0, true);
   } else {
     animId = requestAnimationFrame(animate);
   }
@@ -452,14 +562,14 @@ export function init(canvas: HTMLCanvasElement): () => void {
   // Re-render on container resize (responsive)
   const resizeObserver = new ResizeObserver(() => {
     resize();
-    if (reducedMotion) renderFrame();
+    if (reducedMotion) renderFrame(0, true);
   });
   resizeObserver.observe(canvas.parentElement!);
 
   // Watch for dark/light theme toggle (class change on <html>)
   const mutationObserver = new MutationObserver(() => {
     colors = getThemeColors();
-    if (reducedMotion) renderFrame();
+    if (reducedMotion) renderFrame(0, true);
   });
   mutationObserver.observe(document.documentElement, {
     attributes: true,

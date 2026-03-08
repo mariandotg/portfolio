@@ -116,26 +116,26 @@ export function init(canvas: HTMLCanvasElement): () => void {
   const objects: SceneObject[] = [
     {
       // CUBE — sits left and slightly below center
-      geometry: createCube(100),          // 100 = edge length in world units
-      position: [-80, 60, 20],            // [left, below-center, slightly back]
-      rotation: [0.3, 0.5, 0],            // initial rotation angles (radians)
-      rotationSpeed: [0.008, 0.012, 0.004], // spin speed per frame [x, y, z]
-      scale: 1.3,                            // 1 = native size
+      geometry: createCube(100),
+      position: [-80, 60, 20],
+      rotation: [0.3, 0.5, 0],
+      rotationSpeed: [0.008, 0.012, 0.004],
+      scale: 1.3,
     },
     {
       // SPHERE — sits right-of-center, further back (depth overlap with cube)
-      geometry: createSphere(80, 28),     // radius=80, 28 segments (smooth gradient)
-      position: [60, -30, 60],           // [right, above-center, far back]
+      geometry: createSphere(70, 28),
+      position: [60, -30, 60],
       rotation: [0, 0.3, 0],
       rotationSpeed: [0.005, 0.007, 0.003],
       scale: 1.3,
     },
     {
-      // CONE — sits upper-left, closest to camera
-      geometry: createCone(50, 80, 14),  // radius=55, height=120, 14 slices
-      position: [-60, -90, -70],          // [left, well above center, in front]
-      rotation: [0.5, 0, 0.3],
-      rotationSpeed: [0.007, 0.009, 0.005],
+      // CONE — selected profile (B rotation + C speed), placed behind others
+      geometry: createCone(50, 80, 14),
+      position: [-60, -90, 120],
+      rotation: [0.28, -0.1, 0.08],
+      rotationSpeed: [0.0012, 0.009, 0.0008],
       scale: 1.3,
     },
   ];

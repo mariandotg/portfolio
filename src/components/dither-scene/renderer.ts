@@ -58,6 +58,8 @@ const FOV = 300;
  */
 const FPS = 120;
 const FRAME_MS = 1000 / FPS;
+const OUTLINE_WIDTH_CSS_PX = 5;
+const OUTLINE_GRAY = 20;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,10 @@ export function init(canvas: HTMLCanvasElement): () => void {
   // then the halftone post-process reads this and draws dots on the main canvas.
   const offscreen = document.createElement("canvas");
   const offCtx = offscreen.getContext("2d", { willReadFrequently: true })!;
+  const maskCanvas = document.createElement("canvas");
+  const maskCtx = maskCanvas.getContext("2d")!;
+  const outlineCanvas = document.createElement("canvas");
+  const outlineCtx = outlineCanvas.getContext("2d")!;
 
   // ─── Scene objects ───────────────────────────────────────────────────────
   // Each object = geometry + position/rotation/speed/scale.
@@ -156,6 +162,10 @@ export function init(canvas: HTMLCanvasElement): () => void {
     canvas.style.height = `${rect.height}px`;
     offscreen.width = pw;
     offscreen.height = ph;
+    maskCanvas.width = pw;
+    maskCanvas.height = ph;
+    outlineCanvas.width = pw;
+    outlineCanvas.height = ph;
   }
 
   // ─── Render one frame ───────────────────────────────────────────────────
@@ -234,10 +244,21 @@ export function init(canvas: HTMLCanvasElement): () => void {
         const b = transformed[face[1]];
         const c = transformed[face[2]];
 
-        // Backface culling: skip faces pointing away from camera.
-        // This prevents back-face triangles from z-fighting with front-faces.
+        // Backface culling against camera vector (perspective-correct).
+        // Geometry winding in this scene is inward-facing, so a negative
+        // dot product indicates a face that should be visible.
         const fn = normalize(faceNormal(a, b, c));
-        if (fn[2] < 0) continue;
+        const faceCenter: Vec3 = [
+          (a[0] + b[0] + c[0]) / 3,
+          (a[1] + b[1] + c[1]) / 3,
+          (a[2] + b[2] + c[2]) / 3,
+        ];
+        const toCamera: Vec3 = [
+          -faceCenter[0],
+          -faceCenter[1],
+          -FOV * dpr - faceCenter[2],
+        ];
+        if (dot(fn, toCamera) >= 0) continue;
 
         const brightness = calcBrightness(fn);
 
@@ -282,6 +303,43 @@ export function init(canvas: HTMLCanvasElement): () => void {
         const gray = Math.round(face.brightness * 255);
         offCtx.fillStyle = `rgb(${gray},${gray},${gray})`;
         offCtx.fill();
+      }
+
+      // Build an object silhouette mask from visible faces, then keep only
+      // the outer ring (dilated mask minus original). This outlines the model
+      // without drawing triangle/facet borders.
+      if (objRender.faces.length > 0) {
+        const outlinePx = Math.max(1, Math.round(OUTLINE_WIDTH_CSS_PX * dpr));
+
+        maskCtx.clearRect(0, 0, w, h);
+        maskCtx.fillStyle = "#fff";
+        for (const face of objRender.faces) {
+          maskCtx.beginPath();
+          maskCtx.moveTo(face.projected[0][0], face.projected[0][1]);
+          maskCtx.lineTo(face.projected[1][0], face.projected[1][1]);
+          maskCtx.lineTo(face.projected[2][0], face.projected[2][1]);
+          maskCtx.closePath();
+          maskCtx.fill();
+        }
+
+        outlineCtx.clearRect(0, 0, w, h);
+        outlineCtx.globalCompositeOperation = "source-over";
+        for (let dy = -outlinePx; dy <= outlinePx; dy++) {
+          for (let dx = -outlinePx; dx <= outlinePx; dx++) {
+            if (dx * dx + dy * dy > outlinePx * outlinePx) continue;
+            outlineCtx.drawImage(maskCanvas, dx, dy);
+          }
+        }
+
+        outlineCtx.globalCompositeOperation = "destination-out";
+        outlineCtx.drawImage(maskCanvas, 0, 0);
+
+        outlineCtx.globalCompositeOperation = "source-in";
+        outlineCtx.fillStyle = `rgb(${OUTLINE_GRAY},${OUTLINE_GRAY},${OUTLINE_GRAY})`;
+        outlineCtx.fillRect(0, 0, w, h);
+
+        outlineCtx.globalCompositeOperation = "source-over";
+        offCtx.drawImage(outlineCanvas, 0, 0);
       }
     }
 

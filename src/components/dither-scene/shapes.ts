@@ -92,7 +92,8 @@ export function createCone(radius: number, height: number, segments: number): Ge
   // Side faces
   for (let i = 0; i < segments; i++) {
     const next = ((i + 1) % segments) + 2;
-    faces.push([0, i + 2, next]);
+    // Keep winding consistent with cube/sphere (inward-facing normals).
+    faces.push([0, next, i + 2]);
   }
 
   const capStart = faces.length;
@@ -100,7 +101,8 @@ export function createCone(radius: number, height: number, segments: number): Ge
   // Base cap
   for (let i = 0; i < segments; i++) {
     const next = ((i + 1) % segments) + 2;
-    faces.push([1, next, i + 2]);
+    // Inward winding for consistency with the renderer's culling/shading convention.
+    faces.push([1, i + 2, next]);
   }
 
   return { vertices, faces, capStart };

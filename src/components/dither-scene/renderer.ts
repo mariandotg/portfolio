@@ -56,7 +56,7 @@ const FOV = 300;
  * Target frames per second for animation.
  * The render loop uses requestAnimationFrame but skips frames to stay at this rate.
  */
-const FPS = 120;
+const FPS = 60;
 const FRAME_MS = 1000 / FPS;
 const OUTLINE_WIDTH_CSS_PX = 5;
 const OUTLINE_GRAY = 20;
@@ -144,7 +144,23 @@ export function init(canvas: HTMLCanvasElement): () => void {
   let animId = 0;
   let lastFrame = 0;
   let running = true;
-  let dpr = 1; // device pixel ratio (capped at 2 for perf)
+  let dpr = 1; // device pixel ratio (capped for perf)
+  let cachedOutlineRadius = -1;
+  let cachedOutlineOffsets: [number, number][] = [];
+
+  function getOutlineOffsets(radius: number): [number, number][] {
+    if (radius === cachedOutlineRadius) return cachedOutlineOffsets;
+    const offsets: [number, number][] = [];
+    const r2 = radius * radius;
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (dx * dx + dy * dy <= r2) offsets.push([dx, dy]);
+      }
+    }
+    cachedOutlineRadius = radius;
+    cachedOutlineOffsets = offsets;
+    return offsets;
+  }
 
   // ─── Resize handler ─────────────────────────────────────────────────────
   // Matches canvas size to its parent container, accounting for device pixel ratio.
@@ -153,7 +169,7 @@ export function init(canvas: HTMLCanvasElement): () => void {
     const parent = canvas.parentElement;
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const pw = Math.round(rect.width * dpr);   // physical pixel width
     const ph = Math.round(rect.height * dpr);  // physical pixel height
     canvas.width = pw;
@@ -291,12 +307,25 @@ export function init(canvas: HTMLCanvasElement): () => void {
     // Draw each object: sort its own faces far-to-near, then fill
     for (const objRender of objectRenders) {
       objRender.faces.sort((a, b) => b.depth - a.depth);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
 
       for (const face of objRender.faces) {
+        const p0 = face.projected[0];
+        const p1 = face.projected[1];
+        const p2 = face.projected[2];
+
+        minX = Math.min(minX, p0[0], p1[0], p2[0]);
+        minY = Math.min(minY, p0[1], p1[1], p2[1]);
+        maxX = Math.max(maxX, p0[0], p1[0], p2[0]);
+        maxY = Math.max(maxY, p0[1], p1[1], p2[1]);
+
         offCtx.beginPath();
-        offCtx.moveTo(face.projected[0][0], face.projected[0][1]);
-        offCtx.lineTo(face.projected[1][0], face.projected[1][1]);
-        offCtx.lineTo(face.projected[2][0], face.projected[2][1]);
+        offCtx.moveTo(p0[0], p0[1]);
+        offCtx.lineTo(p1[0], p1[1]);
+        offCtx.lineTo(p2[0], p2[1]);
         offCtx.closePath();
 
         // Flat shading: solid gray fill based on face brightness
@@ -308,10 +337,27 @@ export function init(canvas: HTMLCanvasElement): () => void {
       // Build an object silhouette mask from visible faces, then keep only
       // the outer ring (dilated mask minus original). This outlines the model
       // without drawing triangle/facet borders.
-      if (objRender.faces.length > 0) {
+      if (objRender.faces.length > 0 && minX !== Infinity) {
         const outlinePx = Math.max(1, Math.round(OUTLINE_WIDTH_CSS_PX * dpr));
+        const sourceX0 = Math.max(0, Math.floor(minX) - 2);
+        const sourceY0 = Math.max(0, Math.floor(minY) - 2);
+        const sourceX1 = Math.min(w, Math.ceil(maxX) + 2);
+        const sourceY1 = Math.min(h, Math.ceil(maxY) + 2);
+        const sourceW = sourceX1 - sourceX0;
+        const sourceH = sourceY1 - sourceY0;
 
-        maskCtx.clearRect(0, 0, w, h);
+        if (sourceW <= 0 || sourceH <= 0) continue;
+
+        const destX0 = Math.max(0, sourceX0 - outlinePx);
+        const destY0 = Math.max(0, sourceY0 - outlinePx);
+        const destX1 = Math.min(w, sourceX1 + outlinePx);
+        const destY1 = Math.min(h, sourceY1 + outlinePx);
+        const destW = destX1 - destX0;
+        const destH = destY1 - destY0;
+
+        if (destW <= 0 || destH <= 0) continue;
+
+        maskCtx.clearRect(sourceX0, sourceY0, sourceW, sourceH);
         maskCtx.fillStyle = "#fff";
         for (const face of objRender.faces) {
           maskCtx.beginPath();
@@ -322,24 +368,32 @@ export function init(canvas: HTMLCanvasElement): () => void {
           maskCtx.fill();
         }
 
-        outlineCtx.clearRect(0, 0, w, h);
+        outlineCtx.clearRect(destX0, destY0, destW, destH);
         outlineCtx.globalCompositeOperation = "source-over";
-        for (let dy = -outlinePx; dy <= outlinePx; dy++) {
-          for (let dx = -outlinePx; dx <= outlinePx; dx++) {
-            if (dx * dx + dy * dy > outlinePx * outlinePx) continue;
-            outlineCtx.drawImage(maskCanvas, dx, dy);
-          }
+        const offsets = getOutlineOffsets(outlinePx);
+        for (const [dx, dy] of offsets) {
+          outlineCtx.drawImage(
+            maskCanvas,
+            sourceX0,
+            sourceY0,
+            sourceW,
+            sourceH,
+            sourceX0 + dx,
+            sourceY0 + dy,
+            sourceW,
+            sourceH,
+          );
         }
 
         outlineCtx.globalCompositeOperation = "destination-out";
-        outlineCtx.drawImage(maskCanvas, 0, 0);
+        outlineCtx.drawImage(maskCanvas, sourceX0, sourceY0, sourceW, sourceH, sourceX0, sourceY0, sourceW, sourceH);
 
         outlineCtx.globalCompositeOperation = "source-in";
         outlineCtx.fillStyle = `rgb(${OUTLINE_GRAY},${OUTLINE_GRAY},${OUTLINE_GRAY})`;
-        outlineCtx.fillRect(0, 0, w, h);
+        outlineCtx.fillRect(destX0, destY0, destW, destH);
 
         outlineCtx.globalCompositeOperation = "source-over";
-        offCtx.drawImage(outlineCanvas, 0, 0);
+        offCtx.drawImage(outlineCanvas, destX0, destY0, destW, destH, destX0, destY0, destW, destH);
       }
     }
 

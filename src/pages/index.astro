@@ -6,6 +6,7 @@ import CTABanner from "../components/CTABanner.astro";
 import Button from "../components/Button.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 import TrustBar from "../components/TrustBar.astro";
+import DitherScene from "../components/DitherScene.astro";
 import { SITE } from "../config";
 import { getCollection } from "astro:content";
 import { useTranslations, getLangFromUrl, getLocalizedPath } from "../i18n/utils";
@@ -89,8 +90,9 @@ const engagementPaths = [
 
 <PageLayout>
   <!-- Hero -->
-  <section class="flex justify-center px-4 pb-16 mx-auto max-w-5xl min-h-[calc(100vh-80px)] sm:px-6">
-    <div class="flex flex-col justify-center w-full">
+  <section class="relative overflow-hidden flex justify-center px-4 pb-16 mx-auto max-w-5xl min-h-[calc(100vh-80px)] sm:px-6">
+    <DitherScene class="ml-[600px]" />
+    <div class="relative z-10 flex flex-col justify-center w-full">
       <div class="hero-eyebrow mb-5">
         <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
           <span class="size-1.5 rounded-full bg-[var(--color-primary)] inline-block"></span>

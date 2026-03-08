@@ -1,0 +1,47 @@
+---
+---
+
+<!-- Dither scene wrapper: absolutely positioned behind hero content.
+     Use translateX to shift the scene left/right without affecting canvas size.
+     Positive = right, negative = left. -->
+<div class="dither-wrapper ">
+  <canvas id="dither-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .dither-wrapper {
+    position: absolute;
+    /* Negative inset = wrapper extends BEYOND the hero section bounds.
+       Increase these values to give the canvas more room so shapes aren't clipped.
+       e.g. inset: -200px makes the canvas 400px wider and 400px taller than the hero. */
+    inset: -200px;
+    pointer-events: none;  /* clicks pass through to hero buttons below */
+    overflow: visible;     /* let shapes render outside the wrapper if needed */
+    opacity: 0;                        /* starts hidden, fades in via JS */
+    transition: opacity 0.8s ease;     /* fade-in duration */
+    transform: translateX(750px);      /* shift scene right without shrinking canvas */
+  }
+
+  .dither-wrapper.visible {
+    opacity: 1;
+  }
+
+  #dither-canvas {
+    display: block;
+    width: 100%;       /* canvas fills the wrapper */
+    height: 100%;
+  }
+</style>
+
+<script>
+  import { init } from "./dither-scene/renderer";
+
+  const canvas = document.getElementById("dither-canvas") as HTMLCanvasElement;
+  if (canvas) {
+    const cleanup = init(canvas);
+    // Fade in after first paint
+    requestAnimationFrame(() => {
+      canvas.parentElement?.classList.add("visible");
+    });
+  }
+</script>

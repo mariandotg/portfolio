@@ -9,28 +9,32 @@ const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] mt-auto">
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-4">
-    <NewsletterCard
-      client:visible
-      labels={{
-        title: t.newsletter.title,
-        description: t.newsletter.description,
-        placeholder: t.newsletter.placeholder,
-        subscribe: t.newsletter.subscribe,
-        subscribing: t.newsletter.subscribing,
-        success: t.newsletter.success,
-        error: t.newsletter.error,
-        privacy: t.newsletter.privacy,
-      }}
-    />
-  </div>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
-      © {year} {SITE.name}. {t.footer.rights}
-    </p>
-    <div class="flex items-center gap-6">
-      <span class="text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{t.footer.madeWith}</span>
+<footer class="mt-auto" style="border-top: 1px solid var(--color-border);">
+  <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 pt-8 pb-6">
+    <!-- Newsletter -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+      <span class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] whitespace-nowrap">
+        {t.newsletter.title}
+      </span>
+      <NewsletterCard
+        client:visible
+        labels={{
+          placeholder: t.newsletter.placeholder,
+          subscribe: t.newsletter.subscribe,
+          subscribing: t.newsletter.subscribing,
+          success: t.newsletter.success,
+          error: t.newsletter.error,
+        }}
+      />
+    </div>
+
+    <hr style="border-color: var(--color-border); opacity: 0.5; margin-bottom: 1.5rem;" />
+
+    <!-- Bottom row -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-xs text-[var(--color-muted)] dark:text-[var(--color-muted-dark)]">
+        © {year} {SITE.name}. {t.footer.rights}
+      </p>
       <SocialLinks />
     </div>
   </div>

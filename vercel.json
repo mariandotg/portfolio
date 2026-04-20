@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://cv.marianoguillaume.com",
+      "permanent": false
+    }
+  ]
+}

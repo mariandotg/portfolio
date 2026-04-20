@@ -58,19 +58,19 @@ const BASE_LIGHT_DIR: Vec3 = normalize([0.3, -1.3, -0.5]);
  * Larger = less distortion (more orthographic). Smaller = more dramatic perspective.
  * Typical range: 300 (fisheye-ish) to 800 (flat-ish).
  */
-const FOV = 300;
+const FOV = 400;
 
 /**
  * Target frames per second for animation.
  * The render loop uses requestAnimationFrame but skips frames to stay at this rate.
  */
-const FPS = 60;
+const FPS = 120;
 const FRAME_MS = 1000 / FPS;
 const OUTLINE_WIDTH_CSS_PX = 5;
 const OUTLINE_GRAY = 20;
 const SECONDARY_OUTLINE_GRAY = 72;
 const SECONDARY_OUTLINE_ALPHA = 0.45;
-const TRAIL_FADE_ALPHA = 0.24;
+const TRAIL_FADE_ALPHA = 0.34;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -101,6 +101,8 @@ function getAnimatedLightDir(timeSec: number): Vec3 {
  *                Increase to make ALL shapes bigger at this breakpoint.
  *  - centerX:    horizontal projection center as fraction of canvas width
  *                (0 = left edge, 0.5 = center). Lower = shapes sit further left.
+ *  - centerY:    vertical projection center as fraction of canvas height
+ *                (0 = top edge, 0.5 = center). Higher = shapes sit lower.
  *  - dotSpacing: halftone grid spacing in CSS pixels (smaller = denser/finer dots)
  *
  * SIZE CHAIN SUMMARY (all multiply together):
@@ -111,9 +113,9 @@ function getAnimatedLightDir(timeSec: number): Vec3 {
  *   5. Object `position[2]` (z) — lower z = closer to camera = appears bigger
  */
 function getResponsiveParams(width: number) {
-  if (width >= 1024) return { scale: 1, centerX: 0.15, dotSpacing: 5 };      // Desktop
-  if (width >= 550)  return { scale: 0.8, centerX: 0.2, dotSpacing: 4.5 };   // Tablet
-  return                     { scale: 0.55, centerX: 0.35, dotSpacing: 4 };   // Mobile
+  if (width >= 1024) return { scale: 1.32, centerX: 0.58, centerY: 0.52, dotSpacing: 4.8 }; // Desktop
+  if (width >= 550) return { scale: 1.02, centerX: 0.6, centerY: 0.53, dotSpacing: 4.5 }; // Tablet
+  return { scale: 0.82, centerX: 0.62, centerY: 0.56, dotSpacing: 4.2 }; // Mobile
 }
 
 // ─── Main init ───────────────────────────────────────────────────────────────
@@ -144,23 +146,23 @@ export function init(canvas: HTMLCanvasElement): () => void {
       // CUBE — steady spin anchor
       kind: "cube",
       geometry: createCube(100),
-      anchor: [-82, 56, 22],
-      position: [-82, 56, 22],
-      rotation: [0.3, 0.45, 0.02],
-      rotationSpeed: [0.0045, 0.0072, 0.0013],
-      scale: 1.3,
+      anchor: [-120, 44, -18],
+      position: [-120, 44, -18],
+      rotation: [0.32, 0.48, 0.02],
+      rotationSpeed: [0.0042, 0.0068, 0.001],
+      scale: 1.55,
       dotSpacingMul: 0.95,
-      alphaMul: 1.05,
+      alphaMul: 1.08,
     },
     {
       // SPHERE — orbital motion anchor
       kind: "sphere",
       geometry: createSphere(70, 28),
-      anchor: [72, -34, 78],
-      position: [72, -34, 78],
+      anchor: [104, -42, 54],
+      position: [104, -42, 54],
       rotation: [0.08, 0.3, 0],
-      rotationSpeed: [0.0018, 0.0054, 0.0022],
-      scale: 1.3,
+      rotationSpeed: [0.0016, 0.005, 0.002],
+      scale: 1.48,
       dotSpacingMul: 1.08,
       alphaMul: 0.9,
     },
@@ -168,13 +170,13 @@ export function init(canvas: HTMLCanvasElement): () => void {
       // CONE — counter-rotation anchor (kept behind)
       kind: "cone",
       geometry: createCone(50, 80, 14),
-      anchor: [-40, -94, 140],
-      position: [-40, -94, 140],
-      rotation: [0.28, -0.1, 0.08],
-      rotationSpeed: [0.0012, -0.0088, 0.0009],
-      scale: 1.3,
+      anchor: [24, -112, 128],
+      position: [24, -112, 128],
+      rotation: [0.3, -0.12, 0.08],
+      rotationSpeed: [0.001, -0.008, 0.0008],
+      scale: 1.36,
       dotSpacingMul: 0.9,
-      alphaMul: 1.08,
+      alphaMul: 1.05,
     },
   ];
 
@@ -236,13 +238,13 @@ export function init(canvas: HTMLCanvasElement): () => void {
     const h = ph;
     const cssW = w / dpr; // CSS width, used for responsive breakpoints
 
-    const { scale: rScale, centerX, dotSpacing } = getResponsiveParams(cssW);
+    const { scale: rScale, centerX, centerY, dotSpacing } = getResponsiveParams(cssW);
     const scaledDot = dotSpacing * dpr; // dot spacing in physical pixels
 
     // Projection center: where the "camera looks at" on screen.
-    // centerX controls horizontal position, 0.45 pushes shapes slightly above vertical center.
+    // centerX/centerY move the scene focus within the hero area.
     const cx = w * centerX;
-    const cy = h * 0.45;
+    const cy = h * centerY;
     const lightDir = getAnimatedLightDir(timeSec);
 
     type FaceData = {
@@ -511,22 +513,22 @@ export function init(canvas: HTMLCanvasElement): () => void {
 
       if (obj.kind === "cube") {
         // Steady spin with a subtle hover.
-        obj.position[0] = obj.anchor[0] + Math.sin(timeSec * 0.55) * 8;
-        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.9 + 0.6) * 6;
-        obj.position[2] = obj.anchor[2] + Math.cos(timeSec * 0.4) * 8;
+        obj.position[0] = obj.anchor[0] + Math.sin(timeSec * 0.55) * 6;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.9 + 0.6) * 5;
+        obj.position[2] = obj.anchor[2] + Math.cos(timeSec * 0.4) * 6;
       } else if (obj.kind === "sphere") {
         // Wide orbit to create clear depth/foreground interplay.
-        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.5) * 36;
-        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.8 + 0.7) * 14;
-        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.5) * 30;
+        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.5) * 24;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.8 + 0.7) * 10;
+        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.5) * 20;
       } else {
         // Counter-rotating cone with restrained drift (stays behind).
-        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.38 + 1.8) * 14;
-        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.72 + 2.1) * 9;
-        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.38 + 1.8) * 16;
+        obj.position[0] = obj.anchor[0] + Math.cos(timeSec * 0.38 + 1.8) * 10;
+        obj.position[1] = obj.anchor[1] + Math.sin(timeSec * 0.72 + 2.1) * 7;
+        obj.position[2] = obj.anchor[2] + Math.sin(timeSec * 0.38 + 1.8) * 12;
       }
 
-      const alignStrength = obj.kind === "sphere" ? 0.035 : 0.024;
+      const alignStrength = obj.kind === "sphere" ? 0.028 : 0.02;
       obj.rotation[1] += wrapAngle(alignTarget - obj.rotation[1]) * alignStrength * alignPulse;
     }
   }

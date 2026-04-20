@@ -90,62 +90,74 @@ const engagementPaths = [
 
 <PageLayout>
   <!-- Hero -->
-  <section class="relative overflow-hidden flex justify-center px-4 pb-16 mx-auto max-w-5xl min-h-[calc(100vh-80px)] sm:px-6">
-    <DitherScene class="ml-[600px]" />
-    <div class="relative z-10 flex flex-col justify-center w-full">
-      <div class="hero-eyebrow mb-5">
+  <div class="hero-dither-blobs" aria-hidden="true">
+    <span class="hero-dither-blob hero-dither-blob-1"></span>
+    <span class="hero-dither-blob hero-dither-blob-2"></span>
+  </div>
+  <section class="hero-shell relative overflow-hidden flex justify-center px-4 pb-16 mx-auto max-w-5xl min-h-[calc(100vh-80px)] sm:px-6">
+    <div class="hero-noise" aria-hidden="true"></div>
+    <DitherScene />
+    <div class="hero-bridge" aria-hidden="true"></div>
+    <div class="hero-text-fade" aria-hidden="true"></div>
+    <div class="hero-content relative z-10 flex flex-col justify-center w-full" data-parallax-root>
+      <div class="hero-eyebrow mb-5 hero-parallax" data-parallax-depth="0.1">
         <span class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_25%,transparent)]">
           <span class="size-1.5 rounded-full bg-[var(--color-primary)] inline-block"></span>
           {t.home.available}
         </span>
       </div>
-      <h1 class="hero-title text-4xl sm:text-5xl lg:text-6xl font-extralight text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] leading-[1.15] mb-6">
-        {t.home.heroTitle}<br /><span class="font-medium gradient-text">{t.home.heroTitleAccent}</span>.
+      <h1 class="hero-title hero-parallax text-4xl sm:text-5xl lg:text-6xl font-extralight text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] leading-[1.15] mb-6" data-parallax-depth="0.2">
+        {t.home.heroTitle}<br /><span class="hero-title-accent font-medium" data-accent={t.home.heroTitleAccent}>{t.home.heroTitleAccent}</span>.
       </h1>
-      <p class="hero-sub mb-8 max-w-xl text-lg sm:text-xl text-[var(--color-light-text)] dark:text-[#f3f3f3] font-inter">
+      <p class="hero-sub hero-parallax mb-8 max-w-xl text-lg sm:text-xl text-[var(--color-light-text)] dark:text-[#f3f3f3] font-inter" data-parallax-depth="0.14">
         {t.home.heroSub}
       </p>
-      <div class="hero-cta flex flex-wrap gap-4 mb-10">
-        <Button
-          href={SITE.bookingUrl}
-          target={isBookingExternal ? "_blank" : undefined}
-          rel={isBookingExternal ? "noopener noreferrer" : undefined}
-        >
-          {t.home.heroCta}
-        </Button>
-        <Button href="#process" variant="secondary">{t.home.heroSecondary}</Button>
+      <div class="hero-cta hero-parallax flex flex-wrap gap-4 mb-10" data-parallax-depth="0.12">
+        <div class="hero-cta-primary">
+          <Button
+            href={SITE.bookingUrl}
+            target={isBookingExternal ? "_blank" : undefined}
+            rel={isBookingExternal ? "noopener noreferrer" : undefined}
+            class="hero-cta-main-btn"
+          >
+            {t.home.heroCta}
+          </Button>
+        </div>
+        <div>
+          <Button href="#process" variant="secondary" class="hero-cta-secondary-btn">{t.home.heroSecondary}</Button>
+        </div>
       </div>
-      <div class="hero-proof grid gap-3 sm:grid-cols-3 mb-10 max-w-3xl">
+      <div class="hero-proof hero-parallax grid gap-3 sm:grid-cols-3 mb-10 max-w-3xl" data-parallax-depth="0.08">
         {
-          outcomes.map(({ value, label }) => (
-            <div class="rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] px-4 py-3">
-              <p class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{value}</p>
-              <p class="text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{label}</p>
+          outcomes.map(({ value, label }, idx) => (
+            <div class="hero-proof-card rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] px-4 py-3" style={`--proof-delay:${idx * 2.4}s;`}>
+              <p class="hero-proof-value text-2xl sm:text-[1.7rem] font-semibold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]" data-proof-number data-proof-value={value}>{value}</p>
+              <p class="hero-proof-label text-xs text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{label}</p>
             </div>
           ))
         }
       </div>
-      <div class="hero-social mb-6">
+      <div class="hero-social hero-parallax mb-6" data-parallax-depth="0.06">
         <SocialLinks />
       </div>
-      <div class="hero-trust">
+      <div class="hero-trust hero-parallax" data-parallax-depth="0.04">
         <TrustBar />
       </div>
     </div>
   </section>
 
   <!-- Client Logos -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-12 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-12 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <p class="text-center text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6">{t.home.clientsTitle}</p>
     <div class="flex flex-wrap justify-center items-center gap-8 sm:gap-12">
       {clientLogos.map((name) => (
         <span class="text-lg sm:text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] opacity-50 hover:opacity-80 transition-opacity">{name}</span>
       ))}
     </div>
-  </section>
+  </section> -->
 
   <!-- Engagement Paths -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <SectionHeader title={t.home.lanesTitle} subtitle={t.home.lanesSubtitle} />
     <div class="grid gap-6 md:grid-cols-2">
       {
@@ -165,10 +177,10 @@ const engagementPaths = [
         ))
       }
     </div>
-  </section>
+  </section> -->
 
   <!-- Pain Points -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <SectionHeader title={t.home.painTitle} subtitle={t.home.painSub} />
     <div class="grid gap-6 sm:grid-cols-3">
       {
@@ -185,10 +197,10 @@ const engagementPaths = [
         ))
       }
     </div>
-  </section>
+  </section> -->
 
   <!-- Who I Work With -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <SectionHeader title={t.home.icpTitle} subtitle={t.home.icpSubtitle} />
     <div class="grid gap-6 sm:grid-cols-3">
       {[
@@ -202,10 +214,10 @@ const engagementPaths = [
         </div>
       ))}
     </div>
-  </section>
+  </section> -->
 
   <!-- Services -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <div class="flex justify-between items-end mb-10">
       <SectionHeader title={t.home.servicesTitle} subtitle={t.home.servicesSubtitle} class="mb-0" />
       <a
@@ -236,10 +248,10 @@ const engagementPaths = [
         {t.home.servicesCta} →
       </a>
     </div>
-  </section>
+  </section> -->
 
   <!-- Process -->
-  <section
+  <!-- <section
     id="process"
     data-scroll
     class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] scroll-mt-20"
@@ -258,10 +270,10 @@ const engagementPaths = [
         ))
       }
     </div>
-  </section>
+  </section> -->
 
   <!-- Credibility: Stats + Tech -->
-  <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+  <!-- <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
     <SectionHeader title={t.home.credTitle} subtitle={t.home.credSubtitle} />
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-12">
       {
@@ -275,7 +287,7 @@ const engagementPaths = [
         ))
       }
     </div>
-  </section>
+  </section> -->
 
   <!-- Latest Blog Posts -->
   {
@@ -317,6 +329,287 @@ const engagementPaths = [
 </PageLayout>
 
 <style>
+  .hero-shell {
+    isolation: isolate;
+  }
+
+  .hero-dither-blob,
+  .hero-noise,
+  .hero-text-fade,
+  .hero-bridge {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .hero-dither-blobs {
+    inset: -18% -14% -14%;
+    z-index: 1;
+  }
+
+  .hero-dither-blob {
+    --blob-opacity-min: 0.12;
+    --blob-opacity-max: 0.28;
+    --blob-grow-duration: 10s;
+    --blob-dither-duration: 8.8s;
+    --blob-delay: 0s;
+    /* No circular border-radius — shape is defined entirely by the mask */
+    mix-blend-mode: multiply;
+    opacity: 0.2;
+    /* Pure halftone dot grid matching the canvas dither scene (8px grid, ~1.4px dots) */
+    background:
+      radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 42%, transparent) 1.4px, transparent 2px) 0 0 / 8px 8px;
+    /* Soft elliptical mask — ambient light pool, no hard circular edge */
+    mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0.12) 68%, transparent 86%);
+    filter: blur(0.4px);
+    animation:
+      hero-dither-blob-grow var(--blob-grow-duration) ease-in-out infinite,
+      hero-dither-blob-drift var(--blob-dither-duration) linear infinite;
+    animation-delay: var(--blob-delay), var(--blob-delay);
+  }
+
+  :global(.dark) .hero-dither-blob {
+    mix-blend-mode: screen;
+    background:
+      radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 44%, #d8f0ff 56%) 1.4px, transparent 2px) 0 0 / 8px 8px;
+  }
+
+  /* Top-right ambient light — large, spread wide */
+  .hero-dither-blob-1 {
+    width: clamp(22rem, 54vw, 44rem);
+    height: clamp(18rem, 38vw, 34rem);
+    top: -30%;
+    right: -10%;
+    --blob-opacity-min: 0.14;
+    --blob-opacity-max: 0.30;
+    --blob-grow-duration: 12.4s;
+    --blob-dither-duration: 10.2s;
+    --blob-delay: 0.15s;
+  }
+
+  /* Top-left ambient light — slightly smaller */
+  .hero-dither-blob-2 {
+    width: clamp(18rem, 46vw, 38rem);
+    height: clamp(14rem, 30vw, 28rem);
+    top: -28%;
+    left: -8%;
+    --blob-opacity-min: 0.08;
+    --blob-opacity-max: 0.20;
+    --blob-grow-duration: 10.6s;
+    --blob-dither-duration: 8.4s;
+    --blob-delay: 1.1s;
+  }
+
+  .hero-noise {
+    inset: 0;
+    z-index: 3;
+    opacity: 0.12;
+    mix-blend-mode: soft-light;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+    animation: hero-noise-drift 13s linear infinite;
+  }
+
+  :global(.dark) .hero-noise {
+    opacity: 0.22;
+    mix-blend-mode: screen;
+  }
+
+  .hero-text-fade {
+    top: 0;
+    bottom: 0;
+    left: -8%;
+    width: clamp(26rem, 62%, 42rem);
+    z-index: 6;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-light) 96%, transparent) 0%,
+        color-mix(in srgb, var(--color-light) 88%, transparent) 56%,
+        transparent 100%
+      );
+  }
+
+  :global(.dark) .hero-text-fade {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-dark) 96%, transparent) 0%,
+        color-mix(in srgb, var(--color-dark) 84%, transparent) 56%,
+        transparent 100%
+      );
+  }
+
+  .hero-content {
+    max-width: min(100%, 860px);
+    margin-top: clamp(0.9rem, 2vw, 2.2rem);
+    margin-bottom: clamp(0.9rem, 2vw, 2rem);
+    padding: clamp(0.4rem, 1vw, 1.1rem) 0;
+  }
+
+  .hero-title {
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .hero-title-accent {
+    position: relative;
+    display: inline-block;
+    color: color-mix(in srgb, var(--color-primary) 74%, #9adfff 26%);
+  }
+
+  :global(.dark) .hero-title-accent {
+    color: color-mix(in srgb, var(--color-primary) 68%, #c2ebff 32%);
+  }
+
+  .hero-title-accent::before {
+    content: attr(data-accent);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    color: color-mix(in srgb, #fff 78%, var(--color-primary) 22%);
+  }
+
+  :global(.dark) .hero-title-accent::before {
+    color: color-mix(in srgb, #fff 90%, var(--color-primary) 10%);
+    opacity: 0.42;
+  }
+
+  @supports ((-webkit-background-clip: text) and (-webkit-text-fill-color: transparent)) {
+    .hero-title-accent::before {
+      color: transparent;
+      background:
+        radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 56%, #9cdfff 44%) 1.2px, transparent 1.9px) 0 0 / 8px 8px,
+        linear-gradient(95deg, color-mix(in srgb, var(--color-primary) 70%, #87d4ff 30%), color-mix(in srgb, var(--color-primary) 48%, #eef9ff 52%));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: hero-title-accent-flow 12s linear infinite;
+    }
+
+    :global(.dark) .hero-title-accent::before {
+      background:
+        radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 48%, #cceeff 52%) 1.2px, transparent 1.9px) 0 0 / 8px 8px,
+        linear-gradient(95deg, color-mix(in srgb, var(--color-primary) 62%, #a8e1ff 38%), color-mix(in srgb, #e5dcff 68%, #7cc6ff 32%));
+    }
+  }
+
+  .hero-sub {
+    line-height: 1.55;
+  }
+
+  .hero-bridge {
+    left: -12%;
+    right: -12%;
+    bottom: -2px;
+    height: 180px;
+    z-index: 7;
+    background:
+      linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-light) 60%, transparent) 64%, var(--color-light) 100%),
+      radial-gradient(56% 54% at 56% 0%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 74%);
+  }
+
+  :global(.dark) .hero-bridge {
+    background:
+      linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-dark) 72%, transparent) 64%, var(--color-dark) 100%),
+      radial-gradient(56% 54% at 56% 0%, color-mix(in srgb, var(--color-primary) 26%, transparent), transparent 74%);
+  }
+
+  .hero-parallax {
+    translate: var(--parallax-x, 0px) var(--parallax-y, 0px);
+    will-change: translate;
+  }
+
+  .hero-cta-primary {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .hero-cta-primary::after {
+    content: "";
+    position: absolute;
+    inset: -0.7rem -0.9rem;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0.24;
+    background:
+      radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 38%, transparent) 1.2px, transparent 2px) 0 0 / 8px 8px,
+      radial-gradient(circle, color-mix(in srgb, var(--color-primary) 20%, transparent) 0%, transparent 72%);
+    mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.9), transparent 74%);
+    animation: hero-cta-dither-breathe 6.8s ease-in-out infinite;
+  }
+
+  :global(.hero-cta-main-btn) {
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 54%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--color-primary) 24%, transparent);
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-primary) 90%, white 10%),
+      color-mix(in srgb, var(--color-primary) 94%, black 6%)
+    );
+    transition:
+      transform 220ms ease,
+      box-shadow 220ms ease,
+      background-color 220ms ease;
+  }
+
+  :global(.hero-cta-main-btn):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  }
+
+  :global(.hero-cta-secondary-btn) {
+    background: color-mix(in srgb, var(--color-light) 90%, transparent);
+    border-style: dashed;
+  }
+
+  :global(.dark) .hero-cta-secondary-btn {
+    background: color-mix(in srgb, var(--color-dark) 84%, transparent);
+  }
+
+  .hero-proof-card {
+    position: relative;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--color-light) 88%, transparent);
+  }
+
+  :global(.dark) .hero-proof-card {
+    background-color: color-mix(in srgb, #0f1015 72%, transparent);
+  }
+
+  .hero-proof-card::after {
+    content: "";
+    position: absolute;
+    width: 11rem;
+    aspect-ratio: 1 / 1;
+    left: 50%;
+    top: 50%;
+    border-radius: 999px;
+    transform: translate(-50%, -50%) scale(0.72);
+    opacity: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 2px 2px, color-mix(in srgb, var(--color-primary) 30%, transparent) 1.5px, transparent 2px) 0 0 / 8px 8px,
+      radial-gradient(circle, color-mix(in srgb, var(--color-primary) 24%, transparent) 0%, transparent 68%);
+    animation:
+      hero-proof-cycle 7.2s ease-in-out infinite,
+      hero-proof-dither 1.2s linear infinite;
+    animation-delay: var(--proof-delay, 0s), var(--proof-delay, 0s);
+  }
+
+  .hero-proof-value {
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .hero-proof-label {
+    margin-top: 0.45rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
   .hero-eyebrow,
   .hero-title,
   .hero-sub,
@@ -327,6 +620,144 @@ const engagementPaths = [
   [data-scroll] {
     opacity: 0;
   }
+
+  @keyframes hero-dither-blob-grow {
+    0%,
+    100% {
+      opacity: var(--blob-opacity-min);
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: var(--blob-opacity-max);
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes hero-dither-blob-drift {
+    from {
+      background-position: 0 0, 0 0;
+    }
+    to {
+      background-position: 8px 6px, 0 0;
+    }
+  }
+
+  @keyframes hero-noise-drift {
+    from {
+      background-position: 0 0, 0 0;
+    }
+    to {
+      background-position: 18px 14px, -14px 12px;
+    }
+  }
+
+  @keyframes hero-cta-dither-breathe {
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scale(0.96);
+    }
+    50% {
+      opacity: 0.32;
+      transform: scale(1.03);
+    }
+  }
+
+  @keyframes hero-proof-dither {
+    from {
+      background-position: 0 0, 0 0;
+    }
+    to {
+      background-position: 8px 6px, 0 0;
+    }
+  }
+
+  @keyframes hero-proof-cycle {
+    0%,
+    7%,
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.74);
+    }
+    10%,
+    28% {
+      opacity: 0.54;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    34% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+  }
+
+  @keyframes hero-title-accent-flow {
+    from {
+      background-position: 0 0, 0 0;
+    }
+    to {
+      background-position: 12px 9px, 0 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-content {
+      padding-top: 0.6rem;
+    }
+
+    .hero-dither-blob {
+      filter: none;
+    }
+
+    .hero-dither-blob-1 {
+      width: clamp(16rem, 80vw, 28rem);
+      height: clamp(12rem, 50vw, 22rem);
+      top: -18%;
+      right: -12%;
+    }
+
+    .hero-dither-blob-2 {
+      width: clamp(14rem, 70vw, 24rem);
+      height: clamp(10rem, 44vw, 18rem);
+      top: -20%;
+      left: -12%;
+    }
+
+    .hero-text-fade {
+      width: 100%;
+      left: 0;
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--color-light) 94%, transparent) 0%,
+          color-mix(in srgb, var(--color-light) 80%, transparent) 40%,
+          transparent 82%
+        );
+    }
+
+    :global(.dark) .hero-text-fade {
+      background:
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--color-dark) 94%, transparent) 0%,
+          color-mix(in srgb, var(--color-dark) 82%, transparent) 40%,
+          transparent 82%
+        );
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-dither-blob,
+    .hero-noise,
+    .hero-cta-primary::after,
+    .hero-title-accent::before,
+    .hero-proof-card::after {
+      animation: none !important;
+    }
+
+    .hero-parallax {
+      translate: 0 0 !important;
+    }
+  }
 </style>
 
 <script>
@@ -334,66 +765,185 @@ const engagementPaths = [
   import { ScrollTrigger } from "gsap/ScrollTrigger";
 
   gsap.registerPlugin(ScrollTrigger);
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Hero sequence
-  gsap.fromTo(
-    ".hero-eyebrow",
-    { opacity: 0, y: 10 },
-    { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-  );
-
-  gsap.fromTo(
-    ".hero-title",
-    { opacity: 0, y: 20 },
-    { opacity: 1, y: 0, duration: 0.8, delay: 0.15, ease: "cubic-bezier(0.22, 1, 0.36, 1)" },
-  );
-
-  gsap.fromTo(
-    ".hero-sub",
-    { opacity: 0, y: 12 },
-    { opacity: 1, y: 0, duration: 0.7, delay: 0.35, ease: "power2.out" },
-  );
-
-  gsap.fromTo(
-    ".hero-cta",
-    { opacity: 0, y: 12 },
-    { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: "power2.out" },
-  );
-
-  gsap.fromTo(
-    ".hero-proof",
-    { opacity: 0, y: 12 },
-    { opacity: 1, y: 0, duration: 0.7, delay: 0.62, ease: "power2.out" },
-  );
-
-  gsap.fromTo(
-    ".hero-social",
-    { opacity: 0, y: 12 },
-    { opacity: 1, y: 0, duration: 0.7, delay: 0.74, ease: "power2.out" },
-  );
-
-  gsap.fromTo(
-    ".hero-trust",
-    { opacity: 0 },
-    { opacity: 1, duration: 0.6, delay: 0.92, ease: "power2.out" },
-  );
-
-  // Scroll-triggered sections
-  document.querySelectorAll<HTMLElement>("[data-scroll]").forEach((section) => {
+  if (prefersReducedMotion) {
+    gsap.set(".hero-eyebrow, .hero-title, .hero-sub, .hero-cta, .hero-proof, .hero-social, .hero-trust, [data-scroll]", {
+      opacity: 1,
+      y: 0,
+    });
+    gsap.set(".hero-proof-card", { opacity: 1, y: 0, scale: 1 });
+  } else {
+    // Hero sequence
     gsap.fromTo(
-      section,
-      { opacity: 0, y: 40 },
-      {
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          toggleActions: "play none none none",
-        },
-        opacity: 1,
-        y: 0,
-        duration: 0.7,
-        ease: "power2.out",
-      },
+      ".hero-eyebrow",
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
     );
+
+    gsap.fromTo(
+      ".hero-title",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, delay: 0.15, ease: "cubic-bezier(0.22, 1, 0.36, 1)" },
+    );
+
+    gsap.fromTo(
+      ".hero-sub",
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.7, delay: 0.35, ease: "power2.out" },
+    );
+
+    gsap.fromTo(
+      ".hero-cta",
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: "power2.out" },
+    );
+
+    gsap.fromTo(
+      ".hero-proof",
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.7, delay: 0.62, ease: "power2.out" },
+    );
+
+    gsap.fromTo(
+      ".hero-proof-card",
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.7, stagger: 0.08, ease: "power3.out" },
+    );
+
+    gsap.fromTo(
+      ".hero-social",
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.62, delay: 0.74, ease: "power2.out" },
+    );
+
+    gsap.fromTo(
+      ".hero-trust",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.55, delay: 0.88, ease: "power2.out" },
+    );
+  }
+
+  // Hero proof count-up (keeps suffixes like +, %, h, etc.)
+  document.querySelectorAll<HTMLElement>("[data-proof-number]").forEach((node, idx) => {
+    const raw = (node.dataset.proofValue ?? node.textContent ?? "").trim();
+    const match = raw.match(/-?\d+(?:[.,]\d+)?/);
+    if (!match || match.index === undefined) return;
+
+    if (prefersReducedMotion) {
+      node.textContent = raw;
+      return;
+    }
+
+    const target = Number.parseFloat(match[0].replace(",", "."));
+    if (!Number.isFinite(target)) return;
+
+    const decimals = (match[0].split(/[.,]/)[1] ?? "").length;
+    const prefix = raw.slice(0, match.index);
+    const suffix = raw.slice(match.index + match[0].length);
+    const state = { value: 0 };
+
+    gsap.to(state, {
+      value: target,
+      duration: 1.2,
+      delay: 0.95 + idx * 0.1,
+      ease: "power3.out",
+      onUpdate: () => {
+        const rendered = decimals > 0 ? state.value.toFixed(decimals) : Math.round(state.value).toString();
+        node.textContent = `${prefix}${rendered}${suffix}`;
+      },
+      onComplete: () => {
+        node.textContent = raw;
+      },
+    });
   });
+
+  if (!prefersReducedMotion) {
+    // Scroll-triggered sections
+    document.querySelectorAll<HTMLElement>("[data-scroll]").forEach((section) => {
+      gsap.fromTo(
+        section,
+        { opacity: 0, y: 40 },
+        {
+          scrollTrigger: {
+            trigger: section,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: "power2.out",
+        },
+      );
+    });
+  }
+
+  // Hero parallax (restrained)
+  const heroShell = document.querySelector<HTMLElement>(".hero-shell");
+  const parallaxNodes = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax-depth]"));
+
+  if (!prefersReducedMotion && heroShell && parallaxNodes.length > 0) {
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let scrollDrift = 0;
+    let rafId = 0;
+
+    const updateParallax = () => {
+      currentX += (targetX - currentX) * 0.06;
+      currentY += (targetY - currentY) * 0.06;
+
+      const swayX = currentX * 16;
+      const swayY = currentY * 12;
+
+      parallaxNodes.forEach((node) => {
+        const depth = Number.parseFloat(node.dataset.parallaxDepth ?? "0");
+        const px = swayX * depth;
+        const py = (swayY * depth) - (scrollDrift * depth * 8);
+        node.style.setProperty("--parallax-x", `${px.toFixed(2)}px`);
+        node.style.setProperty("--parallax-y", `${py.toFixed(2)}px`);
+      });
+
+      rafId = requestAnimationFrame(updateParallax);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const rect = heroShell.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      const nx = ((event.clientX - rect.left) / rect.width) - 0.5;
+      const ny = ((event.clientY - rect.top) / rect.height) - 0.5;
+      targetX = Math.max(-0.45, Math.min(0.45, nx));
+      targetY = Math.max(-0.45, Math.min(0.45, ny));
+    };
+
+    const onPointerLeave = () => {
+      targetX = 0;
+      targetY = 0;
+    };
+
+    const onScroll = () => {
+      const rect = heroShell.getBoundingClientRect();
+      const heroCenter = rect.top + (rect.height * 0.5);
+      const viewportCenter = window.innerHeight * 0.5;
+      const delta = (heroCenter - viewportCenter) / window.innerHeight;
+      scrollDrift = Math.max(-1, Math.min(1, delta));
+    };
+
+    heroShell.addEventListener("pointermove", onPointerMove);
+    heroShell.addEventListener("pointerleave", onPointerLeave);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    updateParallax();
+
+    window.addEventListener("pagehide", () => {
+      cancelAnimationFrame(rafId);
+    }, { once: true });
+  } else {
+    parallaxNodes.forEach((node) => {
+      node.style.setProperty("--parallax-x", "0px");
+      node.style.setProperty("--parallax-y", "0px");
+    });
+  }
 </script>

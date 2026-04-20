@@ -9,6 +9,9 @@ import { remarkReadingTime } from "./src/lib/remark-reading-time.mjs";
 // https://astro.build/config
 export default defineConfig({
   site: "https://marianoguillaume.com",
+  image: {
+    domains: ["images.unsplash.com"],
+  },
   adapter: vercel(),
   integrations: [mdx(), react(), sitemap()],
   vite: {
@@ -16,7 +19,10 @@ export default defineConfig({
   },
   markdown: {
     shikiConfig: {
-      theme: "github-dark",
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
     },
     remarkPlugins: [remarkReadingTime],
   },

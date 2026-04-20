@@ -1,0 +1,12 @@
+---
+import Counter from "./Counter.tsx";
+
+interface Props {
+  label?: string;
+  initialValue?: number;
+}
+
+const { label, initialValue } = Astro.props;
+---
+
+<Counter client:load label={label} initialValue={initialValue} />

@@ -1,10 +1,12 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #7050D8;
-  --color-primary-hover: #856ADE;
-  --color-primary-pressed: #A28DE6;
+  /* Legacy tokens — used by landing page (index.astro) */
+  --color-primary: #A52847;
+  --color-primary-hover: #B54867;
+  --color-primary-pressed: #C56887;
   --color-dark: #080808;
   --color-dark-text: #B1B1B1;
   --color-dark-headlines: #E1E1E1;
@@ -19,10 +21,19 @@
   --color-warning: #FF8C42;
   --color-success: #4CB963;
 
+  /* Neutral tokens — used by blog, nav, footer, newsletter */
+  --color-bg: #ffffff;
+  --color-bg-dark: #0a0a0a;
+  --color-fg: #111111;
+  --color-fg-dark: #f2f2f2;
+  --color-muted: #6a6a6a;
+  --color-muted-dark: #8f8f8f;
+  --color-border: rgba(125, 125, 125, 0.35);
+
   --font-family-display: 'IBM Plex Sans', system-ui, sans-serif;
   --font-family-mono: 'IBM Plex Mono', system-ui, monospace;
   --font-family-inter: 'Inter', system-ui, sans-serif;
-  
+
   --breakpoint-mobile: 550px;
   --breakpoint-tablet: 834px;
   --breakpoint-desktop: 1024px;
@@ -41,8 +52,6 @@
 
 /* Base */
 *, *::before, *::after {
-  transition-timing-function: ease-in-out;
-  transition-duration: 200ms;
   box-sizing: border-box;
 }
 
@@ -53,39 +62,27 @@ html {
 
 body {
   font-family: var(--font-family-display);
-  background-color: var(--color-light);
-  color: var(--color-light-text);
+  font-size: 14px;
+  line-height: 1.65;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
   height: 100%;
   overflow-x: hidden;
 }
 
+html.dark {
+  --color-fg: var(--color-fg-dark);
+  --color-muted: var(--color-muted-dark);
+}
+
 html.dark body {
-  background-color: var(--color-dark);
-  color: var(--color-dark-text);
+  background-color: var(--color-bg-dark);
+  color: var(--color-fg-dark);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--color-light-headlines);
-}
-
-.gradient-text {
-  background: linear-gradient(90deg,rgba(42, 123, 155, 1) 0%, rgb(238, 82, 173) 50%, rgb(106, 151, 235) 100%);
-  
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-text 3s ease-in-out infinite;
-}
-
-@keyframes gradient-text {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  color: var(--color-fg);
+  font-weight: 600;
 }
 
 html.dark h1,
@@ -94,11 +91,12 @@ html.dark h3,
 html.dark h4,
 html.dark h5,
 html.dark h6 {
-  color: var(--color-dark-headlines);
+  color: var(--color-fg-dark);
 }
 
 a {
   text-decoration: none;
+  transition: color 150ms ease-in-out, opacity 150ms ease-in-out;
 }
 
 code {
@@ -109,34 +107,121 @@ code {
   font-size: 0.875em;
 }
 
+/* Reset inline code styles inside pre (code blocks) */
+pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
 html.dark code {
   background-color: var(--color-dark-subtle);
 }
 
 blockquote {
-  border-left: 4px solid var(--color-primary);
-  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-left: 2px solid var(--color-border);
   padding: 0.75rem 1rem;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin: 1.5rem 0;
+  color: var(--color-muted);
+}
+
+html.dark blockquote {
+  color: var(--color-muted-dark);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background-color: var(--color-primary); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background-color: var(--color-muted); border-radius: 3px; }
 
-/* Prose dark mode */
-html.dark .prose {
-  --tw-prose-body: var(--color-dark-text);
-  --tw-prose-headings: var(--color-dark-headlines);
-  --tw-prose-links: var(--color-primary);
-  --tw-prose-code: var(--color-dark-headlines);
-  --tw-prose-pre-bg: #1a1a2e;
+/* Prose */
+.prose {
+  --tw-prose-body: var(--color-fg);
+  --tw-prose-headings: var(--color-fg);
+  --tw-prose-links: var(--color-fg);
+  --tw-prose-bold: var(--color-fg);
+  --tw-prose-counters: var(--color-muted);
+  --tw-prose-bullets: var(--color-muted);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-muted);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-muted);
+  --tw-prose-code: var(--color-fg);
+  --tw-prose-pre-bg: transparent;
 }
 
-.prose {
-  --tw-prose-links: var(--color-primary);
+.prose a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--color-fg);
+  transition: color 150ms ease-in-out;
+}
+
+.prose a:hover {
+  color: var(--color-primary);
+}
+
+html.dark .prose {
+  --tw-prose-body: var(--color-fg-dark);
+  --tw-prose-headings: var(--color-fg-dark);
+  --tw-prose-links: var(--color-fg-dark);
+  --tw-prose-bold: var(--color-fg-dark);
+  --tw-prose-counters: var(--color-muted-dark);
+  --tw-prose-bullets: var(--color-muted-dark);
+  --tw-prose-quotes: var(--color-muted-dark);
+  --tw-prose-captions: var(--color-muted-dark);
+  --tw-prose-code: var(--color-fg-dark);
+  --tw-prose-pre-bg: transparent;
+}
+
+/* Shiki code blocks — targets both class names Astro may produce */
+.shiki,
+.astro-code {
+  background-color: #f6f8fa !important;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem !important;
+  overflow-x: auto;
+}
+
+/* Dark mode: override inline bg and switch to dark syntax colors */
+html.dark .shiki,
+html.dark .astro-code {
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+html.dark .shiki span,
+html.dark .astro-code span {
+  color: var(--shiki-dark) !important;
+}
+
+html.dark .prose a {
+  color: var(--color-fg-dark);
+}
+
+html.dark .prose a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Landing page only */
+.gradient-text {
+  background: linear-gradient(90deg,rgba(42, 123, 155, 1) 0%, rgb(238, 82, 173) 50%, rgb(106, 151, 235) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-text 3s ease-in-out infinite;
+}
+
+@keyframes gradient-text {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text { animation: none; }
 }
 
 .font-inter {

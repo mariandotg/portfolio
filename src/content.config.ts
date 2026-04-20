@@ -13,6 +13,7 @@ const blog = defineCollection({
     image: z.string().optional(),
     imageAlt: z.string().optional(),
     draft: z.boolean().default(false),
+    collection: z.enum(['engineering-notes', 'building-in-public']),
   }),
 });
 

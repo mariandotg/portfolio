@@ -1,0 +1,177 @@
+---
+title: "Idempotency in Distributed Payment Systems"
+description: "How to make payment operations safe to retry without double-charging — the patterns that actually work at scale."
+pubDate: 2026-04-15
+tags: ["distributed-systems", "payments", "backend"]
+collection: "engineering-notes"
+---
+
+import CounterIsland from "../../components/CounterIsland.astro";
+
+Payment systems fail in interesting ways. Network timeouts, pod restarts, load balancer retries — any of these can cause a payment operation to be attempted more than once. Without idempotency, retries become double charges.
+
+## The Core Problem
+
+When a client sends a `POST /payments` request and the connection drops before receiving the response, it has no way of knowing whether the payment was processed. The safe thing to do is retry. But if the server already committed the transaction, retrying creates a duplicate.
+
+The standard solution is an **idempotency key** — a client-generated UUID that uniquely identifies the operation, not the request.
+
+```http
+POST /payments
+Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+
+{ "amount": 10000, "currency": "ARS", "to": "acc_abc123" }
+```
+
+The server stores the key alongside the result. On retry, it returns the cached result without reprocessing.
+
+## Simulating Retry Attempts
+
+How many retries does your client need before giving up? This is a parameter worth making explicit. Track it here:
+
+<CounterIsland label="Max retries" initialValue={3} />
+
+A common default is 3 retries with exponential backoff. Too few and you give up on recoverable failures. Too many and you increase the risk of hitting a partially-failed state multiple times.
+
+## Implementation Patterns
+
+### The naive approach (and why it breaks)
+
+The obvious implementation is a simple key-value store lookup before processing:
+
+```go
+result, found := idempotencyStore.Get(key)
+if found {
+    return result, nil
+}
+
+result = processPayment(req)
+idempotencyStore.Set(key, result)
+return result, nil
+```
+
+This has a race condition. Two identical requests arriving simultaneously both miss the cache, both process the payment, and one of them stores the wrong result. Under load, this happens more than you'd expect.
+
+### The correct approach: atomic upsert
+
+The fix is making the cache insertion atomic:
+
+```sql
+INSERT INTO idempotency_keys (key, status, created_at)
+VALUES ($1, 'processing', NOW())
+ON CONFLICT (key) DO NOTHING
+RETURNING id;
+```
+
+If the insert returns nothing, another request is already processing (or has processed) this key. The duplicate request waits and polls until the first completes, then returns its result.
+
+This pattern — **pessimistic lock via DB insert, then process, then update** — is what we use at Interbanking for every payment mutation. It adds ~2ms of latency and eliminates the duplicate-processing class of bugs entirely.
+
+## What the Key Should Be
+
+Idempotency keys should be:
+
+1. **Client-generated**, not server-generated. The server can't generate a key before it has processed the request.
+2. **Operation-scoped**, not request-scoped. A key tied to a specific payment attempt, not to the HTTP request.
+3. **Short-lived**. 24 hours is the industry standard (Stripe uses 24h, most banking APIs use 48h).
+
+Don't use request IDs, session IDs, or anything the client didn't explicitly generate for this operation.
+
+## Edge Cases That Bite You
+
+**Partial failures**: The payment succeeds but the DB write for the idempotency key fails. You need a two-phase approach or a saga pattern here.
+
+**Key collisions**: UUIDs have ~2^122 possible values. In practice, collision probability is negligible, but you should handle the error case when building the DB constraint.
+
+**Result schema changes**: If you deploy a breaking change to the response format, old cached results may not deserialize correctly. Version your idempotency cache entries.
+
+The implementation is straightforward. The discipline of applying it consistently to every state-mutating endpoint is where most teams fall short.
+
+## Code Samples
+
+### TypeScript — client sending idempotent requests
+
+```typescript
+import { randomUUID } from "crypto";
+
+interface PaymentRequest {
+  amount: number;
+  currency: string;
+  to: string;
+}
+
+interface PaymentResult {
+  id: string;
+  status: "pending" | "settled" | "failed";
+  processedAt: string;
+}
+
+async function createPayment(
+  payload: PaymentRequest,
+  idempotencyKey: string = randomUUID()
+): Promise<PaymentResult> {
+  const response = await fetch("/api/payments", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Payment failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<PaymentResult>;
+}
+
+// Retry with the same key — server returns the cached result
+const key = randomUUID();
+const result = await createPayment({ amount: 10000, currency: "ARS", to: "acc_abc123" }, key);
+```
+
+### Java — server-side idempotency check
+
+```java
+@Service
+public class PaymentService {
+
+    private final IdempotencyRepository idempotencyRepo;
+    private final PaymentRepository paymentRepo;
+
+    public PaymentResult processPayment(String idempotencyKey, PaymentRequest request) {
+        // Try to claim the key atomically
+        Optional<IdempotencyRecord> existing = idempotencyRepo.findByKey(idempotencyKey);
+
+        if (existing.isPresent()) {
+            IdempotencyRecord record = existing.get();
+            if (record.getStatus() == Status.PROCESSING) {
+                // Another request is in flight — poll until resolved
+                return waitForCompletion(record);
+            }
+            // Already settled — return cached result
+            return record.getResult();
+        }
+
+        // Claim the key before processing
+        IdempotencyRecord record = idempotencyRepo.insertOrIgnore(
+            IdempotencyRecord.builder()
+                .key(idempotencyKey)
+                .status(Status.PROCESSING)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        try {
+            PaymentResult result = paymentRepo.execute(request);
+            idempotencyRepo.settle(record.getId(), result);
+            return result;
+        } catch (Exception e) {
+            idempotencyRepo.markFailed(record.getId(), e.getMessage());
+            throw e;
+        }
+    }
+}
+```

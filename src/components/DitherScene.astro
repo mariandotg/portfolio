@@ -1,25 +1,21 @@
 ---
 ---
 
-<!-- Dither scene wrapper: absolutely positioned behind hero content.
-     Use translateX to shift the scene left/right without affecting canvas size.
-     Positive = right, negative = left. -->
-<div class="dither-wrapper ">
+<!-- Dither scene wrapper: absolute hero layer behind text. -->
+<div class="dither-wrapper">
   <canvas id="dither-canvas" aria-hidden="true"></canvas>
 </div>
 
 <style>
   .dither-wrapper {
     position: absolute;
-    /* Negative inset = wrapper extends BEYOND the hero section bounds.
-       Increase these values to give the canvas more room so shapes aren't clipped.
-       e.g. inset: -200px makes the canvas 400px wider and 400px taller than the hero. */
-    inset: -200px;
-    pointer-events: none;  /* clicks pass through to hero buttons below */
-    overflow: visible;     /* let shapes render outside the wrapper if needed */
-    opacity: 0;                        /* starts hidden, fades in via JS */
-    transition: opacity 0.8s ease;     /* fade-in duration */
-    transform: translateX(750px);      /* shift scene right without shrinking canvas */
+    inset: -14% -14% -18% -8%;
+    z-index: 2;
+    pointer-events: none;
+    overflow: visible;
+    opacity: 0;
+    transition: opacity 0.65s ease;
+    /* transform: translateX(21%) translateY(-2%); */
   }
 
   .dither-wrapper.visible {
@@ -28,8 +24,23 @@
 
   #dither-canvas {
     display: block;
-    width: 100%;       /* canvas fills the wrapper */
+    width: 100%;
     height: 100%;
+  }
+
+  @media (max-width: 900px) {
+    .dither-wrapper {
+      inset: -10% -20% -16% -18%;
+      transform: translateX(10%) translateY(-1%);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dither-wrapper {
+      inset: -4% -20% -16% -24%;
+      transform: translateX(4%) translateY(8%);
+      opacity: 0.9;
+    }
   }
 </style>
 

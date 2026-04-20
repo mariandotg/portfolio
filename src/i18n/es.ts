@@ -132,6 +132,11 @@ export const es: Translations = {
     readingTime: "min de lectura",
     share: "Compartir",
     related: "Posts Relacionados",
+    collections: {
+      all: "Todos",
+      engineeringNotes: "Notas de Ingeniería",
+      buildingInPublic: "Construyendo en Público",
+    },
   },
   about: {
     pageTitle: "Sobre Mí",

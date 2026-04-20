@@ -8,26 +8,28 @@ const enPath = currentPath.replace(/^\/es/, "") || "/";
 const esPath = `/es${enPath === "/" ? "" : enPath}` || "/es";
 ---
 
-<div class="flex items-center gap-1 text-sm font-medium">
+<div class="flex items-center gap-0.5 text-xs">
   <a
     href={enPath}
     class:list={[
-      "px-2 py-1 rounded transition-colors",
+      "px-1",
       lang === "en"
-        ? "text-[var(--color-primary)] font-bold"
-        : "text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)]"
+        ? "font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]"
+        : "text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-fg-dark)]"
     ]}
+    style="transition: color 150ms ease-in-out;"
     aria-label="Switch to English"
   >EN</a>
-  <span class="text-[var(--color-light-subtle)] dark:text-[var(--color-dark-subtle)]">/</span>
+  <span class="text-[var(--color-muted)] dark:text-[var(--color-muted-dark)]">/</span>
   <a
     href={esPath}
     class:list={[
-      "px-2 py-1 rounded transition-colors",
+      "px-1",
       lang === "es"
-        ? "text-[var(--color-primary)] font-bold"
-        : "text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)]"
+        ? "font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]"
+        : "text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-fg-dark)]"
     ]}
+    style="transition: color 150ms ease-in-out;"
     aria-label="Cambiar a Español"
   >ES</a>
 </div>

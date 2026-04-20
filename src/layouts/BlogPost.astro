@@ -32,9 +32,9 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 ---
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
-    <header class="mb-10">
-      <div class="flex items-center gap-3 text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-4">
+  <article class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <header class="mb-8">
+      <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: var(--color-muted);">
         <time datetime={pubDate.toISOString()}>{formattedDate}</time>
         {readingTime && (
           <>
@@ -42,54 +42,38 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
             <span>{readingTime} {t.blog.readingTime}</span>
           </>
         )}
+        {formattedUpdated && (
+          <>
+            <span>·</span>
+            <span>Updated {formattedUpdated}</span>
+          </>
+        )}
       </div>
-      <h1 class="text-3xl sm:text-4xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4 leading-tight">
+
+      <h1 class="text-xl font-semibold leading-snug mb-3 text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]">
         {title}
       </h1>
-      <p class="text-lg text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6">
+
+      <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-4">
         {description}
       </p>
+
       {tags.length > 0 && <TagList tags={tags} />}
-      {formattedUpdated && (
-        <p class="mt-4 text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
-          Updated: {formattedUpdated}
-        </p>
-      )}
     </header>
+
+    <hr class="mb-8" style="border-color: var(--color-border); opacity: 0.5;" />
 
     {image && (
       <img
         src={image}
         alt={imageAlt || title}
-        class="w-full rounded-[var(--radius-md)] mb-10 aspect-video object-cover"
+        class="w-full mb-8"
+        style="border-radius: 4px;"
       />
     )}
 
-    <div class="prose prose-lg dark:prose-invert max-w-none">
+    <div class="prose prose-sm dark:prose-invert max-w-none">
       <slot />
-    </div>
-
-    <!-- Share buttons -->
-    <div class="mt-12 pt-8 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-      <p class="text-sm font-medium text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.blog.share}</p>
-      <div class="flex gap-3">
-        <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(Astro.url.href)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="px-4 py-2 text-sm rounded-[var(--radius-sm)] bg-[var(--color-light-subtle)] dark:bg-[var(--color-dark-subtle)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
-        >
-          Share on X
-        </a>
-        <a
-          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.href)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="px-4 py-2 text-sm rounded-[var(--radius-sm)] bg-[var(--color-light-subtle)] dark:bg-[var(--color-dark-subtle)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
-        >
-          Share on LinkedIn
-        </a>
-      </div>
     </div>
   </article>
 </PageLayout>

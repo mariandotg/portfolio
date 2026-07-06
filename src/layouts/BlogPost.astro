@@ -2,8 +2,10 @@
 import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
 import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import { identiconSvg } from "../lib/identicon";
 
 interface Props {
+  slug: string;
   title: string;
   description: string;
   pubDate: Date;
@@ -14,9 +16,11 @@ interface Props {
   readingTime?: number;
 }
 
-const { title, description, pubDate, updatedDate, tags = [], image, imageAlt, readingTime } = Astro.props;
+const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+
+const banner = identiconSvg(slug);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
   year: "numeric",
@@ -33,6 +37,8 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
   <article class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <div class="banner w-full overflow-hidden mb-8" aria-hidden="true" set:html={banner} />
+
     <header class="mb-8">
       <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: var(--color-muted);">
         <time datetime={pubDate.toISOString()}>{formattedDate}</time>
@@ -63,17 +69,21 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 
     <hr class="mb-8" style="border-color: var(--color-border); opacity: 0.5;" />
 
-    {image && (
-      <img
-        src={image}
-        alt={imageAlt || title}
-        class="w-full mb-8"
-        style="border-radius: 4px;"
-      />
-    )}
-
     <div class="prose prose-sm dark:prose-invert max-w-none">
       <slot />
     </div>
   </article>
 </PageLayout>
+
+<style>
+  .banner {
+    aspect-ratio: 80 / 15;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: #0d0d0f;
+  }
+
+  .banner :global(svg) {
+    display: block;
+  }
+</style>

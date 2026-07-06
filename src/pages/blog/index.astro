@@ -29,19 +29,16 @@ const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.va
       </button>
     </div>
 
-    <div class="flex flex-col" id="posts-list">
-      {sorted.map((post, i) => (
-        <>
-          {i > 0 && <hr style="border-color: var(--color-border); opacity: 0.5;" />}
-          <div data-collection={post.data.collection} class="post-card">
-            <BlogPostCard
-              slug={post.id}
-              title={post.data.title}
-              description={post.data.description}
-              pubDate={post.data.pubDate}
-            />
-          </div>
-        </>
+    <div class="flex flex-col gap-8" id="posts-list">
+      {sorted.map((post) => (
+        <div data-collection={post.data.collection} class="post-card">
+          <BlogPostCard
+            slug={post.id}
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+          />
+        </div>
       ))}
     </div>
   </div>
@@ -92,10 +89,6 @@ const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.va
   }
 
   .post-card.hidden {
-    display: none;
-  }
-
-  .post-card.hidden + hr {
     display: none;
   }
 </style>

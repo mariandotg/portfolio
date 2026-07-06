@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, getLocalizedPath } from "../i18n/utils";
+import { identiconSvg } from "../lib/identicon";
 
 interface Props {
   slug: string;
@@ -18,9 +19,16 @@ const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-U
 });
 
 const href = getLocalizedPath(`/blog/${slug}`, lang);
+const banner = identiconSvg(slug);
 ---
 
-<a href={href} class="block py-4 group">
+<a href={href} class="block group">
+  <div
+    class="banner w-full overflow-hidden mb-3"
+    aria-hidden="true"
+    set:html={banner}
+  />
+
   <time
     datetime={pubDate.toISOString()}
     class="block text-xs mb-1"
@@ -37,6 +45,17 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
 </a>
 
 <style>
+  .banner {
+    aspect-ratio: 80 / 15;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: #0d0d0f;
+  }
+
+  .banner :global(svg) {
+    display: block;
+  }
+
   a:hover h3 {
     color: var(--color-primary);
   }

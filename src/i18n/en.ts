@@ -131,6 +131,7 @@ export const en = {
     share: "Share",
     related: "Related Posts",
     backToBlog: "Back to blog",
+    onThisPage: "On this page",
     collections: {
       all: "All",
       engineeringNotes: "Engineering Notes",

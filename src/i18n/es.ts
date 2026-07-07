@@ -133,6 +133,7 @@ export const es: Translations = {
     share: "Compartir",
     related: "Posts Relacionados",
     backToBlog: "Volver al blog",
+    onThisPage: "En esta página",
     collections: {
       all: "Todos",
       engineeringNotes: "Notas de Ingeniería",

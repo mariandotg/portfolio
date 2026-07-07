@@ -1,6 +1,8 @@
 ---
+import type { MarkdownHeading } from "astro";
 import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
+import TableOfContents from "../components/blog/TableOfContents.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import { identiconSvg } from "../lib/identicon";
 
@@ -14,9 +16,11 @@ interface Props {
   image?: string;
   imageAlt?: string;
   readingTime?: number;
+  headings?: MarkdownHeading[];
 }
 
-const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime } = Astro.props;
+const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [] } = Astro.props;
+const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
@@ -37,7 +41,7 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 ---
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
-  <article class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+  <article class="post max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
     <a href={blogHref} class="back-link">
       <span class="back-arrow" aria-hidden="true">←</span>
       <span>{t.blog.backToBlog}</span>
@@ -74,6 +78,8 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
     </header>
 
     <hr class="mb-8" style="border-color: var(--color-border); opacity: 0.5;" />
+
+    {hasToc && <TableOfContents headings={headings} label={t.blog.onThisPage} />}
 
     <div class="prose prose-sm dark:prose-invert max-w-none">
       <slot />

@@ -1,0 +1,219 @@
+---
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+  label: string;
+}
+
+const { headings, label } = Astro.props;
+
+// Only surface h2 / h3 in the TOC; h1 is the post title.
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+  toc.length > 0 && (
+    <>
+      {/* Wide screens: floating rail in the right gutter (content stays centered). */}
+      <nav class="toc-rail" aria-label={label}>
+        <p class="toc-label">{label}</p>
+        <ul class="toc-list">
+          {toc.map((h) => (
+            <li class:list={["toc-item", h.depth === 3 && "toc-item--sub"]}>
+              <a href={`#${h.slug}`} class="toc-link" data-toc-link={h.slug}>
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Narrow screens: collapsible card at the top of the article. */}
+      <details class="toc-inline" open>
+        <summary class="toc-inline-summary">
+          <span class="toc-label">{label}</span>
+          <span class="toc-inline-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <ul class="toc-list toc-list--inline">
+          {toc.map((h) => (
+            <li class:list={["toc-item", h.depth === 3 && "toc-item--sub"]}>
+              <a href={`#${h.slug}`} class="toc-link" data-toc-link={h.slug}>
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </>
+  )
+}
+
+<style>
+  /* ---- shared list / link styling ---- */
+  .toc-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin: 0;
+  }
+  html.dark .toc-label {
+    color: var(--color-muted-dark);
+  }
+
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--color-border);
+  }
+  .toc-item {
+    margin: 0;
+  }
+  .toc-item--sub .toc-link {
+    padding-left: 28px;
+    font-size: 12px;
+  }
+
+  .toc-link {
+    display: block;
+    padding: 4px 0 4px 16px;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    font-family: var(--font-family-mono);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--color-muted);
+    transition: color 150ms ease, border-color 150ms ease;
+  }
+  html.dark .toc-link {
+    color: var(--color-muted-dark);
+  }
+  .toc-link:hover {
+    color: var(--color-fg);
+  }
+  html.dark .toc-link:hover {
+    color: var(--color-fg-dark);
+  }
+  .toc-link.is-active {
+    color: var(--color-fg);
+    border-left-color: var(--color-fg);
+  }
+  html.dark .toc-link.is-active {
+    color: var(--color-fg-dark);
+    border-left-color: var(--color-fg-dark);
+  }
+
+  /* ---- responsive switch: rail (wide) vs inline (narrow) ---- */
+  .toc-rail {
+    display: none;
+  }
+  @media (min-width: 1280px) {
+    .toc-rail {
+      display: block;
+    }
+    .toc-inline {
+      display: none;
+    }
+  }
+
+  /* ---- rail: fixed in the right gutter ---- */
+  .toc-rail {
+    position: fixed;
+    top: 112px;
+    left: calc(50% + 400px + 32px);
+    width: 200px;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .toc-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .toc-rail .toc-label {
+    margin-bottom: 12px;
+  }
+
+  /* ---- inline: collapsible card ---- */
+  .toc-inline {
+    margin: 0 0 40px;
+    padding: 16px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--color-border) 10%, transparent);
+  }
+  .toc-inline-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    list-style: none;
+  }
+  .toc-inline-summary::-webkit-details-marker {
+    display: none;
+  }
+  .toc-inline-chevron {
+    font-size: 11px;
+    color: var(--color-muted);
+    transition: transform 180ms ease;
+  }
+  .toc-inline[open] .toc-inline-chevron {
+    transform: rotate(180deg);
+  }
+  .toc-list--inline {
+    margin-top: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toc-link,
+    .toc-inline-chevron {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initToc() {
+    const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+    if (links.length === 0) return;
+
+    const ids = [...new Set(links.map((l) => l.dataset.tocLink).filter(Boolean) as string[])];
+    const headings = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (headings.length === 0) return;
+
+    let activeId = "";
+    const setActive = (id: string) => {
+      if (id === activeId) return;
+      activeId = id;
+      links.forEach((link) => {
+        link.classList.toggle("is-active", link.dataset.tocLink === id);
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) {
+          setActive(visible[0].target.id);
+          return;
+        }
+        let current = "";
+        for (const h of headings) {
+          if (h.getBoundingClientRect().top < 120) current = h.id;
+        }
+        if (current) setActive(current);
+      },
+      { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
+    );
+    headings.forEach((h) => observer.observe(h));
+  }
+
+  initToc();
+  document.addEventListener("astro:page-load", initToc);
+</script>

@@ -1,0 +1,118 @@
+---
+// Dev-only widget to swap the blog list card layout at runtime.
+// Sets [data-card-mode] on every [data-posts-list] container and persists to
+// localStorage. Rendered only under `astro dev` (import.meta.env.DEV).
+const isDev = import.meta.env.DEV;
+
+const modes = [
+  { id: "stacked", label: "Stacked" },
+  { id: "cover-bottom", label: "Cover ↓" },
+  { id: "cover-top", label: "Cover ↑" },
+  { id: "cover-left", label: "Cover ←" },
+];
+---
+
+{
+  isDev && (
+    <div class="cms" id="card-mode-switcher">
+      <span class="cms-title">Card mode</span>
+      <div class="cms-btns">
+        {modes.map((m) => (
+          <button type="button" class="cms-btn" data-mode={m.id}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+{isDev && (
+  <style>
+    .cms {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(13, 13, 15, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      font-family: var(--font-family-mono, monospace);
+      color: #eee;
+    }
+    .cms-title {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+    .cms-btns {
+      display: flex;
+      gap: 4px;
+    }
+    .cms-btn {
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: transparent;
+      color: #cfcfcf;
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .cms-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .cms-btn.active {
+      background: var(--color-primary, #a52847);
+      border-color: transparent;
+      color: #fff;
+    }
+  </style>
+)}
+
+{isDev && (
+  <script is:inline>
+    (function () {
+      var KEY = "blogCardMode";
+      var DEFAULT = "stacked";
+      var switcher = document.getElementById("card-mode-switcher");
+      if (!switcher) return;
+      var btns = switcher.querySelectorAll(".cms-btn");
+
+      function apply(mode) {
+        document.documentElement.setAttribute("data-card-mode", mode);
+        btns.forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-mode") === mode);
+        });
+        try {
+          localStorage.setItem(KEY, mode);
+        } catch (e) {}
+      }
+
+      var fromUrl = null;
+      try {
+        fromUrl = new URLSearchParams(location.search).get("cardMode");
+      } catch (e) {}
+      var stored = DEFAULT;
+      try {
+        stored = fromUrl || localStorage.getItem(KEY) || DEFAULT;
+      } catch (e) {}
+      apply(stored);
+
+      btns.forEach(function (b) {
+        b.addEventListener("click", function () {
+          apply(b.getAttribute("data-mode"));
+        });
+      });
+    })();
+  </script>
+)}

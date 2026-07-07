@@ -1,0 +1,149 @@
+---
+// Step-through walkthrough. Renders <Step title="..."> children one at a time
+// with prev/next + progress dots. All step content stays in the DOM (just hidden).
+---
+
+<div class="stepper not-prose">
+  <div class="stepper-head">
+    <span class="stepper-count"></span>
+    <span class="stepper-title"></span>
+  </div>
+  <div class="stepper-dots" role="tablist"></div>
+  <div class="stepper-steps"><slot /></div>
+  <div class="stepper-nav">
+    <button type="button" class="stepper-btn" data-dir="prev">← Prev</button>
+    <button type="button" class="stepper-btn" data-dir="next">Next →</button>
+  </div>
+</div>
+
+<style>
+  .stepper {
+    margin: 1.6rem 0;
+    padding: 14px 16px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-muted) 5%, transparent);
+  }
+  .stepper-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-family-mono);
+    margin-bottom: 10px;
+  }
+  .stepper-count {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+  .stepper-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+  :global(html.dark) .stepper-title {
+    color: var(--color-fg-dark);
+  }
+  .stepper-dots {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .stepper-dot {
+    height: 4px;
+    flex: 1;
+    border: none;
+    padding: 0;
+    border-radius: 2px;
+    background: var(--color-border);
+    cursor: pointer;
+    transition: background 200ms ease;
+  }
+  .stepper-dot.active {
+    background: var(--color-primary);
+  }
+  .stepper-dot.done {
+    background: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+  :global(.step[hidden]) {
+    display: none;
+  }
+  :global(.step > :first-child) {
+    margin-top: 0.4rem;
+  }
+  :global(.step > :last-child) {
+    margin-bottom: 0.6rem;
+  }
+  .stepper-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .stepper-btn {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-fg);
+    transition: background 150ms ease, opacity 150ms ease;
+  }
+  :global(html.dark) .stepper-btn {
+    color: var(--color-fg-dark);
+  }
+  .stepper-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-muted) 14%, transparent);
+  }
+  .stepper-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+</style>
+
+<script>
+  function initStepper(root: Element) {
+    const steps = Array.from(root.querySelectorAll<HTMLElement>(":scope > .stepper-steps > .step"));
+    const dotsWrap = root.querySelector<HTMLElement>(".stepper-dots");
+    const countEl = root.querySelector<HTMLElement>(".stepper-count");
+    const titleEl = root.querySelector<HTMLElement>(".stepper-title");
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-dir="prev"]');
+    const nextBtn = root.querySelector<HTMLButtonElement>('[data-dir="next"]');
+    if (!steps.length || !dotsWrap || !countEl || !titleEl || !prevBtn || !nextBtn) return;
+
+    let current = 0;
+
+    const dots = steps.map((_, i) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "stepper-dot";
+      dot.addEventListener("click", () => go(i));
+      dotsWrap.appendChild(dot);
+      return dot;
+    });
+
+    function go(i: number) {
+      current = Math.max(0, Math.min(steps.length - 1, i));
+      steps.forEach((s, j) => (j === current ? s.removeAttribute("hidden") : s.setAttribute("hidden", "")));
+      dots.forEach((d, j) => {
+        d.classList.toggle("active", j === current);
+        d.classList.toggle("done", j < current);
+      });
+      countEl.textContent = `Step ${current + 1} / ${steps.length}`;
+      titleEl.textContent = steps[current].dataset.title || "";
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === steps.length - 1;
+    }
+
+    prevBtn.addEventListener("click", () => go(current - 1));
+    nextBtn.addEventListener("click", () => go(current + 1));
+    go(0);
+  }
+
+  document.querySelectorAll(".stepper").forEach(initStepper);
+</script>

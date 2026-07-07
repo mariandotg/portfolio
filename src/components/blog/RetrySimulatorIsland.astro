@@ -1,0 +1,213 @@
+---
+import RetrySimulator from "./RetrySimulator.tsx";
+---
+
+<div class="not-prose">
+  <RetrySimulator client:visible />
+</div>
+
+<style is:global>
+  .rsim {
+    margin: 1.6rem 0;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-muted) 5%, transparent);
+    font-family: var(--font-family-display);
+  }
+  .rsim-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .rsim-title {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .rsim-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 10px 4px 4px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-muted);
+    transition: color 150ms ease, border-color 150ms ease;
+  }
+  .rsim-toggle.on {
+    color: hsl(150 55% 42%);
+    border-color: color-mix(in srgb, hsl(150 55% 42%) 45%, var(--color-border));
+  }
+  .rsim-toggle-track {
+    width: 30px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--color-border);
+    position: relative;
+    transition: background 180ms ease;
+  }
+  .rsim-toggle.on .rsim-toggle-track {
+    background: hsl(150 55% 42%);
+  }
+  .rsim-toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 180ms ease;
+  }
+  .rsim-toggle.on .rsim-toggle-knob {
+    transform: translateX(12px);
+  }
+
+  .rsim-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 4px 0 12px;
+  }
+  .rsim-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 84px;
+    padding: 10px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  .rsim-stat.good {
+    border-color: color-mix(in srgb, hsl(150 55% 42%) 55%, var(--color-border));
+    background: color-mix(in srgb, hsl(150 55% 42%) 8%, transparent);
+  }
+  .rsim-stat.bad {
+    border-color: color-mix(in srgb, hsl(8 75% 57%) 55%, var(--color-border));
+    background: color-mix(in srgb, hsl(8 75% 57%) 8%, transparent);
+  }
+  .rsim-stat-num {
+    font-family: var(--font-family-mono);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--color-fg);
+  }
+  html.dark .rsim-stat-num {
+    color: var(--color-fg-dark);
+  }
+  .rsim-stat-lbl {
+    font-family: var(--font-family-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted);
+    margin-top: 2px;
+  }
+  .rsim-arrow {
+    font-size: 18px;
+    color: var(--color-muted);
+  }
+
+  .rsim-coins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    min-height: 26px;
+    margin-bottom: 12px;
+  }
+  .rsim-coin {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: hsl(150 55% 38%);
+    background: color-mix(in srgb, hsl(150 55% 42%) 14%, transparent);
+    border: 1px solid color-mix(in srgb, hsl(150 55% 42%) 40%, transparent);
+  }
+  .rsim-coin.dup {
+    color: hsl(8 75% 52%);
+    background: color-mix(in srgb, hsl(8 75% 57%) 14%, transparent);
+    border-color: color-mix(in srgb, hsl(8 75% 57%) 40%, transparent);
+  }
+  .rsim-coin.ghost {
+    opacity: 0.28;
+    color: var(--color-muted);
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--color-border);
+  }
+
+  .rsim-verdict {
+    font-size: 13px;
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  .rsim-verdict.ok {
+    color: hsl(150 45% 34%);
+    background: color-mix(in srgb, hsl(150 55% 42%) 10%, transparent);
+  }
+  html.dark .rsim-verdict.ok {
+    color: hsl(150 55% 62%);
+  }
+  .rsim-verdict.err {
+    color: hsl(8 65% 46%);
+    background: color-mix(in srgb, hsl(8 75% 57%) 10%, transparent);
+  }
+  html.dark .rsim-verdict.err {
+    color: hsl(8 80% 66%);
+  }
+
+  .rsim-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .rsim-btn {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-fg);
+    transition: background 150ms ease, opacity 150ms ease;
+  }
+  html.dark .rsim-btn {
+    color: var(--color-fg-dark);
+  }
+  .rsim-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-muted) 14%, transparent);
+  }
+  .rsim-btn.primary {
+    border-color: transparent;
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .rsim-btn.primary:hover {
+    background: var(--color-primary-hover);
+  }
+  .rsim-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+</style>

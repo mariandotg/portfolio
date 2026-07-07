@@ -1,0 +1,104 @@
+---
+interface Props {
+  leftLabel?: string;
+  rightLabel?: string;
+  /** "diff" tints left as before/removed and right as after/added. */
+  variant?: "neutral" | "diff";
+}
+
+const { leftLabel = "Before", rightLabel = "After", variant = "neutral" } = Astro.props;
+---
+
+<div class={`sxs sxs-${variant} not-prose`}>
+  <div class="sxs-col sxs-left">
+    <div class="sxs-label">
+      {variant === "diff" && <span class="sxs-sign" aria-hidden="true">−</span>}
+      {leftLabel}
+    </div>
+    <div class="sxs-body"><slot name="left" /></div>
+  </div>
+  <div class="sxs-col sxs-right">
+    <div class="sxs-label">
+      {variant === "diff" && <span class="sxs-sign" aria-hidden="true">+</span>}
+      {rightLabel}
+    </div>
+    <div class="sxs-body"><slot name="right" /></div>
+  </div>
+</div>
+
+<style>
+  .sxs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1.6rem 0;
+  }
+  @media (max-width: 640px) {
+    .sxs {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .sxs-col {
+    --tone: var(--color-border);
+    border: 1px solid var(--color-border);
+    border-top: 2px solid var(--tone);
+    border-radius: 8px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--tone) 5%, transparent);
+    min-width: 0;
+  }
+  .sxs-diff .sxs-left {
+    --tone: hsl(8 70% 55%);
+  }
+  .sxs-diff .sxs-right {
+    --tone: hsl(150 55% 42%);
+  }
+
+  .sxs-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    font-family: var(--font-family-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--tone);
+    border-bottom: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--tone) 9%, transparent);
+  }
+  .sxs-sign {
+    font-size: 13px;
+  }
+
+  .sxs-body {
+    padding: 4px 12px;
+    font-size: 13.5px;
+    overflow-x: auto;
+  }
+  .sxs-body :global(pre) {
+    margin: 0.7rem 0;
+    background: transparent !important;
+    padding: 0;
+    font-size: 12.5px;
+  }
+  .sxs-body :global(> :first-child) {
+    margin-top: 0.7rem;
+  }
+  .sxs-body :global(> :last-child) {
+    margin-bottom: 0.7rem;
+  }
+  .sxs-body :global(p) {
+    margin: 0.6rem 0;
+    line-height: 1.6;
+    color: var(--color-fg);
+  }
+  :global(html.dark) .sxs-body :global(p) {
+    color: var(--color-fg-dark);
+  }
+  .sxs-body :global(code) {
+    font-family: var(--font-family-mono);
+  }
+</style>

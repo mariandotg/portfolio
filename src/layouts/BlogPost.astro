@@ -1,7 +1,7 @@
 ---
 import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
-import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import { identiconSvg } from "../lib/identicon";
 
 interface Props {
@@ -21,6 +21,7 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
 const banner = identiconSvg(slug);
+const blogHref = getLocalizedPath("/blog", lang);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
   year: "numeric",
@@ -37,6 +38,11 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
   <article class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <a href={blogHref} class="back-link">
+      <span class="back-arrow" aria-hidden="true">←</span>
+      <span>{t.blog.backToBlog}</span>
+    </a>
+
     <div class="banner w-full overflow-hidden mb-8" aria-hidden="true" set:html={banner} />
 
     <header class="mb-8">
@@ -85,5 +91,40 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 
   .banner :global(svg) {
     display: block;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    color: var(--color-muted);
+    transition: color 150ms ease-in-out;
+  }
+  html.dark .back-link {
+    color: var(--color-muted-dark);
+  }
+  .back-link:hover {
+    color: var(--color-fg);
+  }
+  html.dark .back-link:hover {
+    color: var(--color-fg-dark);
+  }
+  .back-arrow {
+    display: inline-block;
+    transition: transform 180ms ease;
+  }
+  .back-link:hover .back-arrow {
+    transform: translateX(-4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .back-arrow {
+      transition: none;
+    }
+    .back-link:hover .back-arrow {
+      transform: none;
+    }
   }
 </style>

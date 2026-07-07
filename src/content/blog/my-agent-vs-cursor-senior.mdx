@@ -1,0 +1,55 @@
+---
+title: "I Benchmarked My AI Coding Agent Against Cursor's. Mine Won."
+description: "A task-level diff analysis of two agents — one mine, one backed by a $9B company — on the same production codebase. Here's where the output quality actually diverged."
+pubDate: 2026-05-02
+tags: ["ai", "tooling", "benchmarks", "dx"]
+collection: "engineering-notes"
+---
+
+Cursor is a ~$9B company. I've been building my own AI coding agent on the side, mostly because I wasn't happy with what existing tools were producing and I wanted to understand why. Last week I ran both on the same task and sat with the diffs for a while.
+
+This is what I found. I'm being specific because vague takes about AI coding tools are useless.
+
+---
+
+The task was realistic: wire a React frontend to a NestJS backend, add a new domain entity with form validation, write tests, make it production-ready. Same codebase, same brief, both agents ran independently. I reviewed the output afterward.
+
+I'm not naming the domain. It doesn't matter.
+
+---
+
+The first thing I noticed was that Cursor's output compiled and rendered and looked complete. The form was there. The UI worked. If you didn't know what you were looking at, you'd move on.
+
+But the frontend and backend weren't actually connected. Cursor wired the form's `onSubmit` to update local React state. There was no API client, no `fetch`, no integration. The whole thing was an island. My agent created `api/tasks.ts`, called the real endpoint from `App.tsx`, managed loading and error state, and surfaced failures to the user with `role="alert"` — which also happens to be the accessible way to do it.
+
+That's the most significant gap. Everything else follows from the same underlying issue: Cursor optimized for the appearance of completeness rather than actual integration.
+
+---
+
+The shared `Task` interface Cursor produced had `id: number`. Prisma uses `cuid()` by default — a string. This wouldn't blow up at compile time. It would silently break every identity comparison in the frontend the moment you connected the real API. `task.id === selectedId` evaluating to `false` and nobody knowing why. My agent used `id: string` and matched the schema.
+
+The server had no CORS configuration. Browsers block cross-origin requests by default. Nothing from the frontend would have reached the backend. My agent put `app.enableCors()` in `main.ts` with a `CLIENT_ORIGIN` env variable and a sensible default.
+
+Cursor wrapped every controller method in `try/catch` and re-threw everything as `BadRequestException`. This is wrong not just stylistically but semantically — you're telling the client their request was invalid when the database might just be down. NestJS has exception filters for a reason. My agent let the framework handle it and reserved explicit error handling for actual business logic.
+
+The validation pipe was applied per-endpoint with `@UsePipes(new ValidationPipe(...))` instead of globally in `main.ts`. Minor, but it means you need to remember to add it to every new endpoint. My agent did it once and configured it with `transform: true` while it was there.
+
+Six `// eslint-disable-next-line` comments across three server files. `TasksService.create()` returned `Promise<unknown>`. The compiler was telling you something real and the agent chose to make it stop talking. My agent had zero suppressions.
+
+No backend tests. Cursor wrote form component tests — they're reasonable, actually — but nothing for the controller or service. My agent wrote both.
+
+The test script was `"test": "vitest"`. That starts watch mode. It never exits. Your CI pipeline will hang until it times out.
+
+---
+
+I want to be honest about where Cursor did better, because I have no interest in a benchmark that only counts my wins.
+
+Cursor updated `postcss.config.js` to use `@tailwindcss/postcss`, which is the correct plugin entry for Tailwind v4. My agent left the old `tailwindcss` key. It also excluded test files from `tsconfig.app.json` so they don't get compiled into the production build. Both were real misses on my side that I had to clean up afterward.
+
+---
+
+Here's my actual read on this: the gaps aren't random. They cluster around integration — the places where frontend assumptions have to match backend reality, where framework configuration has to be set up correctly for the browser to reach the server, where the type at the DB layer has to flow correctly all the way to the client. That's where Cursor fell down, consistently.
+
+I don't think that's a coincidence. Integration tasks require holding multiple layers in mind simultaneously and reasoning about what happens when they're connected. That's harder than producing correct code for a single isolated component, which Cursor does reasonably well.
+
+A $9B valuation is not evidence that the agent makes senior-engineer-level decisions. It's evidence that a lot of people find the product useful. Those are different things. For integration work on a production codebase, "useful" isn't enough.

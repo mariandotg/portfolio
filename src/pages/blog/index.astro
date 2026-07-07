@@ -1,6 +1,7 @@
 ---
 import PageLayout from "../../layouts/PageLayout.astro";
 import BlogPostCard from "../../components/BlogPostCard.astro";
+import CardModeSwitcher from "../../components/CardModeSwitcher.astro";
 import { getCollection } from "astro:content";
 import { getLangFromUrl, useTranslations } from "../../i18n/utils";
 
@@ -42,6 +43,7 @@ const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.va
       ))}
     </div>
   </div>
+  <CardModeSwitcher />
 </PageLayout>
 
 <style>

@@ -1,0 +1,55 @@
+---
+title: "I Built My Own AI Coding Agent and Ran It Against Cursor's"
+description: "Same task, same codebase, two agents — one mine, one from a $9B company. What I found was more interesting than I expected."
+pubDate: 2026-05-02
+tags: ["ai", "tooling", "building-in-public", "dx"]
+collection: "engineering-notes"
+---
+
+For the past several months I've been building my own AI coding agent. Not because I thought I could out-engineer Cursor — that's a silly thing to think — but because I kept running into limitations that bothered me and I wanted to understand them well enough to fix them.
+
+Last week I ran mine against Cursor's agent on the same task and actually looked at the diff. I've been sitting on this because I wasn't sure if publishing it was useful or just self-congratulatory. I think it's useful, so here it is.
+
+---
+
+The task was real work: take an existing React + NestJS codebase and build a feature end-to-end. Form on the frontend, API endpoint on the backend, validation, tests. The kind of thing that takes an afternoon.
+
+Same starting code. Same task brief. Both agents ran independently. I reviewed the output afterward.
+
+---
+
+The first thing Cursor's output got wrong is also the thing that would have taken the longest to notice: the frontend and the backend were never actually connected.
+
+The form was there. It looked like a working feature. But submitting it just updated local React state — there was no HTTP request, no API client, nothing. The server endpoint existed in its own world and the UI existed in its own world and the two halves weren't talking. If you demoed this, it would look fine. If you deployed it, users would never see their data persist.
+
+My agent wrote an API client, called the real endpoint, handled loading and error states, and showed an error message when something went wrong. That's the feature.
+
+The second thing — and this one would have been a subtle nightmare to debug — was a type mismatch at the data boundary. The `Task` type Cursor defined used `id: number`. The database was generating string IDs. So the moment you connected the real API, every piece of code that compared task IDs would silently return the wrong answer. No crash, no error, just behavior that didn't make sense until someone traced it back to a type that looked fine.
+
+Then: no CORS. Browsers block requests to different origins by default. Without configuring CORS on the server, every request the frontend made would be rejected before it even got there. This is one of those things you set up in the first ten minutes of a client-server project. It wasn't there.
+
+There were six comments in the server code that essentially said "I know this is wrong, please ignore it" — `// eslint-disable-next-line` — spread across three files. The TypeScript compiler was flagging real issues and the agent worked around them instead of fixing them. My agent had none of those.
+
+And the test script — `"test": "vitest"` — starts in watch mode and never exits. Any CI pipeline running `npm test` would hang waiting for it to finish. The fix is one word: `vitest run`.
+
+---
+
+To be fair: Cursor got two things right that I missed.
+
+It updated the PostCSS config for Tailwind v4 correctly. I didn't — I left a key that no longer works in the new version. It also excluded test files from the TypeScript production build config, which means less unnecessary work when you ship. Both of those required me to go back and fix my own output.
+
+---
+
+I've been thinking about what to make of this.
+
+My instinct was to say "my agent understands production requirements better" but I don't think that's quite right either. What I think is closer to the truth: Cursor's agent is optimizing for a slightly different definition of done. It produces something that works in isolation, that looks complete, that you can show in a screenshot. My agent is built to produce something that works when the layers are connected, when real data flows through it, when a CI system runs the tests.
+
+Those are different targets.
+
+What surprises me is that the integration failures — no API client, no CORS, wrong ID type — aren't subtle. They're the kind of thing you'd catch in the first end-to-end test, or the first time you actually ran the app against a real backend. They're not edge cases. They're the main case.
+
+I don't think this means Cursor is a bad product. Lots of people use it and get real value out of it, and the form component tests it wrote were genuinely good. But I do think it's worth being precise about what "AI coding assistance" means right now — specifically whether you're getting something demo-ready or something ship-ready. For this task, on this codebase, those were not the same thing.
+
+---
+
+*Part of the Engineering Notes series. Next: building a repeatable benchmark to test this more rigorously across different task types and stacks.*

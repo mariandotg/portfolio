@@ -1,0 +1,81 @@
+---
+title: "How I Beat Cursor by Deciding What 'Done' Means"
+description: "The decisions behind building an AI coding agent that outperforms a $9B product — not through better models, but through a clearer philosophy of what correct output actually looks like."
+pubDate: 2026-05-02
+tags: ["ai", "tooling", "building-in-public", "engineering"]
+collection: "engineering-notes"
+---
+
+I didn't build this to compete with Cursor. I built it to solve a different problem entirely.
+
+The problem was vibe coding. I was watching teammates use AI tools to ship features quickly — sometimes impressively quickly — and then spending the next sprint untangling the consequences. Code that looked complete but wasn't integrated. Types that were wrong at the boundary. Configuration that worked in isolation and broke the moment two systems talked to each other. The tools were optimizing for speed and the appearance of progress, and nobody had told them not to.
+
+So I built an AI coding agent from scratch, designed around a set of explicit constraints meant to counteract exactly those patterns. It was a product decision as much as a technical one — something we could actually deploy to a team and trust.
+
+I wasn't thinking about Cursor when I built it. Then I ran both on the same task and looked at the diffs.
+
+The first real decision I had to make wasn't technical. It was definitional.
+
+---
+
+## What does "done" mean?
+
+Every agent has an implicit definition of done baked into how it was built. For most tools, I think that definition is something like: *the code compiles, the tests pass, the requested feature is present*. That's a reasonable bar. It's also not enough.
+
+The definition I wanted was different: *the feature works when the layers are connected to each other and to real infrastructure*. Not "the form renders" but "the form submits to the actual endpoint and the response reaches the actual user." Not "the endpoint exists" but "the endpoint is reachable from a browser with real CORS headers and a real validation pipeline."
+
+That shift sounds small. The consequences are significant.
+
+Once you define done that way, a lot of things that feel like optional polish stop being optional. An API client module isn't a nice-to-have — without it, the frontend and backend don't talk, and the feature doesn't exist. CORS isn't configuration boilerplate — without it, the browser rejects every request, and the feature doesn't work. The correct ID type at the data boundary isn't a type hygiene preference — the wrong one silently breaks every identity comparison in the frontend.
+
+These aren't edge cases. They're the main case. They're what "done" actually means when someone uses the thing.
+
+---
+
+## The integration layer is where general tools fail
+
+There's a specific kind of task that general-purpose AI agents struggle with, and I think it's underappreciated: tasks that require multiple layers to agree with each other.
+
+Writing a React component in isolation is a bounded problem. Writing a NestJS endpoint in isolation is a bounded problem. Writing a React component that correctly calls a NestJS endpoint that correctly reads from a Prisma model — that's a different kind of problem. It requires holding the shape of the data at the database layer, tracing it through the service layer, understanding how it's serialized over HTTP, and making sure the frontend type matches what actually arrives on the wire.
+
+Cursor's agent, in my experience, solves the bounded problems well. It produces reasonable component code and reasonable endpoint code. What it doesn't do reliably is connect them — reason about what the type looks like at each layer, configure the server so the browser can reach it, build the module that sits between the UI and the API.
+
+My agent isn't smarter. It's narrower. I built it to care specifically about those connection points. When the task spans multiple layers, the agent is supposed to ask: what flows between them, and is it correct?
+
+---
+
+## Suppressing the compiler is always a mistake
+
+This one sounds obvious but I think it's worth saying explicitly, because it showed up clearly in the comparison.
+
+When an AI agent adds `// eslint-disable-next-line` or `@ts-ignore` to make code compile, it isn't solving a problem. It's hiding one. The type error the compiler was flagging is still there — you just turned off the thing that was going to tell you about it. The next person to touch that code (or the agent the next time it runs) loses the signal.
+
+I made a deliberate decision that my agent should not suppress compiler warnings. If the types aren't working, fix the types. If the types can't be fixed cleanly, that's information — it means the design needs reconsideration. Silencing the feedback loop and moving on is the one thing you really can't do.
+
+This turned out to matter more than I expected. The type suppressions in Cursor's output weren't random noise — they were concentrated around the integration points, the exact places where cross-layer type correctness matters most. That's not a coincidence.
+
+---
+
+## Framework idioms are not style preferences
+
+I spent time thinking about what it means for code to be "correct" within a framework, and I think the answer is something like: it uses the framework's mechanisms for what they were built to do, rather than working around them.
+
+NestJS has a global validation pipe because you want validation to happen consistently on every incoming request, configured once. Using `@UsePipes()` per-endpoint instead achieves something similar but introduces a surface area for inconsistency — a new endpoint without the decorator, a future contributor who doesn't know to add it. The framework gave you a better tool. Not using it isn't neutral.
+
+Same with exception handling. NestJS has exception filters because unhandled errors should be handled uniformly, not caught inside every controller method and re-thrown as whatever error code seemed appropriate in the moment. When an agent wraps every controller in `try/catch`, it's not being careful — it's working around the framework's architecture in a way that trades clarity for the appearance of robustness.
+
+I built my agent to understand the difference. Not perfectly, and not for every framework, but for the ones I use: the idiomatic way isn't just cleaner, it's usually more correct.
+
+---
+
+## What building this taught me about the tools I was replacing
+
+The honest answer to "how did you beat Cursor" is: by being explicit about a set of decisions that Cursor never had to make explicit, because it's a general-purpose product.
+
+Cursor is built for everyone. It has to work reasonably well across dozens of stacks, thousands of codebases, millions of tasks. That breadth forces trade-offs. You can't deeply optimize for NestJS integration patterns without spending effort that doesn't help the Django developer, the Rails developer, the developer who's never touched a backend. So you optimize for something more universal — the appearance of completeness, reasonable code in isolation, features that look done in a demo.
+
+I'm building for one context. When you do that, you get to be opinionated. You get to say: done means integrated, type contracts matter at the boundary, framework idioms are correctness not style. Those decisions compound. They're also the reason a side project can produce better output than a well-funded product on the tasks that matter to me.
+
+That's not a knock on Cursor. It's just an honest description of what focusing buys you.
+
+The broader question — whether a focused agent can systematically outperform general-purpose tools across a range of task types — is something I want to test more rigorously. One benchmark is a data point, not a conclusion. But as a starting point: I know what I built for, and it worked.

@@ -1,0 +1,102 @@
+---
+type CalloutType = "note" | "tip" | "insight" | "warning" | "takeaway";
+
+interface Props {
+  type?: CalloutType;
+  title?: string;
+}
+
+const { type = "note", title } = Astro.props;
+
+const META: Record<CalloutType, { icon: string; label: string }> = {
+  note: { icon: "ℹ", label: "Note" },
+  tip: { icon: "✦", label: "Tip" },
+  insight: { icon: "💡", label: "Insight" },
+  warning: { icon: "⚠", label: "Warning" },
+  takeaway: { icon: "📌", label: "Key takeaway" },
+};
+
+const meta = META[type];
+---
+
+<aside class={`callout callout-${type} not-prose`}>
+  <div class="callout-head">
+    <span class="callout-icon" aria-hidden="true">{meta.icon}</span>
+    <span class="callout-label">{title ?? meta.label}</span>
+  </div>
+  <div class="callout-body"><slot /></div>
+</aside>
+
+<style>
+  .callout {
+    --accent: var(--color-muted);
+    margin: 1.6rem 0;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+  .callout-note {
+    --accent: hsl(212 60% 55%);
+  }
+  .callout-tip {
+    --accent: hsl(160 55% 45%);
+  }
+  .callout-insight {
+    --accent: hsl(38 90% 55%);
+  }
+  .callout-warning {
+    --accent: hsl(8 75% 57%);
+  }
+  .callout-takeaway {
+    --accent: var(--color-primary);
+  }
+
+  .callout-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .callout-icon {
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .callout-body {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-fg);
+  }
+  :global(html.dark) .callout-body {
+    color: var(--color-fg-dark);
+  }
+  .callout-body :global(> :first-child) {
+    margin-top: 0;
+  }
+  .callout-body :global(> :last-child) {
+    margin-bottom: 0;
+  }
+  .callout-body :global(p) {
+    margin: 0.5rem 0;
+  }
+  .callout-body :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .callout-body :global(code) {
+    font-family: var(--font-family-mono);
+    font-size: 0.86em;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-muted) 18%, transparent);
+  }
+</style>

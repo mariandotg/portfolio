@@ -130,6 +130,7 @@ export const en = {
     readingTime: "min read",
     share: "Share",
     related: "Related Posts",
+    backToBlog: "Back to blog",
     collections: {
       all: "All",
       engineeringNotes: "Engineering Notes",

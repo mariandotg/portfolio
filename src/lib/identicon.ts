@@ -101,7 +101,7 @@ export function identiconSvg(seed: string, opts: IdenticonOptions = {}): string 
   const baseline = 0.02; // background dot intensity (never fully empty)
   const linWeight = 0.07;
   const minR = 0.01; // background dot radius (cell units)
-  const maxR = 0.31; // brightest dot radius (tangent to neighbors)
+  const maxR = 0.25; // brightest dot radius (tangent to neighbors)
 
   let dots = "";
   for (let j = 0; j < rows; j++) {
@@ -137,7 +137,7 @@ export function identiconSvg(seed: string, opts: IdenticonOptions = {}): string 
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cols} ${rows}" ` +
-    `width="100%" height="100%" preserveAspectRatio="xMidYMid meet">` +
+    `width="100%" height="100%" preserveAspectRatio="xMidYMid slice">` +
     `<g>${dots}</g>` +
     `</svg>`
   );

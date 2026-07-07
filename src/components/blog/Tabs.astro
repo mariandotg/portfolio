@@ -1,0 +1,97 @@
+---
+// Container for <Tab label="..."> children. The tab bar is built client-side from
+// each panel's data-label, so panel content is authored as plain MDX.
+---
+
+<div class="tabs not-prose">
+  <div class="tab-bar" role="tablist"></div>
+  <div class="tab-panels"><slot /></div>
+</div>
+
+<style>
+  .tabs {
+    margin: 1.6rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    padding: 6px 6px 0;
+    background: color-mix(in srgb, var(--color-muted) 7%, transparent);
+    border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    padding: 7px 12px;
+    border: none;
+    background: transparent;
+    color: var(--color-muted);
+    border-radius: 6px 6px 0 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 150ms ease, background 150ms ease;
+  }
+  .tab-btn:hover {
+    color: var(--color-fg);
+  }
+  :global(html.dark) .tab-btn:hover {
+    color: var(--color-fg-dark);
+  }
+  .tab-btn.active {
+    color: var(--color-fg);
+    background: var(--color-bg);
+    border-bottom-color: var(--color-primary);
+  }
+  :global(html.dark) .tab-btn.active {
+    color: var(--color-fg-dark);
+    background: var(--color-bg-dark);
+  }
+  .tab-panels {
+    padding: 4px 16px;
+  }
+  :global(.tab-panel[hidden]) {
+    display: none;
+  }
+  :global(.tab-panel > :first-child) {
+    margin-top: 0.8rem;
+  }
+  :global(.tab-panel > :last-child) {
+    margin-bottom: 0.8rem;
+  }
+</style>
+
+<script>
+  function initTabs(tabs: Element) {
+    const bar = tabs.querySelector<HTMLElement>(".tab-bar");
+    const panels = Array.from(
+      tabs.querySelectorAll<HTMLElement>(":scope > .tab-panels > .tab-panel"),
+    );
+    if (!bar || panels.length === 0) return;
+
+    const buttons: HTMLButtonElement[] = panels.map((panel, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-btn";
+      btn.textContent = panel.dataset.label || `Tab ${i + 1}`;
+      btn.addEventListener("click", () => select(i));
+      bar.appendChild(btn);
+      return btn;
+    });
+
+    function select(i: number) {
+      panels.forEach((p, j) => (j === i ? p.removeAttribute("hidden") : p.setAttribute("hidden", "")));
+      buttons.forEach((b, j) => b.classList.toggle("active", j === i));
+    }
+
+    select(0);
+  }
+
+  document.querySelectorAll(".tabs").forEach(initTabs);
+</script>

@@ -6,9 +6,19 @@ tags: ["distributed-systems", "payments", "backend"]
 collection: "engineering-notes"
 ---
 
-import CounterIsland from "../../components/CounterIsland.astro";
+import Callout from "../../components/blog/Callout.astro";
+import Tabs from "../../components/blog/Tabs.astro";
+import Tab from "../../components/blog/Tab.astro";
+import SideBySide from "../../components/blog/SideBySide.astro";
+import Stepper from "../../components/blog/Stepper.astro";
+import Step from "../../components/blog/Step.astro";
+import RetrySimulatorIsland from "../../components/blog/RetrySimulatorIsland.astro";
 
 Payment systems fail in interesting ways. Network timeouts, pod restarts, load balancer retries — any of these can cause a payment operation to be attempted more than once. Without idempotency, retries become double charges.
+
+<Callout type="insight" title="The core idea">
+Retrying a failed request is only dangerous if the operation isn't **idempotent**. Make the operation idempotent and retries become free — the same call, repeated, produces the same single effect.
+</Callout>
 
 ## The Core Problem
 
@@ -26,47 +36,83 @@ Content-Type: application/json
 
 The server stores the key alongside the result. On retry, it returns the cached result without reprocessing.
 
-## Simulating Retry Attempts
+## See It Fail, Then Fix It
 
-How many retries does your client need before giving up? This is a parameter worth making explicit. Track it here:
+Toggle the idempotency key and fire a few retries. Without a key, every retry is a fresh charge; with one, the server recognizes the operation and charges exactly once.
 
-<CounterIsland label="Max retries" initialValue={3} />
+<RetrySimulatorIsland />
 
-A common default is 3 retries with exponential backoff. Too few and you give up on recoverable failures. Too many and you increase the risk of hitting a partially-failed state multiple times.
+<Callout type="warning">
+Every layer between the client and your database can retry: the browser, the mobile SDK, the load balancer, the service mesh. Without an idempotency key, each of those retries is a *separate* charge to your customer.
+</Callout>
 
-## Implementation Patterns
+## Naive vs. Correct Implementation
 
-### The naive approach (and why it breaks)
+The obvious implementation is a lookup before processing — and it has a race condition. Two identical requests arrive simultaneously, both miss the cache, both process the payment.
 
-The obvious implementation is a simple key-value store lookup before processing:
+<SideBySide variant="diff" leftLabel="Naive — get, then set" rightLabel="Correct — atomic insert">
+<Fragment slot="left">
 
 ```go
-result, found := idempotencyStore.Get(key)
+result, found := store.Get(key)
 if found {
     return result, nil
 }
-
+// ⚠️ two requests can both
+// reach here at once
 result = processPayment(req)
-idempotencyStore.Set(key, result)
+store.Set(key, result)
 return result, nil
 ```
 
-This has a race condition. Two identical requests arriving simultaneously both miss the cache, both process the payment, and one of them stores the wrong result. Under load, this happens more than you'd expect.
-
-### The correct approach: atomic upsert
-
-The fix is making the cache insertion atomic:
+</Fragment>
+<Fragment slot="right">
 
 ```sql
-INSERT INTO idempotency_keys (key, status, created_at)
+INSERT INTO idempotency_keys
+  (key, status, created_at)
 VALUES ($1, 'processing', NOW())
 ON CONFLICT (key) DO NOTHING
 RETURNING id;
+-- no row back ⇒ someone else
+-- already owns this key
 ```
 
-If the insert returns nothing, another request is already processing (or has processed) this key. The duplicate request waits and polls until the first completes, then returns its result.
+</Fragment>
+</SideBySide>
 
-This pattern — **pessimistic lock via DB insert, then process, then update** — is what we use at Interbanking for every payment mutation. It adds ~2ms of latency and eliminates the duplicate-processing class of bugs entirely.
+If the insert returns nothing, another request is already processing (or has processed) this key. The duplicate waits and polls until the first completes, then returns its result.
+
+<Callout type="tip">
+This pattern — **claim via DB insert, then process, then settle** — is what we use at Interbanking for every payment mutation. It adds ~2ms of latency and eliminates the duplicate-processing class of bugs entirely.
+</Callout>
+
+## The Lifecycle
+
+Walk through what the server does on the first request and on the retry:
+
+<Stepper>
+<Step title="Claim the key">
+
+The server tries to insert the key with status `processing`. `ON CONFLICT DO NOTHING` makes this atomic — only one request can win the claim.
+
+</Step>
+<Step title="Process the payment">
+
+The winning request executes the actual transfer against the ledger. Everyone else who sent the same key is now waiting on this outcome.
+
+</Step>
+<Step title="Settle the record">
+
+Once the transfer commits, the server updates the key row to `settled` and stores the result payload alongside it.
+
+</Step>
+<Step title="On retry: return cached">
+
+A later retry with the same key finds a `settled` record and returns the stored result immediately — no second charge, no reprocessing.
+
+</Step>
+</Stepper>
 
 ## What the Key Should Be
 
@@ -76,21 +122,14 @@ Idempotency keys should be:
 2. **Operation-scoped**, not request-scoped. A key tied to a specific payment attempt, not to the HTTP request.
 3. **Short-lived**. 24 hours is the industry standard (Stripe uses 24h, most banking APIs use 48h).
 
-Don't use request IDs, session IDs, or anything the client didn't explicitly generate for this operation.
+<Callout type="takeaway">
+Don't reuse request IDs, session IDs, or trace IDs as idempotency keys. Use a value the client generated *specifically for this operation* — otherwise a legitimately new payment can collide with an old one.
+</Callout>
 
-## Edge Cases That Bite You
+## Reference Implementations
 
-**Partial failures**: The payment succeeds but the DB write for the idempotency key fails. You need a two-phase approach or a saga pattern here.
-
-**Key collisions**: UUIDs have ~2^122 possible values. In practice, collision probability is negligible, but you should handle the error case when building the DB constraint.
-
-**Result schema changes**: If you deploy a breaking change to the response format, old cached results may not deserialize correctly. Version your idempotency cache entries.
-
-The implementation is straightforward. The discipline of applying it consistently to every state-mutating endpoint is where most teams fall short.
-
-## Code Samples
-
-### TypeScript — client sending idempotent requests
+<Tabs>
+<Tab label="TypeScript — client">
 
 ```typescript
 import { randomUUID } from "crypto";
@@ -99,12 +138,6 @@ interface PaymentRequest {
   amount: number;
   currency: string;
   to: string;
-}
-
-interface PaymentResult {
-  id: string;
-  status: "pending" | "settled" | "failed";
-  processedAt: string;
 }
 
 async function createPayment(
@@ -127,12 +160,13 @@ async function createPayment(
   return response.json() as Promise<PaymentResult>;
 }
 
-// Retry with the same key — server returns the cached result
+// Retry with the SAME key — server returns the cached result
 const key = randomUUID();
-const result = await createPayment({ amount: 10000, currency: "ARS", to: "acc_abc123" }, key);
+await createPayment({ amount: 10000, currency: "ARS", to: "acc_abc123" }, key);
 ```
 
-### Java — server-side idempotency check
+</Tab>
+<Tab label="Java — server">
 
 ```java
 @Service
@@ -142,17 +176,14 @@ public class PaymentService {
     private final PaymentRepository paymentRepo;
 
     public PaymentResult processPayment(String idempotencyKey, PaymentRequest request) {
-        // Try to claim the key atomically
         Optional<IdempotencyRecord> existing = idempotencyRepo.findByKey(idempotencyKey);
 
         if (existing.isPresent()) {
             IdempotencyRecord record = existing.get();
             if (record.getStatus() == Status.PROCESSING) {
-                // Another request is in flight — poll until resolved
-                return waitForCompletion(record);
+                return waitForCompletion(record); // another request in flight
             }
-            // Already settled — return cached result
-            return record.getResult();
+            return record.getResult(); // already settled — cached result
         }
 
         // Claim the key before processing
@@ -175,3 +206,18 @@ public class PaymentService {
     }
 }
 ```
+
+</Tab>
+</Tabs>
+
+## Edge Cases That Bite You
+
+**Partial failures**: the payment succeeds but the DB write for the idempotency key fails. You need a two-phase approach or a saga pattern here.
+
+**Key collisions**: UUIDs have ~2^122 possible values, so collisions are negligible — but still handle the error case when building the DB constraint.
+
+**Result schema changes**: if you deploy a breaking change to the response format, old cached results may not deserialize correctly. Version your idempotency cache entries.
+
+<Callout type="takeaway">
+The implementation is straightforward. The discipline of applying it consistently to *every* state-mutating endpoint is where most teams fall short.
+</Callout>

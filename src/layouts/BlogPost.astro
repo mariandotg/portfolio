@@ -17,14 +17,15 @@ interface Props {
   imageAlt?: string;
   readingTime?: number;
   headings?: MarkdownHeading[];
+  bannerSeed?: string;
 }
 
-const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [] } = Astro.props;
+const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [], bannerSeed } = Astro.props;
 const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const banner = identiconSvg(slug);
+const banner = identiconSvg(bannerSeed || slug);
 const blogHref = getLocalizedPath("/blog", lang);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
@@ -92,11 +93,18 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
     aspect-ratio: 80 / 15;
     border-radius: 8px;
     border: 1px solid var(--color-border);
-    background: #0d0d0f;
+    background: var(--color-bg);
+  }
+  :global(html.dark) .banner {
+    background: var(--color-bg-dark);
   }
 
   .banner :global(svg) {
     display: block;
+  }
+  /* Halftone is authored for a dark backdrop; flip it for light mode. */
+  :global(html:not(.dark)) .banner :global(svg) {
+    filter: invert(1) hue-rotate(180deg);
   }
 
   .back-link {

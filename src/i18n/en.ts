@@ -138,6 +138,14 @@ export const en = {
       buildingInPublic: "Building in Public",
     },
   },
+  notFound: {
+    code: "404",
+    title: "This page wandered off",
+    subtitle: "The page you're looking for doesn't exist or has moved. Maybe one of these posts is what you were after.",
+    homeCta: "Back home",
+    blogCta: "Browse all posts",
+    postsHeading: "Latest posts",
+  },
   about: {
     pageTitle: "About Me",
     pageSubtitle: "Tech Lead & Product Engineer based in Buenos Aires, Argentina.",

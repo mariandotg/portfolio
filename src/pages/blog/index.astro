@@ -38,6 +38,7 @@ const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.va
             title={post.data.title}
             description={post.data.description}
             pubDate={post.data.pubDate}
+          bannerSeed={post.data.bannerSeed}
           />
         </div>
       ))}

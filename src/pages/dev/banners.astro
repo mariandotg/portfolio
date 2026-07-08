@@ -1,0 +1,281 @@
+---
+import { getCollection } from "astro:content";
+import { identiconSvg } from "../../lib/identicon";
+
+// Dev-only banner curation tool. Roll candidate seeds per post, save the one
+// you like into that post's frontmatter (bannerSeed). Not built in production.
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+
+const rows = posts.map((p) => ({
+  slug: p.id,
+  title: p.data.title,
+  draft: p.data.draft,
+  seed: p.data.bannerSeed ?? "",
+  currentSvg: identiconSvg(p.data.bannerSeed || p.id),
+}));
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Banner Studio · dev</title>
+    <style>
+      :root {
+        --bg: #0a0a0c;
+        --panel: #131316;
+        --border: rgba(255, 255, 255, 0.12);
+        --fg: #eaeaea;
+        --muted: #8a8a92;
+        --accent: #a52847;
+        --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      header h1 { margin: 0; font-size: 15px; }
+      header p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+      main { padding: 24px; display: flex; flex-direction: column; gap: 28px; max-width: 1100px; }
+
+      .post {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 18px;
+      }
+      .post-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .post-title { font-size: 14px; font-weight: 600; }
+      .post-slug { color: var(--muted); font-size: 11px; }
+      .draft-tag {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #e0a030;
+        border: 1px solid #e0a03055;
+        border-radius: 4px;
+        padding: 1px 6px;
+        margin-left: 8px;
+      }
+      .seed-badge {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .seed-badge b { color: var(--fg); }
+
+      .current {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .banner {
+        aspect-ratio: 80 / 15;
+        width: 320px;
+        max-width: 100%;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #0d0d0f;
+        overflow: hidden;
+        flex: none;
+      }
+      .banner svg { display: block; width: 100%; height: 100%; }
+
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+      button {
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--fg);
+        transition: background 120ms ease;
+      }
+      button:hover { background: rgba(255, 255, 255, 0.07); }
+      button.primary { background: var(--accent); border-color: transparent; }
+      button.primary:hover { filter: brightness(1.1); }
+
+      .candidates {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .cand { display: flex; flex-direction: column; gap: 6px; }
+      .cand .banner { width: 100%; cursor: pointer; transition: border-color 120ms ease; }
+      .cand .banner:hover { border-color: var(--accent); }
+      .cand-foot { display: flex; align-items: center; justify-content: space-between; }
+      .cand-seed { color: var(--muted); font-size: 11px; }
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 200ms ease;
+        pointer-events: none;
+      }
+      .toast.show { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Banner Studio</h1>
+      <p>Roll candidate seeds, click one to save it into the post's frontmatter. Dev only.</p>
+    </header>
+
+    <main>
+      {
+        rows.map((r) => (
+          <section class="post" data-post data-slug={r.slug}>
+            <div class="post-head">
+              <div>
+                <span class="post-title">{r.title}</span>
+                {r.draft && <span class="draft-tag">draft</span>}
+                <div class="post-slug">{r.slug}</div>
+              </div>
+              <span class="seed-badge">
+                seed: <b data-seed-badge>{r.seed || "(slug)"}</b>
+              </span>
+            </div>
+
+            <div class="current">
+              <div class="banner" data-current set:html={r.currentSvg} />
+              <div class="controls">
+                <button data-roll>🎲 Roll 12</button>
+                <button data-reset>Reset to slug</button>
+              </div>
+            </div>
+
+            <div class="candidates" data-candidates />
+          </section>
+        ))
+      }
+    </main>
+
+    <div class="toast" data-toast></div>
+
+    <script>
+      import { identiconSvg } from "../../lib/identicon";
+
+      const toast = document.querySelector<HTMLElement>("[data-toast]")!;
+      let toastTimer: number | undefined;
+      function showToast(msg: string) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+
+      const randSeed = () => Math.random().toString(36).slice(2, 8);
+
+      async function save(slug: string, seed: string): Promise<boolean> {
+        try {
+          const res = await fetch("/api/dev/banner-seed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slug, seed }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Save failed");
+          return true;
+        } catch (err) {
+          showToast("✗ " + (err as Error).message);
+          return false;
+        }
+      }
+
+      function bannerEl(seed: string): HTMLDivElement {
+        const el = document.createElement("div");
+        el.className = "banner";
+        el.innerHTML = identiconSvg(seed);
+        return el;
+      }
+
+      document.querySelectorAll<HTMLElement>("[data-post]").forEach((section) => {
+        const slug = section.dataset.slug!;
+        const badge = section.querySelector<HTMLElement>("[data-seed-badge]")!;
+        const current = section.querySelector<HTMLElement>("[data-current]")!;
+        const candidates = section.querySelector<HTMLElement>("[data-candidates]")!;
+
+        const applySaved = (seed: string) => {
+          badge.textContent = seed || "(slug)";
+          current.innerHTML = identiconSvg(seed || slug);
+        };
+
+        const roll = () => {
+          candidates.innerHTML = "";
+          for (let i = 0; i < 12; i++) {
+            const seed = randSeed();
+            const cand = document.createElement("div");
+            cand.className = "cand";
+
+            const banner = bannerEl(seed);
+            banner.title = "Click to save this seed";
+            banner.addEventListener("click", async () => {
+              if (await save(slug, seed)) {
+                applySaved(seed);
+                showToast(`✓ Saved ${seed}`);
+              }
+            });
+
+            const foot = document.createElement("div");
+            foot.className = "cand-foot";
+            const seedLabel = document.createElement("span");
+            seedLabel.className = "cand-seed";
+            seedLabel.textContent = seed;
+            const useBtn = document.createElement("button");
+            useBtn.className = "primary";
+            useBtn.textContent = "Use";
+            useBtn.addEventListener("click", async () => {
+              if (await save(slug, seed)) {
+                applySaved(seed);
+                showToast(`✓ Saved ${seed}`);
+              }
+            });
+            foot.append(seedLabel, useBtn);
+
+            cand.append(banner, foot);
+            candidates.append(cand);
+          }
+        };
+
+        section.querySelector("[data-roll]")!.addEventListener("click", roll);
+        section.querySelector("[data-reset]")!.addEventListener("click", async () => {
+          if (await save(slug, "")) {
+            applySaved("");
+            showToast("✓ Reset to slug");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

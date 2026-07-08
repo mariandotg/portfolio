@@ -140,6 +140,14 @@ export const es: Translations = {
       buildingInPublic: "Construyendo en Público",
     },
   },
+  notFound: {
+    code: "404",
+    title: "Esta página se perdió",
+    subtitle: "La página que buscás no existe o se movió. Quizás alguno de estos posts es lo que estabas buscando.",
+    homeCta: "Volver al inicio",
+    blogCta: "Ver todos los posts",
+    postsHeading: "Últimos posts",
+  },
   about: {
     pageTitle: "Sobre Mí",
     pageSubtitle: "Tech Lead & Product Engineer en Buenos Aires, Argentina.",

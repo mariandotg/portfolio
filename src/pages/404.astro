@@ -1,0 +1,120 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import BlogPostCard from "../components/BlogPostCard.astro";
+import { getCollection } from "astro:content";
+import { en } from "../i18n/en";
+import { es } from "../i18n/es";
+
+// A single 404 is served for every path, so we can't know the language at
+// build time. Render English and let a tiny client script swap ES copy/links
+// when the requested path lives under /es.
+const t = en.notFound;
+
+const posts = await getCollection("blog", ({ data }) => !data.draft);
+const sorted = posts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 6);
+
+const i18n = { en: en.notFound, es: es.notFound };
+---
+
+<PageLayout title={`${t.code} — ${t.title}`} description={t.subtitle} noindex>
+  <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-16">
+    <p
+      class="text-sm font-mono mb-3"
+      style="color: var(--color-primary)"
+      data-i18n="code"
+    >
+      {t.code}
+    </p>
+    <h1
+      class="text-2xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-2"
+      data-i18n="title"
+    >
+      {t.title}
+    </h1>
+    <p
+      class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-6 max-w-[60ch]"
+      data-i18n="subtitle"
+    >
+      {t.subtitle}
+    </p>
+
+    <div class="flex flex-wrap gap-3 mb-14">
+      <a href="/" class="nf-btn nf-btn-primary" data-home>
+        <span data-i18n="homeCta">{t.homeCta}</span>
+      </a>
+      <a href="/blog" class="nf-btn" data-blog>
+        <span data-i18n="blogCta">{t.blogCta}</span>
+      </a>
+    </div>
+
+    <h2
+      class="text-xs font-mono uppercase tracking-wider text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-6"
+      data-i18n="postsHeading"
+    >
+      {t.postsHeading}
+    </h2>
+
+    <div class="flex flex-col gap-8">
+      {sorted.map((post) => (
+        <BlogPostCard
+          slug={post.id}
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate}
+          bannerSeed={post.data.bannerSeed}
+        />
+      ))}
+    </div>
+  </div>
+</PageLayout>
+
+<style>
+  .nf-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    font-size: 14px;
+    color: var(--color-fg);
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  html.dark .nf-btn {
+    color: var(--color-fg-dark);
+  }
+  .nf-btn:hover {
+    border-color: var(--color-primary);
+  }
+  .nf-btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+  html.dark .nf-btn-primary {
+    color: #fff;
+  }
+  .nf-btn-primary:hover {
+    filter: brightness(1.08);
+  }
+</style>
+
+<script is:inline define:vars={{ i18n }}>
+  if (location.pathname.startsWith("/es")) {
+    const t = i18n.es;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      if (t[key]) el.textContent = t[key];
+    });
+    const home = document.querySelector("[data-home]");
+    const blog = document.querySelector("[data-blog]");
+    if (home) home.setAttribute("href", "/es");
+    if (blog) blog.setAttribute("href", "/es/blog");
+    document
+      .querySelectorAll('a[href^="/blog/"]')
+      .forEach((a) =>
+        a.setAttribute("href", "/es" + a.getAttribute("href"))
+      );
+  }
+</script>

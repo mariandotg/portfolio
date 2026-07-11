@@ -15,6 +15,20 @@ const blog = defineCollection({
     bannerSeed: z.string().optional(),
     draft: z.boolean().default(false),
     collection: z.enum(['engineering-notes', 'building-in-public']),
+    series: z.string().optional(),
+    seriesOrder: z.number().optional(),
+  }),
+});
+
+const series = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/content/series" }),
+  schema: z.object({
+    title: z.object({ en: z.string(), es: z.string() }),
+    description: z.object({ en: z.string(), es: z.string() }),
+    collection: z.enum(['engineering-notes', 'building-in-public']),
+    status: z.enum(['ongoing', 'complete']).default('ongoing'),
+    order: z.number().default(99),
+    bannerSeed: z.string().optional(),
   }),
 });
 
@@ -50,4 +64,4 @@ const testimonials = defineCollection({
   }),
 });
 
-export const collections = { blog, work, testimonials };
+export const collections = { blog, work, testimonials, series };

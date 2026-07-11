@@ -1,0 +1,148 @@
+---
+import PageLayout from "../../../layouts/PageLayout.astro";
+import PostListItem from "../../../components/PostListItem.astro";
+import { getCollection } from "astro:content";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const posts = await getCollection("blog", ({ data }) => !data.draft);
+const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const blogHref = getLocalizedPath("/blog", lang);
+---
+
+<PageLayout title={t.blog.pageTitle} description={t.blog.pageSubtitle}>
+  <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <a href={blogHref} class="back-link">
+      <span class="back-arrow" aria-hidden="true">←</span>
+      <span>{t.blog.backToBlog}</span>
+    </a>
+    <h1 class="text-xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-1 mt-5">{t.blog.pageTitle}</h1>
+    <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-8">{t.blog.pageSubtitle}</p>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs flex gap-6 mb-8 border-b" style="border-color: var(--color-border);">
+      <button class="tab-btn pb-3 text-sm active-tab" data-filter="all">
+        {t.blog.collections.all}
+      </button>
+      <button class="tab-btn pb-3 text-sm" data-filter="engineering-notes">
+        {t.blog.collections.engineeringNotes}
+      </button>
+      <button class="tab-btn pb-3 text-sm" data-filter="building-in-public">
+        {t.blog.collections.buildingInPublic}
+      </button>
+    </div>
+
+    <div class="flex flex-col" id="posts-list">
+      {sorted.map((post) => (
+        <div data-collection={post.data.collection} class="post-card">
+          <PostListItem
+            slug={post.id}
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+</PageLayout>
+
+<style>
+  .tab-btn {
+    color: var(--color-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-family-display);
+    position: relative;
+    padding-bottom: 0.75rem;
+  }
+
+  html.dark .tab-btn {
+    color: var(--color-muted-dark);
+  }
+
+  .tab-btn.active-tab {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+
+  html.dark .tab-btn.active-tab {
+    color: var(--color-fg-dark);
+  }
+
+  .tab-btn.active-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    border-radius: 1px;
+  }
+
+  .tab-btn:hover:not(.active-tab) {
+    color: var(--color-fg);
+    transition: color 150ms ease-in-out;
+  }
+
+  html.dark .tab-btn:hover:not(.active-tab) {
+    color: var(--color-fg-dark);
+  }
+
+  .post-card.hidden {
+    display: none;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    color: var(--color-muted);
+    transition: color 150ms ease-in-out;
+  }
+  html.dark .back-link {
+    color: var(--color-muted-dark);
+  }
+  .back-link:hover {
+    color: var(--color-fg);
+  }
+  html.dark .back-link:hover {
+    color: var(--color-fg-dark);
+  }
+  .back-arrow {
+    display: inline-block;
+    transition: transform 180ms ease;
+  }
+  .back-link:hover .back-arrow {
+    transform: translateX(-4px);
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+  const cards = document.querySelectorAll<HTMLElement>('.post-card');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+
+      buttons.forEach((b) => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+
+      cards.forEach((card) => {
+        if (filter === 'all' || card.dataset.collection === filter) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>

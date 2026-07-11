@@ -18,9 +18,17 @@ interface Props {
   readingTime?: number;
   headings?: MarkdownHeading[];
   bannerSeed?: string;
+  seriesContext?: {
+    slug: string;
+    title: string;
+    part: number;
+    total: number;
+    prev?: { slug: string; title: string };
+    next?: { slug: string; title: string };
+  };
 }
 
-const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [], bannerSeed } = Astro.props;
+const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [], bannerSeed, seriesContext } = Astro.props;
 const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -39,6 +47,13 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
   month: "long",
   day: "numeric",
 });
+
+const seriesHref = seriesContext ? getLocalizedPath(`/blog/series/${seriesContext.slug}`, lang) : undefined;
+const seriesPartLabel = seriesContext
+  ? t.blog.series.partOf.replace("{n}", String(seriesContext.part)).replace("{m}", String(seriesContext.total))
+  : undefined;
+const prevHref = seriesContext?.prev ? getLocalizedPath(`/blog/${seriesContext.prev.slug}`, lang) : undefined;
+const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.next.slug}`, lang) : undefined;
 ---
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
@@ -49,6 +64,14 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
     </a>
 
     <div class="banner w-full overflow-hidden mb-8" aria-hidden="true" set:html={banner} />
+
+    {seriesContext && (
+      <a href={seriesHref} class="series-strip">
+        <span class="series-strip-part">{seriesPartLabel}</span>
+        <span class="series-strip-sep">·</span>
+        <span class="series-strip-title">{seriesContext.title}</span>
+      </a>
+    )}
 
     <header class="mb-8">
       <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: var(--color-muted);">
@@ -85,6 +108,23 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
     <div class="prose prose-sm dark:prose-invert max-w-none">
       <slot />
     </div>
+
+    {seriesContext && (seriesContext.prev || seriesContext.next) && (
+      <nav class="series-nav">
+        {seriesContext.prev ? (
+          <a href={prevHref} class="series-nav-item series-nav-prev">
+            <span class="series-nav-dir">← {t.blog.series.prevInSeries}</span>
+            <span class="series-nav-title">{seriesContext.prev.title}</span>
+          </a>
+        ) : <span />}
+        {seriesContext.next ? (
+          <a href={nextHref} class="series-nav-item series-nav-next">
+            <span class="series-nav-dir">{t.blog.series.nextInSeries} →</span>
+            <span class="series-nav-title">{seriesContext.next.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    )}
   </article>
 </PageLayout>
 
@@ -105,6 +145,99 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
   /* Halftone is authored for a dark backdrop; flip it for light mode. */
   :global(html:not(.dark)) .banner :global(svg) {
     filter: invert(1) hue-rotate(180deg);
+  }
+
+  .series-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    transition: border-color 150ms ease-in-out, color 150ms ease-in-out;
+  }
+  .series-strip-part {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  .series-strip-sep {
+    color: var(--color-muted);
+  }
+  .series-strip-title {
+    color: var(--color-muted);
+  }
+  html.dark .series-strip-title,
+  html.dark .series-strip-sep {
+    color: var(--color-muted-dark);
+  }
+  .series-strip:hover {
+    border-color: var(--color-primary);
+  }
+  .series-strip:hover .series-strip-title {
+    color: var(--color-fg);
+  }
+  html.dark .series-strip:hover .series-strip-title {
+    color: var(--color-fg-dark);
+  }
+
+  .series-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+  }
+  .series-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    transition: border-color 150ms ease-in-out, transform 150ms ease-in-out;
+  }
+  .series-nav-next {
+    text-align: right;
+    align-items: flex-end;
+  }
+  .series-nav-item:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+  .series-nav-dir {
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    color: var(--color-muted);
+  }
+  html.dark .series-nav-dir {
+    color: var(--color-muted-dark);
+  }
+  .series-nav-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-fg);
+  }
+  html.dark .series-nav-title {
+    color: var(--color-fg-dark);
+  }
+  @media (max-width: 640px) {
+    .series-nav {
+      grid-template-columns: 1fr;
+    }
+    .series-nav-next {
+      text-align: left;
+      align-items: flex-start;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .series-nav-item:hover {
+      transform: none;
+    }
   }
 
   .back-link {

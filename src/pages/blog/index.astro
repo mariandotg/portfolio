@@ -1,119 +1,92 @@
 ---
 import PageLayout from "../../layouts/PageLayout.astro";
-import BlogPostCard from "../../components/BlogPostCard.astro";
-import CardModeSwitcher from "../../components/CardModeSwitcher.astro";
+import PostListItem from "../../components/PostListItem.astro";
+import SeriesCard from "../../components/SeriesCard.astro";
 import { getCollection } from "astro:content";
-import { getLangFromUrl, useTranslations } from "../../i18n/utils";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../i18n/utils";
+import { getSeriesIndex } from "../../lib/series";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
+const series = await getSeriesIndex(lang, t);
+
 const posts = await getCollection("blog", ({ data }) => !data.draft);
-const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const latest = posts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const archiveHref = getLocalizedPath("/blog/archive", lang);
 ---
 
 <PageLayout title={t.blog.pageTitle} description={t.blog.pageSubtitle}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
     <h1 class="text-xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-1">{t.blog.pageTitle}</h1>
-    <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-8">{t.blog.pageSubtitle}</p>
+    <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-10">{t.blog.pageSubtitle}</p>
 
-    <!-- Filter tabs -->
-    <div class="filter-tabs flex gap-6 mb-8 border-b" style="border-color: var(--color-border);">
-      <button class="tab-btn pb-3 text-sm active-tab" data-filter="all">
-        {t.blog.collections.all}
-      </button>
-      <button class="tab-btn pb-3 text-sm" data-filter="engineering-notes">
-        {t.blog.collections.engineeringNotes}
-      </button>
-      <button class="tab-btn pb-3 text-sm" data-filter="building-in-public">
-        {t.blog.collections.buildingInPublic}
-      </button>
-    </div>
+    {series.length > 0 && (
+      <section class="mb-14">
+        <h2 class="section-heading">{t.blog.series.sectionTitle}</h2>
+        <div class="flex flex-col">
+          {series.map((s) => (
+            <SeriesCard
+              slug={s.slug}
+              title={s.title}
+              description={s.description}
+              meta={s.meta}
+              comingSoon={s.comingSoon}
+              bannerSeed={s.bannerSeed}
+            />
+          ))}
+        </div>
+      </section>
+    )}
 
-    <div class="flex flex-col gap-8" id="posts-list">
-      {sorted.map((post) => (
-        <div data-collection={post.data.collection} class="post-card">
-          <BlogPostCard
+    <section>
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="section-heading mb-0">{t.blog.series.latestNotes}</h2>
+        <a href={archiveHref} class="all-notes-link">{t.blog.series.allNotes} →</a>
+      </div>
+      <div class="flex flex-col">
+        {latest.map((post) => (
+          <PostListItem
             slug={post.id}
             title={post.data.title}
             description={post.data.description}
             pubDate={post.data.pubDate}
-          bannerSeed={post.data.bannerSeed}
           />
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
   </div>
-  <CardModeSwitcher />
 </PageLayout>
 
 <style>
-  .tab-btn {
-    color: var(--color-muted);
-    background: transparent;
-    border: none;
-    cursor: pointer;
+  .section-heading {
     font-family: var(--font-family-display);
-    position: relative;
-    padding-bottom: 0.75rem;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: 1rem;
   }
-
-  html.dark .tab-btn {
+  html.dark .section-heading {
     color: var(--color-muted-dark);
   }
-
-  .tab-btn.active-tab {
-    color: var(--color-fg);
-    font-weight: 600;
-  }
-
-  html.dark .tab-btn.active-tab {
-    color: var(--color-fg-dark);
-  }
-
-  .tab-btn.active-tab::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: var(--color-primary);
-    border-radius: 1px;
-  }
-
-  .tab-btn:hover:not(.active-tab) {
-    color: var(--color-fg);
+  .all-notes-link {
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    color: var(--color-muted);
     transition: color 150ms ease-in-out;
   }
-
-  html.dark .tab-btn:hover:not(.active-tab) {
+  html.dark .all-notes-link {
+    color: var(--color-muted-dark);
+  }
+  .all-notes-link:hover {
+    color: var(--color-fg);
+  }
+  html.dark .all-notes-link:hover {
     color: var(--color-fg-dark);
   }
-
-  .post-card.hidden {
-    display: none;
-  }
 </style>
-
-<script>
-  const buttons = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
-  const cards = document.querySelectorAll<HTMLElement>('.post-card');
-
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const filter = btn.dataset.filter;
-
-      buttons.forEach((b) => b.classList.remove('active-tab'));
-      btn.classList.add('active-tab');
-
-      cards.forEach((card) => {
-        if (filter === 'all' || card.dataset.collection === filter) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-    });
-  });
-</script>

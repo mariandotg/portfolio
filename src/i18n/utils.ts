@@ -18,3 +18,12 @@ export function getLocalizedPath(path: string, lang: Lang): string {
   if (lang === "en") return path;
   return `/es${path}`;
 }
+
+type LocalizedField = Record<Lang, string>;
+
+export function localizedSeries(
+  data: { title: LocalizedField; description: LocalizedField },
+  lang: Lang,
+): { title: string; description: string } {
+  return { title: data.title[lang], description: data.description[lang] };
+}

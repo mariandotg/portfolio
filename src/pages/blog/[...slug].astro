@@ -2,6 +2,8 @@
 import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import BlogPost from "../../layouts/BlogPost.astro";
+import { getLangFromUrl, localizedSeries } from "../../i18n/utils";
+import { getSeriesPosts } from "../../lib/series";
 
 export async function getStaticPaths() {
   const entries = await getCollection("blog", ({ data }) => !data.draft);
@@ -15,6 +17,27 @@ const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 const { title, description, pubDate, updatedDate, tags, image, imageAlt, bannerSeed } = entry.data;
 const readingTime = remarkPluginFrontmatter?.readingTime;
+
+const lang = getLangFromUrl(Astro.url);
+
+let seriesContext = undefined;
+if (entry.data.series) {
+  const seriesEntries = await getCollection("series", ({ id }) => id === entry.data.series);
+  const seriesEntry = seriesEntries[0];
+  if (seriesEntry) {
+    const siblings = await getSeriesPosts(entry.data.series);
+    const idx = siblings.findIndex((p) => p.id === entry.id);
+    const toRef = (p: CollectionEntry<"blog">) => ({ slug: p.id, title: p.data.title });
+    seriesContext = {
+      slug: seriesEntry.id,
+      title: localizedSeries(seriesEntry.data, lang).title,
+      part: idx + 1,
+      total: siblings.length,
+      prev: idx > 0 ? toRef(siblings[idx - 1]) : undefined,
+      next: idx < siblings.length - 1 ? toRef(siblings[idx + 1]) : undefined,
+    };
+  }
+}
 ---
 
 <BlogPost
@@ -29,6 +52,7 @@ const readingTime = remarkPluginFrontmatter?.readingTime;
   readingTime={readingTime}
   headings={headings}
   bannerSeed={bannerSeed}
+  seriesContext={seriesContext}
 >
   <Content />
 </BlogPost>

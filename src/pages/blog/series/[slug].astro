@@ -1,0 +1,132 @@
+---
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import PageLayout from "../../../layouts/PageLayout.astro";
+import PostListItem from "../../../components/PostListItem.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../../i18n/utils";
+import { getSeriesPosts, metaLabel } from "../../../lib/series";
+import { identiconSvg } from "../../../lib/identicon";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("series");
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"series"> };
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const { title, description } = localizedSeries(entry.data, lang);
+const posts = await getSeriesPosts(entry.id);
+const meta = metaLabel(posts.length, entry.data.status, t);
+const comingSoon = posts.length === 0;
+
+const banner = identiconSvg(entry.data.bannerSeed || entry.id);
+const blogHref = getLocalizedPath("/blog", lang);
+---
+
+<PageLayout title={title} description={description}>
+  <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <a href={blogHref} class="back-link">
+      <span class="back-arrow" aria-hidden="true">←</span>
+      <span>{t.blog.backToBlog}</span>
+    </a>
+
+    <div class="banner w-full overflow-hidden mb-8 mt-5" aria-hidden="true" set:html={banner} />
+
+    <header class="mb-10">
+      <span class:list={["series-meta", { "series-meta-soon": comingSoon }]}>{meta}</span>
+      <h1 class="text-2xl font-semibold leading-snug mt-3 mb-3 text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]">
+        {title}
+      </h1>
+      <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] leading-relaxed">
+        {description}
+      </p>
+    </header>
+
+    {comingSoon ? (
+      <p class="empty-state">{t.blog.series.emptyState}</p>
+    ) : (
+      <ol class="flex flex-col list-none p-0 m-0">
+        {posts.map((post, idx) => (
+          <li>
+            <PostListItem
+              slug={post.id}
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              kicker={t.blog.series.partOf.replace("{n}", String(idx + 1)).replace("{m}", String(posts.length))}
+            />
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</PageLayout>
+
+<style>
+  .banner {
+    aspect-ratio: 80 / 15;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+  :global(html.dark) .banner {
+    background: var(--color-bg-dark);
+  }
+  .banner :global(svg) {
+    display: block;
+  }
+  :global(html:not(.dark)) .banner :global(svg) {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  .series-meta {
+    display: inline-block;
+    font-family: var(--font-family-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--color-muted);
+  }
+  html.dark .series-meta {
+    color: var(--color-muted-dark);
+  }
+  .series-meta-soon {
+    color: var(--color-primary);
+  }
+
+  .empty-state {
+    font-size: 14px;
+    color: var(--color-muted);
+    padding: 2rem 0;
+  }
+  html.dark .empty-state {
+    color: var(--color-muted-dark);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    color: var(--color-muted);
+    transition: color 150ms ease-in-out;
+  }
+  html.dark .back-link {
+    color: var(--color-muted-dark);
+  }
+  .back-link:hover {
+    color: var(--color-fg);
+  }
+  html.dark .back-link:hover {
+    color: var(--color-fg-dark);
+  }
+  .back-arrow {
+    display: inline-block;
+    transition: transform 180ms ease;
+  }
+  .back-link:hover .back-arrow {
+    transform: translateX(-4px);
+  }
+</style>

@@ -1,0 +1,14 @@
+{
+  "title": {
+    "en": "Cloud Certified Architect Notes",
+    "es": "Apuntes de Arquitecto Cloud Certificado"
+  },
+  "description": {
+    "en": "Field notes from Anthropic's AI training for Cloud Certified Architects — turning the curriculum into durable, sharable reference material.",
+    "es": "Apuntes de la capacitación de IA de Anthropic para Arquitectos Cloud Certificados — convirtiendo el temario en material de referencia perdurable y compartible."
+  },
+  "collection": "engineering-notes",
+  "status": "ongoing",
+  "order": 1,
+  "bannerSeed": "cca-notes-anthropic"
+}

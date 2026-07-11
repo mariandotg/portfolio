@@ -1,0 +1,14 @@
+{
+  "title": {
+    "en": "Agent vs Cursor",
+    "es": "Mi Agente vs Cursor"
+  },
+  "description": {
+    "en": "I built my own AI coding agent and ran it against Cursor's on a real production codebase. This series is the full arc — the head-to-head, the task-level benchmark, and the philosophy that decided the winner.",
+    "es": "Construí mi propio agente de código con IA y lo corrí contra el de Cursor sobre un codebase de producción real. Esta serie es el arco completo — el mano a mano, el benchmark a nivel de tarea y la filosofía que definió al ganador."
+  },
+  "collection": "building-in-public",
+  "status": "complete",
+  "order": 2,
+  "bannerSeed": "agent-vs-cursor"
+}

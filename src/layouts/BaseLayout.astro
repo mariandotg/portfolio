@@ -42,16 +42,6 @@ const lang = getLangFromUrl(Astro.url);
         document.documentElement.classList.add("dark");
       }
     </script>
-    <script is:inline>
-      // Apply the blog card layout mode before first paint (no flash / layout shift)
-      try {
-        const url = new URLSearchParams(location.search).get("cardMode");
-        const mode = url || localStorage.getItem("blogCardMode") || "stacked";
-        document.documentElement.setAttribute("data-card-mode", mode);
-      } catch (e) {
-        document.documentElement.setAttribute("data-card-mode", "stacked");
-      }
-    </script>
   </head>
   <body class="flex flex-col min-h-full font-[var(--font-family-display)]">
     <slot />

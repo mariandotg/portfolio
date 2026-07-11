@@ -10,5 +10,6 @@
   "collection": "engineering-notes",
   "status": "ongoing",
   "order": 1,
-  "bannerSeed": "cca-notes-anthropic"
+  "bannerSeed": "cca-notes-anthropic",
+  "rootLevel": true
 }

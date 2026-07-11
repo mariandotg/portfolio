@@ -1,26 +1,32 @@
 ---
-import { getLangFromUrl, getLocalizedPath } from "../i18n/utils";
+import { getLangFromUrl, getLocalizedPath, useTranslations } from "../i18n/utils";
 import { identiconSvg } from "../lib/identicon";
 
 interface Props {
   slug: string;
+  path: string;
   title: string;
   description: string;
   meta: string;
   comingSoon?: boolean;
+  featured?: boolean;
   bannerSeed?: string;
 }
 
-const { slug, title, description, meta, comingSoon = false, bannerSeed } = Astro.props;
+const { slug, path, title, description, meta, comingSoon = false, featured = false, bannerSeed } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
-const href = getLocalizedPath(`/blog/series/${slug}`, lang);
+const t = useTranslations(lang);
+const href = getLocalizedPath(path, lang);
 const banner = identiconSvg(bannerSeed || slug);
 ---
 
 <a href={href} class="sc group">
   <div class="sc-banner" aria-hidden="true" set:html={banner}></div>
   <div class="sc-body">
-    <span class:list={["sc-meta", { "sc-meta-soon": comingSoon }]}>{meta}</span>
+    <div class="sc-tags">
+      {featured && <span class="sc-badge">{t.blog.series.featured}</span>}
+      <span class:list={["sc-meta", { "sc-meta-soon": comingSoon }]}>{meta}</span>
+    </div>
     <h3 class="sc-title">
       <span class="sc-title-text">{title}</span>
       <span class="sc-arrow" aria-hidden="true">→</span>
@@ -68,12 +74,29 @@ const banner = identiconSvg(bannerSeed || slug);
     flex-direction: column;
     min-width: 0;
   }
+  .sc-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .sc-badge {
+    font-family: var(--font-family-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+    border-radius: 999px;
+    padding: 1px 7px;
+    line-height: 1.5;
+  }
   .sc-meta {
     font-family: var(--font-family-mono);
     font-size: 12px;
     letter-spacing: 0.01em;
     color: var(--color-muted);
-    margin-bottom: 4px;
   }
   html.dark .sc-meta {
     color: var(--color-muted-dark);

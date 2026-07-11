@@ -29,6 +29,7 @@ const series = defineCollection({
     status: z.enum(['ongoing', 'complete']).default('ongoing'),
     order: z.number().default(99),
     bannerSeed: z.string().optional(),
+    rootLevel: z.boolean().default(false),
   }),
 });
 

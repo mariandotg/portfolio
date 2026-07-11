@@ -5,6 +5,7 @@ import TagList from "../components/TagList.astro";
 import TableOfContents from "../components/blog/TableOfContents.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import { identiconSvg } from "../lib/identicon";
+import { seriesPath } from "../lib/series";
 
 interface Props {
   slug: string;
@@ -20,6 +21,7 @@ interface Props {
   bannerSeed?: string;
   seriesContext?: {
     slug: string;
+    rootLevel: boolean;
     title: string;
     part: number;
     total: number;
@@ -48,7 +50,7 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
   day: "numeric",
 });
 
-const seriesHref = seriesContext ? getLocalizedPath(`/blog/series/${seriesContext.slug}`, lang) : undefined;
+const seriesHref = seriesContext ? getLocalizedPath(seriesPath(seriesContext.slug, seriesContext.rootLevel), lang) : undefined;
 const seriesPartLabel = seriesContext
   ? t.blog.series.partOf.replace("{n}", String(seriesContext.part)).replace("{m}", String(seriesContext.total))
   : undefined;

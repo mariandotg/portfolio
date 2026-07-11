@@ -6,6 +6,8 @@ import type { Translations } from "../i18n/en";
 
 export interface SeriesCardData {
   slug: string;
+  path: string;
+  featured: boolean;
   title: string;
   description: string;
   count: number;
@@ -13,6 +15,32 @@ export interface SeriesCardData {
   comingSoon: boolean;
   bannerSeed?: string;
   meta: string;
+}
+
+// Top-level routes a rootLevel series would collide with. A rootLevel series
+// lives at `/<id>`, sharing the namespace with these static pages.
+const RESERVED_ROOT_SLUGS = new Set([
+  "about", "about-me", "contact", "blog", "work", "dev", "api", "rss.xml", "404", "index", "es",
+]);
+
+export function seriesPath(id: string, rootLevel: boolean): string {
+  return rootLevel ? `/${id}` : `/blog/series/${id}`;
+}
+
+export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]> {
+  const entries = await getCollection("series", ({ data }) => data.rootLevel);
+  for (const entry of entries) {
+    if (RESERVED_ROOT_SLUGS.has(entry.id)) {
+      throw new Error(
+        `Series "${entry.id}" has rootLevel: true but its slug collides with the reserved top-level route "/${entry.id}". Rename the series file or unset rootLevel.`,
+      );
+    }
+  }
+  return entries;
+}
+
+export function getStandardSeries(): Promise<CollectionEntry<"series">[]> {
+  return getCollection("series", ({ data }) => !data.rootLevel);
 }
 
 function statusLabel(status: "ongoing" | "complete", t: Translations): string {
@@ -47,6 +75,8 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
       const { title, description } = localizedSeries(s.data, lang);
       return {
         slug: s.id,
+        path: seriesPath(s.id, s.data.rootLevel),
+        featured: s.data.rootLevel,
         title,
         description,
         count,

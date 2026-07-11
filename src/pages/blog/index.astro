@@ -31,10 +31,12 @@ const archiveHref = getLocalizedPath("/blog/archive", lang);
           {series.map((s) => (
             <SeriesCard
               slug={s.slug}
+              path={s.path}
               title={s.title}
               description={s.description}
               meta={s.meta}
               comingSoon={s.comingSoon}
+              featured={s.featured}
               bannerSeed={s.bannerSeed}
             />
           ))}

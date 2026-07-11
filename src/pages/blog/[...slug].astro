@@ -30,6 +30,7 @@ if (entry.data.series) {
     const toRef = (p: CollectionEntry<"blog">) => ({ slug: p.id, title: p.data.title });
     seriesContext = {
       slug: seriesEntry.id,
+      rootLevel: seriesEntry.data.rootLevel,
       title: localizedSeries(seriesEntry.data, lang).title,
       part: idx + 1,
       total: siblings.length,

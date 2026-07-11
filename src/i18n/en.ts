@@ -146,6 +146,7 @@ export const en = {
       comingSoon: "Coming soon",
       inProgress: "In progress",
       complete: "Complete",
+      featured: "Featured",
       partOf: "Part {n} of {m}",
       backToSeries: "Back to series",
       prevInSeries: "Previous",

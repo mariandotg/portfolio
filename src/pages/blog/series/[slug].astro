@@ -1,14 +1,13 @@
 ---
-import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import PageLayout from "../../../layouts/PageLayout.astro";
 import PostListItem from "../../../components/PostListItem.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../../i18n/utils";
-import { getSeriesPosts, metaLabel } from "../../../lib/series";
+import { getSeriesPosts, getStandardSeries, metaLabel } from "../../../lib/series";
 import { identiconSvg } from "../../../lib/identicon";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("series");
+  const entries = await getStandardSeries();
   return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 

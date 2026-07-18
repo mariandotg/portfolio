@@ -39,7 +39,7 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
     grid-template-columns: 96px 1fr;
     gap: 22px;
     padding: 22px 4px;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid hsl(var(--border));
     align-items: baseline;
     transition: padding-left 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
@@ -52,12 +52,9 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     white-space: nowrap;
     padding-top: 2px;
-  }
-  html.dark .pli-date {
-    color: var(--color-muted-dark);
   }
 
   .pli-kicker {
@@ -66,7 +63,7 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     margin-bottom: 6px;
   }
 
@@ -74,24 +71,18 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
     font-size: 16px;
     font-weight: 600;
     line-height: 1.35;
-    color: var(--color-fg);
+    color: hsl(var(--foreground));
     margin: 0 0 5px;
     transition: color 150ms ease-in-out;
   }
-  html.dark .pli-title {
-    color: var(--color-fg-dark);
-  }
   .pli:hover .pli-title {
-    color: var(--color-primary);
-  }
-  html.dark .pli:hover .pli-title {
-    color: var(--color-primary-hover);
+    color: hsl(var(--primary));
   }
 
   .pli-arrow {
     display: inline-block;
     margin-left: 0.35em;
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     opacity: 0;
     transform: translateX(-6px);
     transition: opacity 180ms ease, transform 180ms ease;
@@ -104,15 +95,12 @@ const href = getLocalizedPath(`/blog/${slug}`, lang);
   .pli-desc {
     font-size: 14px;
     line-height: 1.5;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-  html.dark .pli-desc {
-    color: var(--color-muted-dark);
   }
 
   @media (max-width: 640px) {

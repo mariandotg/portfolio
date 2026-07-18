@@ -31,25 +31,25 @@ const formattedDate = date.toLocaleDateString(lang === "es" ? "es-AR" : "en-US",
   <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
     <!-- Header -->
     <header class="mb-10">
-      <div class="flex items-center gap-3 text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-4">
+      <div class="flex items-center gap-3 text-sm text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] mb-4">
         {client && <span>{client}</span>}
         {client && <span>·</span>}
         <time>{formattedDate}</time>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">
+      <h1 class="text-3xl sm:text-4xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-4">
         {title}
       </h1>
-      <p class="text-lg text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6">{description}</p>
+      <p class="text-lg text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] mb-6">{description}</p>
       {tags.length > 0 && <TagList tags={tags} />}
 
       <div class="flex gap-4 mt-6">
         {url && (
-          <a href={url} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors">
+          <a href={url} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] bg-[var(--color-legacy-primary)] text-white hover:bg-[var(--color-legacy-primary-hover)] transition-colors">
             {t.work.viewProject} ↗
           </a>
         )}
         {repo && (
-          <a href={repo} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] hover:border-[var(--color-primary)] transition-colors">
+          <a href={repo} target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm rounded-[var(--radius-sm)] border border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)] hover:border-[var(--color-legacy-primary)] transition-colors">
             {t.work.viewRepo} ↗
           </a>
         )}
@@ -63,22 +63,22 @@ const formattedDate = date.toLocaleDateString(lang === "es" ? "es-AR" : "en-US",
     <!-- Case study sections -->
     {challenge && (
       <section class="mb-10">
-        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.challenge}</h2>
-        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{challenge}</p>
+        <h2 class="text-xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-3">{t.work.challenge}</h2>
+        <p class="text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] leading-relaxed">{challenge}</p>
       </section>
     )}
 
     {approach && (
       <section class="mb-10">
-        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.approach}</h2>
-        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{approach}</p>
+        <h2 class="text-xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-3">{t.work.approach}</h2>
+        <p class="text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] leading-relaxed">{approach}</p>
       </section>
     )}
 
     {outcome && (
       <section class="mb-10">
-        <h2 class="text-xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{t.work.outcome}</h2>
-        <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] leading-relaxed">{outcome}</p>
+        <h2 class="text-xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-3">{t.work.outcome}</h2>
+        <p class="text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] leading-relaxed">{outcome}</p>
       </section>
     )}
 
@@ -89,8 +89,8 @@ const formattedDate = date.toLocaleDateString(lang === "es" ? "es-AR" : "en-US",
 
     <!-- Tech Stack -->
     {tags.length > 0 && (
-      <div class="mt-10 pt-8 border-t border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
-        <h2 class="text-lg font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">{t.work.techStack}</h2>
+      <div class="mt-10 pt-8 border-t border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)]">
+        <h2 class="text-lg font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-4">{t.work.techStack}</h2>
         <TagList tags={tags} />
       </div>
     )}

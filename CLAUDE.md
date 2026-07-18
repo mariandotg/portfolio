@@ -5,15 +5,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 - `pnpm dev` — local dev server (Astro).
-- `pnpm build` — production build (runs `astro check`-free; type errors surface via editor/`astro build`).
+- `pnpm build` — production build. Runs `generate:pdf` **then** `astro build` (the CV PDFs are build outputs).
+- `pnpm generate:pdf` — regenerate `public/mariano-guillaume-cv-{en,es}.pdf` from résumé data (`tsx src/pdf/generate-pdfs.tsx`). The PDFs are gitignored.
 - `pnpm preview` — serve the built output locally.
+- `npx shadcn@latest add <component>` — add a shadcn/ui component into `src/components/ui/` (the design system, see Styling).
 - No test runner is configured (`pnpm test` is a placeholder). Verify UI changes by running `pnpm dev` and driving the flow.
 
 Package manager is **pnpm** (`packageManager: pnpm@10.29.3`), Node >=22.
 
 ## Stack
 
-Astro 5 (SSR via `@astrojs/vercel` adapter) + React 19 islands + Tailwind v4 (via `@tailwindcss/vite`, no config file — theme lives in CSS) + MDX. Email through Resend. Deployed to Vercel.
+Astro 5 (SSR via `@astrojs/vercel` adapter) + React 19 islands + Tailwind v4 (via `@tailwindcss/vite`, no config file — theme lives in CSS) + **shadcn/ui** + MDX. Email through Resend. CV PDFs via `@react-pdf/renderer`. Deployed to Vercel.
+
+## Site structure / routes
+
+This repo hosts the blog **and** the CV (consolidated from a former separate `cv.marianoguillaume.com` repo). Key routes:
+- `/` and `/es` — **temporarily render the CV** (`src/pages/index.astro` → `<CvPage />`). This is a placeholder home until the formal landing is finished.
+- `/cv`, `/es/cv` — canonical CV pages (same `CvPage` composition).
+- `/landing`, `/es/landing` — the **WIP marketing landing** (heavy GSAP/DitherScene hero). Not linked from nav; still on legacy crimson tokens.
+- `/blog`, `/blog/archive`, series pages, `/work`, `/about`, `/contact` — as before.
+- **Future swap** (see `docs/vercel-consolidation.md`): when the landing is ready, `index.astro` renders the landing and the CV moves to the `cv.` subdomain. The CV is factored into `CvPage.astro` precisely so this is cheap.
 
 ## Architecture
 
@@ -40,7 +51,7 @@ A post **always** has one `collection` and **optionally** also belongs to a seri
 - `rootLevel: false` (default) → `/blog/series/<id>` (page `src/pages/blog/series/[slug].astro`).
 - `rootLevel: true` → promoted to top level `/<id>`, sharing the namespace with static pages like `/about`, `/contact` (page `src/pages/[slug].astro`). Used for reference-material series (e.g. `cloud-certified-architect`).
 
-Never hardcode a series URL — call `seriesPath(id, rootLevel)` from `src/lib/series.ts` (used by `SeriesCard` and `BlogPost`). The two page files split series by the flag via `getRootLevelSeries()` / `getStandardSeries()`. `getRootLevelSeries()` also enforces a build-time guard: a `rootLevel` series whose `id` hits `RESERVED_ROOT_SLUGS` (about, contact, blog, work, es, …) throws instead of silently colliding — so promoting a series is a deliberate, checked act. Series **posts** always stay at `/blog/<post>` regardless of the flag; only the series landing moves. If you promote an already-linked series, add a redirect in `vercel.json` for its old `/blog/series/<id>` URL.
+Never hardcode a series URL — call `seriesPath(id, rootLevel)` from `src/lib/series.ts` (used by `SeriesCard` and `BlogPost`). The two page files split series by the flag via `getRootLevelSeries()` / `getStandardSeries()`. `getRootLevelSeries()` also enforces a build-time guard: a `rootLevel` series whose `id` hits `RESERVED_ROOT_SLUGS` (about, contact, blog, work, es, cv, landing, …) throws instead of silently colliding — so promoting a series is a deliberate, checked act. Series **posts** always stay at `/blog/<post>` regardless of the flag; only the series landing moves. If you promote an already-linked series, add a redirect in `vercel.json` for its old `/blog/series/<id>` URL.
 
 **Series post count is derived, not stored.** `src/lib/series.ts` computes it by filtering published blog posts that reference the series. Consequence: a series with **0 posts renders as "coming soon"** (`comingSoon: count === 0`) — you can create a series JSON before writing any post and it shows up as upcoming (that's the current state of `cloud-certified-architect.json`). Always go through the helpers, never re-query ad hoc:
 - `getSeriesIndex(lang, t)` → the series index: counts posts, sorts by `order`, localizes, builds the `meta` label ("Complete · 3 parts").
@@ -58,13 +69,17 @@ Never hardcode a series URL — call `seriesPath(id, rootLevel)` from `src/lib/s
 
 **API routes** (`src/pages/api/`). Must set `export const prerender = false` (they run as Vercel functions). `contact.ts` and `newsletter.ts` use Resend and read `RESEND_API_KEY` / `RESEND_AUDIENCE_ID` from env. `contact.ts` uses a `_honeypot` field for spam filtering.
 
-**Styling.** Tailwind v4 with theme tokens defined in `src/styles/global.css` under `@theme`. There are **two token families**: legacy `--color-primary`/`--color-light-*`/`--color-dark-*` (used by the landing `index.astro`) and neutral `--color-fg`/`--color-bg`/`--color-muted` (used by blog, nav, footer). Dark mode is class-based via `@variant dark (&:where(.dark, .dark *))` — toggled by `ThemeToggle.tsx`. When touching blog/nav/footer, prefer the neutral tokens.
+**Styling — shadcn/ui is the design system.** `components.json` at root, `cn()` in `src/lib/utils.ts`, components in `src/components/ui/`, `@/*` alias → `src/*`. Add components with `npx shadcn@latest add <name>`. Tokens live in `src/styles/global.css` as shadcn CSS vars in `:root`/`.dark` (`--background`, `--foreground`, `--card`, `--primary`, `--muted`, `--muted-foreground`, `--border`, `--ring`, `--radius`) mapped to Tailwind utilities via `@theme inline` — so `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary` etc. exist. **`--primary` is purple `#6251E7`** (the brand accent; links/CTAs/the series "Featured" badge). Dark mode is class-based (`.dark` on `<html>`, `@variant dark`); shadcn vars auto-flip, so **don't write `dark:` pairs for foreground/bg/muted** — use `text-foreground` etc. and let the token flip.
+- **Legacy crimson tokens** (`--color-legacy-primary`/`--color-legacy-light-*`/`--color-legacy-dark-*`) remain in the `@theme` block **only** for the WIP landing + marketing pages (`about`, `contact`, `work`, and their components `CTABanner`, `TrustBar`, `Button.astro`, `ProjectCard`, `SectionHeader`). Do **not** use them on blog/nav/footer/CV — those are fully on shadcn tokens.
+- Known nit: `.prose a:hover` in `global.css` is still crimson (shared between blog posts and work pages); flip to `hsl(var(--primary))` if you want blog prose links purple.
+
+**CV module.** The CV is a self-contained port under `src/components/cv/` (`CvPage.astro` + `sections/` + `ui/` primitives + `icons/`), content in `src/data/resume.datav2.ts` (+ `src/data/dictionaries.ts`, types in `src/models/`), rendered by `/cv`, `/es/cv`, and `/` (temp). Sections take a `lang` prop (not `Astro.currentLocale`). CV UI strings live in `dictionaries.ts` (kept out of `i18n/en.ts`/`es.ts`) to stay portable for the future subdomain move. The **PDF generator** in `src/pdf/` (`@react-pdf/renderer`, run by `tsx` in the `generate:pdf` prebuild step) reads the same résumé data and writes the gitignored PDFs the Download button serves. Print styles are gated on `body.cv-print` (set by an inline script on the CV page).
 
 ## Conventions & gotchas
 
 - The `series` schema has a `collection` field that **nothing reads** (`series.ts` never touches it), and it can even contradict its posts — `agent-vs-cursor.json` says `building-in-public` while its posts are `engineering-notes`. Treat it as dead until a decision is made to either drop it or make series inherit/validate a collection.
-- The site root `/` is redirected to `https://cv.marianoguillaume.com` by `vercel.json` in production — the built homepage (`src/pages/index.astro`) is not the live landing.
-- `deprecated-nextjs/` is a dead prior implementation. Ignore it.
+- The old `/`→`cv.marianoguillaume.com` redirect in `vercel.json` is **gone** (`vercel.json` is now `{}`). `/` renders the CV directly. Finishing the deploy-side consolidation (deprecating the old CV project/subdomain) is a manual runbook in `docs/vercel-consolidation.md`.
+- `deprecated-nextjs/` is a dead prior implementation. Ignore it. `/Users/marianoguillaume/Code/projects/cv` is the former CV repo (now the source of this port) — also being deprecated.
 - Blog MDX authoring (custom components, `client:*` directives) is documented in `src/components/README.md` and `docs/MDX-COMPONENTS.md`.
 - `docs/` also holds product/strategy notes unrelated to the portfolio code; don't treat them as engineering specs.
 - `remark-reading-time.mjs` injects reading time into blog frontmatter via a remark plugin wired in `astro.config.mjs`.

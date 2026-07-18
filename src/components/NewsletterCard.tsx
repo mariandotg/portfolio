@@ -46,7 +46,7 @@ export default function NewsletterCard({ labels }: NewsletterCardProps) {
 
   if (status === "success") {
     return (
-      <p style={{ fontSize: "13px", color: "var(--color-muted)" }}>{labels.success}</p>
+      <p style={{ fontSize: "13px", color: "hsl(var(--muted-foreground))" }}>{labels.success}</p>
     );
   }
 
@@ -63,7 +63,7 @@ export default function NewsletterCard({ labels }: NewsletterCardProps) {
           minWidth: "200px",
           padding: "6px 16px",
           borderRadius: "999px",
-          border: "1px solid var(--color-border)",
+          border: "1px solid hsl(var(--border))",
           background: "transparent",
           fontSize: "13px",
           outline: "none",
@@ -76,7 +76,7 @@ export default function NewsletterCard({ labels }: NewsletterCardProps) {
         style={{
           padding: "6px 16px",
           borderRadius: "999px",
-          border: "1px solid var(--color-border)",
+          border: "1px solid hsl(var(--border))",
           background: "transparent",
           fontSize: "13px",
           fontWeight: 500,
@@ -88,9 +88,8 @@ export default function NewsletterCard({ labels }: NewsletterCardProps) {
         }}
         onMouseEnter={(e) => {
           const btn = e.currentTarget;
-          const isDark = document.documentElement.classList.contains("dark");
-          btn.style.background = isDark ? "var(--color-fg-dark)" : "var(--color-fg)";
-          btn.style.color = isDark ? "var(--color-bg-dark)" : "var(--color-bg)";
+          btn.style.background = "hsl(var(--foreground))";
+          btn.style.color = "hsl(var(--background))";
         }}
         onMouseLeave={(e) => {
           const btn = e.currentTarget;

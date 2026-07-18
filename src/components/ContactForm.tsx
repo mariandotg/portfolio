@@ -33,10 +33,10 @@ export default function ContactForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   const inputClass =
-    "px-4 py-2.5 rounded-[var(--radius-sm)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] bg-white dark:bg-[#0f0f0f] text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] placeholder-[var(--color-light-text)] dark:placeholder-[var(--color-dark-text)] focus:outline-none focus:border-[var(--color-primary)] transition-colors";
+    "px-4 py-2.5 rounded-[var(--radius-sm)] border border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)] bg-white dark:bg-[#0f0f0f] text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] placeholder-[var(--color-legacy-light-text)] dark:placeholder-[var(--color-legacy-dark-text)] focus:outline-none focus:border-[var(--color-legacy-primary)] transition-colors";
 
   const labelClass =
-    "text-sm font-medium text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]";
+    "text-sm font-medium text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)]";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -188,7 +188,7 @@ export default function ContactForm({
       <button
         type="submit"
         disabled={status === "loading" || status === "success"}
-        className="px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        className="px-6 py-3 rounded-[var(--radius-sm)] bg-[var(--color-legacy-primary)] text-white font-medium hover:bg-[var(--color-legacy-primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {status === "loading" ? labels.sending : labels.submit}
       </button>

@@ -19,11 +19,11 @@ const blogHref = getLocalizedPath("/blog", lang);
       <span class="back-arrow" aria-hidden="true">←</span>
       <span>{t.blog.backToBlog}</span>
     </a>
-    <h1 class="text-xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-1 mt-5">{t.blog.pageTitle}</h1>
-    <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-8">{t.blog.pageSubtitle}</p>
+    <h1 class="text-xl font-semibold text-foreground mb-1 mt-5">{t.blog.pageTitle}</h1>
+    <p class="text-sm text-muted-foreground mb-8">{t.blog.pageSubtitle}</p>
 
     <!-- Filter tabs -->
-    <div class="filter-tabs flex gap-6 mb-8 border-b" style="border-color: var(--color-border);">
+    <div class="filter-tabs flex gap-6 mb-8 border-b" style="border-color: hsl(var(--border));">
       <button class="tab-btn pb-3 text-sm active-tab" data-filter="all">
         {t.blog.collections.all}
       </button>
@@ -52,7 +52,7 @@ const blogHref = getLocalizedPath("/blog", lang);
 
 <style>
   .tab-btn {
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     background: transparent;
     border: none;
     cursor: pointer;
@@ -61,17 +61,9 @@ const blogHref = getLocalizedPath("/blog", lang);
     padding-bottom: 0.75rem;
   }
 
-  html.dark .tab-btn {
-    color: var(--color-muted-dark);
-  }
-
   .tab-btn.active-tab {
-    color: var(--color-fg);
+    color: hsl(var(--foreground));
     font-weight: 600;
-  }
-
-  html.dark .tab-btn.active-tab {
-    color: var(--color-fg-dark);
   }
 
   .tab-btn.active-tab::after {
@@ -81,17 +73,13 @@ const blogHref = getLocalizedPath("/blog", lang);
     left: 0;
     right: 0;
     height: 2px;
-    background-color: var(--color-primary);
+    background-color: hsl(var(--primary));
     border-radius: 1px;
   }
 
   .tab-btn:hover:not(.active-tab) {
-    color: var(--color-fg);
+    color: hsl(var(--foreground));
     transition: color 150ms ease-in-out;
-  }
-
-  html.dark .tab-btn:hover:not(.active-tab) {
-    color: var(--color-fg-dark);
   }
 
   .post-card.hidden {
@@ -104,17 +92,11 @@ const blogHref = getLocalizedPath("/blog", lang);
     gap: 6px;
     font-family: var(--font-family-mono);
     font-size: 13px;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     transition: color 150ms ease-in-out;
   }
-  html.dark .back-link {
-    color: var(--color-muted-dark);
-  }
   .back-link:hover {
-    color: var(--color-fg);
-  }
-  html.dark .back-link:hover {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
   .back-arrow {
     display: inline-block;

@@ -1,0 +1,19 @@
+---
+import { DICTIONARIES } from '@/data/dictionaries'
+import { RESUME_DATA } from '@/data/resume.datav2'
+import { JobCard } from '../ui/JobCard'
+
+interface Props {
+  lang: 'en' | 'es'
+}
+
+const { lang } = Astro.props
+const DATA = RESUME_DATA[lang]
+const DICTIONARY = DICTIONARIES[lang]
+---
+<section class="flex min-h-0 flex-col gap-y-3">
+    <h2 class="text-lg font-bold">{DICTIONARY.WORK_EXP}</h2>
+    {[...DATA.work].reverse().map((work) =>
+        <JobCard work={work} />
+    )}
+</section>

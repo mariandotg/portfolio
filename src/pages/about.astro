@@ -46,15 +46,15 @@ const skills = {
     <!-- Bio -->
     <div class="grid md:grid-cols-3 gap-10 mb-20">
       <div class="md:col-span-2">
-        <h2 class="text-2xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-4">
+        <h2 class="text-2xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-4">
           {t.about.bioTitle}
         </h2>
         {t.about.bio.split("\n\n").map((para) => (
-          <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-4 leading-relaxed">{para}</p>
+          <p class="text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] mb-4 leading-relaxed">{para}</p>
         ))}
       </div>
       <div class="flex justify-center md:justify-start">
-        <div class="w-48 h-48 rounded-full bg-[color-mix(in_srgb,var(--color-primary)_15%,transparent)] flex items-center justify-center text-6xl">
+        <div class="w-48 h-48 rounded-full bg-[color-mix(in_srgb,var(--color-legacy-primary)_15%,transparent)] flex items-center justify-center text-6xl">
           👨‍💻
         </div>
       </div>
@@ -65,18 +65,18 @@ const skills = {
       <SectionHeader title={t.about.experienceTitle} />
       <div class="space-y-6">
         {experience.map(({ role, company, period, desc, tags }) => (
-          <div class="p-6 rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)]">
+          <div class="p-6 rounded-[var(--radius-md)] border border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)]">
             <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
               <div>
-                <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)]">{role}</h3>
-                <p class="text-[var(--color-primary)] text-sm font-medium">{company}</p>
+                <h3 class="font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)]">{role}</h3>
+                <p class="text-[var(--color-legacy-primary)] text-sm font-medium">{company}</p>
               </div>
-              <span class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">{period}</span>
+              <span class="text-sm text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)]">{period}</span>
             </div>
-            <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-3">{desc}</p>
+            <p class="text-sm text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] mb-3">{desc}</p>
             <div class="flex flex-wrap gap-2">
               {tags.map((tag) => (
-                <span class="px-2 py-0.5 text-xs rounded-full bg-[var(--color-light-subtle)] dark:bg-[var(--color-dark-subtle)] text-[var(--color-light-text)] dark:text-[var(--color-dark-text)]">
+                <span class="px-2 py-0.5 text-xs rounded-full bg-[var(--color-legacy-light-subtle)] dark:bg-[var(--color-legacy-dark-subtle)] text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)]">
                   {tag}
                 </span>
               ))}
@@ -92,11 +92,11 @@ const skills = {
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(skills).map(([category, items]) => (
           <div>
-            <h3 class="font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">{category}</h3>
+            <h3 class="font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-3">{category}</h3>
             <ul class="space-y-2">
               {items.map((item) => (
-                <li class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] flex items-center gap-2">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0"></span>
+                <li class="text-sm text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-legacy-primary)] flex-shrink-0"></span>
                   {item}
                 </li>
               ))}

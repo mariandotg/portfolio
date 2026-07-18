@@ -8,10 +8,10 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<header class="sticky top-0 z-50 w-full border-b bg-[var(--color-bg)]/95 dark:bg-[var(--color-bg-dark)]/95" style="border-color: var(--color-border);">
+<header class="sticky top-0 z-50 w-full border-b bg-background/95" style="border-color: hsl(var(--border));">
   <nav class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 h-14 flex items-center justify-between">
     <!-- Site name -->
-    <a href={getLocalizedPath("/blog", lang)} class="text-sm font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] hover:opacity-70" style="transition: opacity 150ms ease-in-out;">
+    <a href={getLocalizedPath("/blog", lang)} class="text-sm font-semibold text-foreground hover:opacity-70" style="transition: opacity 150ms ease-in-out;">
       {SITE.name}
     </a>
 
@@ -19,7 +19,7 @@ const t = useTranslations(lang);
     <div class="flex items-center gap-4">
       <a
         href={getLocalizedPath("/blog", lang)}
-        class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-fg-dark)]"
+        class="text-sm text-muted-foreground hover:text-foreground"
         style="transition: color 150ms ease-in-out;"
       >
         {t.nav.blog}

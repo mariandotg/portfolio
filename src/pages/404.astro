@@ -22,19 +22,19 @@ const i18n = { en: en.notFound, es: es.notFound };
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-16">
     <p
       class="text-sm font-mono mb-3"
-      style="color: var(--color-primary)"
+      style="color: hsl(var(--primary))"
       data-i18n="code"
     >
       {t.code}
     </p>
     <h1
-      class="text-2xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-2"
+      class="text-2xl font-semibold text-foreground mb-2"
       data-i18n="title"
     >
       {t.title}
     </h1>
     <p
-      class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-6 max-w-[60ch]"
+      class="text-sm text-muted-foreground mb-6 max-w-[60ch]"
       data-i18n="subtitle"
     >
       {t.subtitle}
@@ -50,7 +50,7 @@ const i18n = { en: en.notFound, es: es.notFound };
     </div>
 
     <h2
-      class="text-xs font-mono uppercase tracking-wider text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-6"
+      class="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-6"
       data-i18n="postsHeading"
     >
       {t.postsHeading}
@@ -75,20 +75,17 @@ const i18n = { en: en.notFound, es: es.notFound };
     align-items: center;
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     font-size: 14px;
-    color: var(--color-fg);
+    color: hsl(var(--foreground));
     transition: border-color 150ms ease, background-color 150ms ease;
   }
-  html.dark .nf-btn {
-    color: var(--color-fg-dark);
-  }
   .nf-btn:hover {
-    border-color: var(--color-primary);
+    border-color: hsl(var(--primary));
   }
   .nf-btn-primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
+    background: hsl(var(--primary));
+    border-color: hsl(var(--primary));
     color: #fff;
   }
   html.dark .nf-btn-primary {

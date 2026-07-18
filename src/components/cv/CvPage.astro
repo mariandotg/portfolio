@@ -1,0 +1,38 @@
+---
+import { getLangFromUrl } from '@/i18n/utils'
+import { DICTIONARIES } from '@/data/dictionaries'
+import { Button } from '@/components/ui/button'
+import Social from './sections/Social.astro'
+import About from './sections/About.astro'
+import WorkExp from './sections/WorkExp.astro'
+import Education from './sections/Education.astro'
+import Skills from './sections/Skills.astro'
+import Projects from './sections/Projects.astro'
+import Certificates from './sections/Certificates.astro'
+
+const lang = getLangFromUrl(Astro.url)
+const DICTIONARY = DICTIONARIES[lang]
+---
+
+<script is:inline>
+  document.body.classList.add('cv-print')
+</script>
+
+<div class="container relative mx-auto scroll-my-12 overflow-auto p-4 print:p-12 md:p-16">
+  <div class="mx-auto w-full max-w-2xl space-y-8 print:space-y-4">
+    <div class="flex justify-end print:hidden">
+      <Button asChild size="xl">
+        <a href={`/mariano-guillaume-cv-${lang}.pdf`} target="_blank" rel="noopener noreferrer">
+          {DICTIONARY.DOWNLOAD}
+        </a>
+      </Button>
+    </div>
+    <Social lang={lang} />
+    <About lang={lang} />
+    <WorkExp lang={lang} />
+    <Education lang={lang} />
+    <Skills lang={lang} />
+    <Projects lang={lang} />
+    <Certificates lang={lang} />
+  </div>
+</div>

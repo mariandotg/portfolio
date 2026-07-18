@@ -21,6 +21,7 @@ export interface SeriesCardData {
 // lives at `/<id>`, sharing the namespace with these static pages.
 const RESERVED_ROOT_SLUGS = new Set([
   "about", "about-me", "contact", "blog", "work", "dev", "api", "rss.xml", "404", "index", "es",
+  "cv", "landing",
 ]);
 
 export function seriesPath(id: string, rootLevel: boolean): string {

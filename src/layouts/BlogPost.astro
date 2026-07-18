@@ -76,7 +76,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     )}
 
     <header class="mb-8">
-      <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: var(--color-muted);">
+      <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: hsl(var(--muted-foreground));">
         <time datetime={pubDate.toISOString()}>{formattedDate}</time>
         {readingTime && (
           <>
@@ -92,18 +92,18 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
         )}
       </div>
 
-      <h1 class="text-xl font-semibold leading-snug mb-3 text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]">
+      <h1 class="text-xl font-semibold leading-snug mb-3 text-foreground">
         {title}
       </h1>
 
-      <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-4">
+      <p class="text-sm text-muted-foreground mb-4">
         {description}
       </p>
 
       {tags.length > 0 && <TagList tags={tags} />}
     </header>
 
-    <hr class="mb-8" style="border-color: var(--color-border); opacity: 0.5;" />
+    <hr class="mb-8" style="border-color: hsl(var(--border)); opacity: 0.5;" />
 
     {hasToc && <TableOfContents headings={headings} label={t.blog.onThisPage} />}
 
@@ -134,11 +134,8 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
   .banner {
     aspect-ratio: 80 / 15;
     border-radius: 8px;
-    border: 1px solid var(--color-border);
-    background: var(--color-bg);
-  }
-  :global(html.dark) .banner {
-    background: var(--color-bg-dark);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
   }
 
   .banner :global(svg) {
@@ -156,33 +153,26 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     margin-bottom: 16px;
     padding: 5px 12px;
     border-radius: 999px;
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     font-family: var(--font-family-mono);
     font-size: 12px;
     transition: border-color 150ms ease-in-out, color 150ms ease-in-out;
   }
   .series-strip-part {
-    color: var(--color-primary);
+    color: hsl(var(--primary));
     font-weight: 600;
   }
   .series-strip-sep {
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
   }
   .series-strip-title {
-    color: var(--color-muted);
-  }
-  html.dark .series-strip-title,
-  html.dark .series-strip-sep {
-    color: var(--color-muted-dark);
+    color: hsl(var(--muted-foreground));
   }
   .series-strip:hover {
-    border-color: var(--color-primary);
+    border-color: hsl(var(--primary));
   }
   .series-strip:hover .series-strip-title {
-    color: var(--color-fg);
-  }
-  html.dark .series-strip:hover .series-strip-title {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
 
   .series-nav {
@@ -191,7 +181,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     gap: 12px;
     margin-top: 48px;
     padding-top: 24px;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid hsl(var(--border));
   }
   .series-nav-item {
     display: flex;
@@ -199,7 +189,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     gap: 4px;
     padding: 14px 16px;
     border-radius: 8px;
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     transition: border-color 150ms ease-in-out, transform 150ms ease-in-out;
   }
   .series-nav-next {
@@ -207,25 +197,19 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     align-items: flex-end;
   }
   .series-nav-item:hover {
-    border-color: var(--color-primary);
+    border-color: hsl(var(--primary));
     transform: translateY(-2px);
   }
   .series-nav-dir {
     font-family: var(--font-family-mono);
     font-size: 12px;
-    color: var(--color-muted);
-  }
-  html.dark .series-nav-dir {
-    color: var(--color-muted-dark);
+    color: hsl(var(--muted-foreground));
   }
   .series-nav-title {
     font-size: 14px;
     font-weight: 600;
     line-height: 1.35;
-    color: var(--color-fg);
-  }
-  html.dark .series-nav-title {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
   @media (max-width: 640px) {
     .series-nav {
@@ -249,17 +233,11 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
     margin-bottom: 20px;
     font-family: var(--font-family-mono);
     font-size: 13px;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     transition: color 150ms ease-in-out;
   }
-  html.dark .back-link {
-    color: var(--color-muted-dark);
-  }
   .back-link:hover {
-    color: var(--color-fg);
-  }
-  html.dark .back-link:hover {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
   .back-arrow {
     display: inline-block;

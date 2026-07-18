@@ -17,9 +17,9 @@ const sizes = {
 };
 
 const variants = {
-  primary: "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]",
+  primary: "bg-[var(--color-legacy-primary)] text-white hover:bg-[var(--color-legacy-primary-hover)]",
   secondary:
-    "border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]",
+    "border border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)] text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] hover:border-[var(--color-legacy-primary)] hover:text-[var(--color-legacy-primary)]",
 };
 
 const classes = [base, sizes[size], variants[variant], className].filter(Boolean).join(" ");

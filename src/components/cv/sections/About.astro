@@ -1,0 +1,18 @@
+---
+import { DICTIONARIES } from '@/data/dictionaries'
+import { RESUME_DATA } from '@/data/resume.datav2'
+
+interface Props {
+  lang: 'en' | 'es'
+}
+
+const { lang } = Astro.props
+const DATA = RESUME_DATA[lang]
+const DICTIONARY = DICTIONARIES[lang]
+---
+<section>
+    <h2 class="text-lg font-bold">{DICTIONARY.ABOUT}</h2>
+    <p class="text-pretty text-muted-foreground print:text-[12px]">
+        {DATA.summary}
+    </p>
+</section>

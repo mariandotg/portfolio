@@ -9,11 +9,11 @@ const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-auto" style="border-top: 1px solid var(--color-border);">
+<footer class="mt-auto" style="border-top: 1px solid hsl(var(--border));">
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 pt-8 pb-6">
     <!-- Newsletter -->
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-      <span class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] whitespace-nowrap">
+      <span class="text-sm text-muted-foreground whitespace-nowrap">
         {t.newsletter.title}
       </span>
       <NewsletterCard
@@ -28,11 +28,11 @@ const year = new Date().getFullYear();
       />
     </div>
 
-    <hr style="border-color: var(--color-border); opacity: 0.5; margin-bottom: 1.5rem;" />
+    <hr style="border-color: hsl(var(--border)); opacity: 0.5; margin-bottom: 1.5rem;" />
 
     <!-- Bottom row -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p class="text-xs text-[var(--color-muted)] dark:text-[var(--color-muted-dark)]">
+      <p class="text-xs text-muted-foreground">
         © {year} {SITE.name}. {t.footer.rights}
       </p>
       <SocialLinks />

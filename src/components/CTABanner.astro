@@ -10,12 +10,12 @@ interface Props {
 const { title, subtitle, btnLabel, btnHref } = Astro.props;
 ---
 
-<section class="bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] dark:bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] border border-[color-mix(in_srgb,var(--color-primary)_20%,transparent)] rounded-[var(--radius-md)] p-8 sm:p-12 text-center">
-  <h2 class="text-2xl sm:text-3xl font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] mb-3">
+<section class="bg-[color-mix(in_srgb,var(--color-legacy-primary)_8%,transparent)] dark:bg-[color-mix(in_srgb,var(--color-legacy-primary)_12%,transparent)] border border-[color-mix(in_srgb,var(--color-legacy-primary)_20%,transparent)] rounded-[var(--radius-md)] p-8 sm:p-12 text-center">
+  <h2 class="text-2xl sm:text-3xl font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] mb-3">
     {title}
   </h2>
   {subtitle && (
-    <p class="text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] mb-6 max-w-lg mx-auto">{subtitle}</p>
+    <p class="text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] mb-6 max-w-lg mx-auto">{subtitle}</p>
   )}
   <Button href={btnHref}>{btnLabel}</Button>
 </section>

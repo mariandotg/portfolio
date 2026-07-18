@@ -21,8 +21,8 @@ const archiveHref = getLocalizedPath("/blog/archive", lang);
 
 <PageLayout title={t.blog.pageTitle} description={t.blog.pageSubtitle}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <h1 class="text-xl font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)] mb-1">{t.blog.pageTitle}</h1>
-    <p class="text-sm text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] mb-10">{t.blog.pageSubtitle}</p>
+    <h1 class="text-xl font-semibold text-foreground mb-1">{t.blog.pageTitle}</h1>
+    <p class="text-sm text-muted-foreground mb-10">{t.blog.pageSubtitle}</p>
 
     {series.length > 0 && (
       <section class="mb-14">
@@ -70,25 +70,16 @@ const archiveHref = getLocalizedPath("/blog/archive", lang);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     margin-bottom: 1rem;
-  }
-  html.dark .section-heading {
-    color: var(--color-muted-dark);
   }
   .all-notes-link {
     font-family: var(--font-family-mono);
     font-size: 13px;
-    color: var(--color-muted);
+    color: hsl(var(--muted-foreground));
     transition: color 150ms ease-in-out;
   }
-  html.dark .all-notes-link {
-    color: var(--color-muted-dark);
-  }
   .all-notes-link:hover {
-    color: var(--color-fg);
-  }
-  html.dark .all-notes-link:hover {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
 </style>

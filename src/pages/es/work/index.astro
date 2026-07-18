@@ -20,7 +20,7 @@ const sorted = projects.sort((a, b) => a.data.order - b.data.order);
         <ProjectCard slug={project.id} title={project.data.title} description={project.data.description} tags={project.data.tags} image={project.data.image} imageAlt={project.data.imageAlt} url={project.data.url} />
       ))}
       {sorted.length === 0 && (
-        <p class="col-span-3 text-center text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] py-20">Próximamente...</p>
+        <p class="col-span-3 text-center text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] py-20">Próximamente...</p>
       )}
     </div>
   </div>

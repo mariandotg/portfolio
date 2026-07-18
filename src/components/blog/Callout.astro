@@ -29,11 +29,11 @@ const meta = META[type];
 
 <style>
   .callout {
-    --accent: var(--color-muted);
+    --accent: hsl(var(--muted-foreground));
     margin: 1.6rem 0;
     padding: 14px 16px;
     border-radius: 10px;
-    border: 1px solid var(--color-border);
+    border: 1px solid hsl(var(--border));
     border-left: 3px solid var(--accent);
     background: color-mix(in srgb, var(--accent) 7%, transparent);
   }
@@ -50,7 +50,7 @@ const meta = META[type];
     --accent: hsl(8 75% 57%);
   }
   .callout-takeaway {
-    --accent: var(--color-primary);
+    --accent: hsl(var(--primary));
   }
 
   .callout-head {
@@ -73,10 +73,7 @@ const meta = META[type];
   .callout-body {
     font-size: 14px;
     line-height: 1.65;
-    color: var(--color-fg);
-  }
-  :global(html.dark) .callout-body {
-    color: var(--color-fg-dark);
+    color: hsl(var(--foreground));
   }
   .callout-body :global(> :first-child) {
     margin-top: 0;
@@ -97,6 +94,6 @@ const meta = META[type];
     font-size: 0.86em;
     padding: 1px 5px;
     border-radius: 4px;
-    background: color-mix(in srgb, var(--color-muted) 18%, transparent);
+    background: color-mix(in srgb, hsl(var(--muted-foreground)) 18%, transparent);
   }
 </style>

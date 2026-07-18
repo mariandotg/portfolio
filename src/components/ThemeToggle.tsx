@@ -70,7 +70,7 @@ export default function ThemeToggle() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "var(--color-muted)",
+        color: "hsl(var(--muted-foreground))",
         opacity: 0.7,
         transition: "opacity 150ms ease-in-out",
       }}

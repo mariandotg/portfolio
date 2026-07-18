@@ -18,7 +18,7 @@ const t = useTranslations(lang);
 const href = getLocalizedPath(`/work/${slug}`, lang);
 ---
 
-<article class="group flex flex-col rounded-[var(--radius-md)] border border-[var(--color-light-subtle)] dark:border-[var(--color-dark-subtle)] bg-white dark:bg-[#0f0f0f] hover:border-[var(--color-primary)] transition-colors overflow-hidden">
+<article class="group flex flex-col rounded-[var(--radius-md)] border border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)] bg-white dark:bg-[#0f0f0f] hover:border-[var(--color-legacy-primary)] transition-colors overflow-hidden">
   {image ? (
     <img
       src={image}
@@ -26,28 +26,28 @@ const href = getLocalizedPath(`/work/${slug}`, lang);
       class="w-full aspect-video object-cover"
     />
   ) : (
-    <div class="w-full aspect-video bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] flex items-center justify-center">
-      <span class="text-4xl text-[var(--color-primary)] opacity-30">◆</span>
+    <div class="w-full aspect-video bg-[color-mix(in_srgb,var(--color-legacy-primary)_10%,transparent)] flex items-center justify-center">
+      <span class="text-4xl text-[var(--color-legacy-primary)] opacity-30">◆</span>
     </div>
   )}
 
   <div class="flex flex-col gap-3 p-6 flex-1">
-    <h3 class="text-lg font-bold text-[var(--color-light-headlines)] dark:text-[var(--color-dark-headlines)] group-hover:text-[var(--color-primary)] transition-colors">
+    <h3 class="text-lg font-bold text-[var(--color-legacy-light-headlines)] dark:text-[var(--color-legacy-dark-headlines)] group-hover:text-[var(--color-legacy-primary)] transition-colors">
       <a href={href}>{title}</a>
     </h3>
 
-    <p class="text-sm text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] line-clamp-2 flex-1">
+    <p class="text-sm text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] line-clamp-2 flex-1">
       {description}
     </p>
 
     {tags.length > 0 && <TagList tags={tags} />}
 
     <div class="flex gap-3 mt-2">
-      <a href={href} class="text-sm font-medium text-[var(--color-primary)] hover:underline">
+      <a href={href} class="text-sm font-medium text-[var(--color-legacy-primary)] hover:underline">
         {t.common.readMore}
       </a>
       {url && (
-        <a href={url} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-[var(--color-light-text)] dark:text-[var(--color-dark-text)] hover:text-[var(--color-primary)]">
+        <a href={url} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-[var(--color-legacy-light-text)] dark:text-[var(--color-legacy-dark-text)] hover:text-[var(--color-legacy-primary)]">
           {t.work.viewProject} ↗
         </a>
       )}

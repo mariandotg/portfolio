@@ -14,20 +14,20 @@ const esPath = `/es${enPath === "/" ? "" : enPath}` || "/es";
     class:list={[
       "px-1",
       lang === "en"
-        ? "font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]"
-        : "text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-fg-dark)]"
+        ? "font-semibold text-foreground"
+        : "text-muted-foreground hover:text-foreground"
     ]}
     style="transition: color 150ms ease-in-out;"
     aria-label="Switch to English"
   >EN</a>
-  <span class="text-[var(--color-muted)] dark:text-[var(--color-muted-dark)]">/</span>
+  <span class="text-muted-foreground">/</span>
   <a
     href={esPath}
     class:list={[
       "px-1",
       lang === "es"
-        ? "font-semibold text-[var(--color-fg)] dark:text-[var(--color-fg-dark)]"
-        : "text-[var(--color-muted)] dark:text-[var(--color-muted-dark)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-fg-dark)]"
+        ? "font-semibold text-foreground"
+        : "text-muted-foreground hover:text-foreground"
     ]}
     style="transition: color 150ms ease-in-out;"
     aria-label="Cambiar a Español"

@@ -40,6 +40,32 @@ Nueva página `src/pages/dev/effects.astro` con dos secciones:
 - Controles: toggle de tema (para ver cómo responde a los tokens) y toggle del mask central
   on/off, para poder juzgar la legibilidad del texto encima.
 - Un párrafo de texto de muestra superpuesto en cada preview.
+- **Sliders de calibración en vivo** para `size`, `scale`, `speed` y el `opacity` del contenedor,
+  más un `<select>` para `shape` (`simplex | warp | dots | wave | ripple | swirl | sphere`) y para
+  `type` (`random | 2x2 | 4x4 | 8x8`). Mostrar los valores actuales como un bloque de código
+  copiable, para poder pegarlos directo en `PaperDithering.tsx`.
+  *(Agregado después de escribir el ticket: calibrar el backdrop a ojo editando el archivo y
+  recargando resultó ser el cuello de botella real. La página existe para resolver eso.)*
+
+## Estado actual del código — T2 y T3 ya están mergeados
+
+El ticket se escribió antes de que existieran. Esto es lo que hay hoy en `feature/blog-ui`:
+
+**Banner (build-time, SVG):** `src/lib/effects/banner/`
+- `bannerSvg(seed, opts?)` — la fachada. `BANNER_EFFECTS` — el registry.
+  `ACTIVE_BANNER_EFFECT` — el nombre de la estrategia activa (hoy `"halftone"`, la única).
+- Importar desde `@/lib/effects/banner`.
+
+**Backdrop (runtime, WebGL):** `src/lib/effects/backdrop/` + `src/components/effects/`
+- `BACKDROP_EFFECTS` / `ACTIVE_BACKDROP_EFFECT` (hoy `"paperDithering"`) / `backdropEffect`.
+- **Ojo con esta separación**: `Backdrop.tsx` es el *island* — tiene las guardas de WebGL y
+  reduced-motion, lee los tokens del tema y monta un `MutationObserver`. `PaperDithering.tsx` es
+  el *efecto puro*, recibe `{ colorBack, colorFront }` y nada más.
+  **En esta página usá `PaperDithering` (o los componentes del registry) directamente**, no
+  `Backdrop` — necesitás controlar los colores desde los controles, y `Backdrop` los impone.
+- `colorBack` **tiene que ser transparente** (`rgba(0,0,0,0)`). El canvas es un overlay; pasarle
+  un color opaco pinta un rectángulo sólido y aplasta el contraste del dither hasta dejarlo plano.
+  Ese fue un bug real, no lo reintroduzcas en los previews.
 
 ### General
 

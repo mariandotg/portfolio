@@ -59,15 +59,29 @@ export type BackdropEffect = React.ComponentType<BackdropProps>;
 
 ```tsx
 <Dithering
-  shape="simplex"
-  type="4x4"        // Bayer ordenado 4x4
+  shape="simplex"     // 1 de: simplex | warp | dots | wave | ripple | swirl | sphere
+  type="4x4"          // matriz de Bayer; 1 de: random | 2x2 | 4x4 | 8x8
   colorBack={colorBack}
   colorFront={colorFront}
-  pxSize={3}
+  size={3}            // tamaño del "pixel gordo" — NO uses pxSize, está deprecado
   speed={0.4}
   scale={1}
+  maxPixelCount={1920 * 1080}
+  style={{ width: "100%", height: "100%" }}
 />
 ```
+
+**API verificada contra `@paper-design/shaders-react@0.0.78` / core `0.0.56`** (leyendo los `.d.ts`
+publicados, no de memoria):
+- `DitheringProps extends ShaderComponentProps, DitheringParams`.
+- `ShaderComponentProps extends React.ComponentProps<'div'>` → acepta `className`, `style`, etc.,
+  más `width`/`height` (estilos CSS inline) y `maxPixelCount` para topear el costo en pantallas grandes.
+- `size` es la prop vigente. **`pxSize` existe pero está marcada `@deprecated`** — no la uses.
+- `shape` y `type` son strings; el shader los mapea a enteros internamente.
+- `speed` viene de `ShaderMotionParams`, `scale` de `ShaderSizingParams`.
+
+Si al instalar la versión pineada alguna de estas props no existe, **pará y reportá** en vez de
+improvisar una equivalente.
 
 Responsabilidades del island:
 

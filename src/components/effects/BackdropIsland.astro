@@ -1,0 +1,34 @@
+---
+import Backdrop from "./Backdrop.tsx";
+---
+
+<div class="backdrop" aria-hidden="true">
+  <Backdrop client:idle />
+</div>
+
+<style>
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* atenuar el centro para no competir con el texto */
+    --mask: linear-gradient(
+      to right,
+      black 0%,
+      rgba(0, 0, 0, 0.82) 14%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.82) 86%,
+      black 100%
+    );
+    -webkit-mask-image: var(--mask);
+    mask-image: var(--mask);
+    opacity: 0.42;
+  }
+
+  @media print {
+    .backdrop {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,489 @@
+---
+import { VIEW_COLS, VIEW_ROWS } from "../../lib/identicon";
+
+// Dev-only banner forge. Load an image, run it through the same halftone
+// post-processor the landing hero uses, export a PNG for a series banner.
+// Not built in production. The guard must sit *after* the imports: an early
+// return above them breaks the compiler's generated render function.
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+
+// Keep the default export ratio locked to the identicon's, so a photo banner
+// drops into the same slot as a generated one.
+const NATIVE_RATIO = `${VIEW_COLS}/${VIEW_ROWS}`;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Series Banner Forge · dev</title>
+    <style>
+      :root {
+        --bg: #0a0a0c;
+        --panel: #131316;
+        --border: rgba(255, 255, 255, 0.12);
+        --fg: #eaeaea;
+        --muted: #8a8a92;
+        --accent: #a52847;
+        --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      header h1 { margin: 0; font-size: 15px; }
+      header p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+      main {
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+        max-width: 1400px;
+      }
+      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 18px;
+      }
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .drop {
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+        padding: 22px 14px;
+        text-align: center;
+        color: var(--muted);
+        cursor: pointer;
+        transition: border-color 120ms ease, background 120ms ease;
+        font-size: 12px;
+      }
+      .drop:hover, .drop.over { border-color: var(--accent); background: rgba(255, 255, 255, 0.03); }
+      .drop b { color: var(--fg); display: block; margin-bottom: 4px; }
+      input[type="file"] { display: none; }
+
+      .field { margin-top: 16px; }
+      .field label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .field label b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+      .field input[type="range"] { width: 100%; accent-color: var(--accent); }
+      .field input[type="text"],
+      .field select {
+        width: 100%;
+        font: inherit;
+        font-size: 12px;
+        padding: 6px 8px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--fg);
+      }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; min-width: 0; }
+      .check { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; cursor: pointer; }
+      .check input { accent-color: var(--accent); }
+      .swatch {
+        width: 100%;
+        height: 30px;
+        padding: 0;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .stage { display: flex; flex-direction: column; gap: 16px; }
+      .preview {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #0d0d0f;
+        display: grid;
+        place-items: center;
+        min-height: 120px;
+      }
+      .preview.light { background: #f4f4f6; }
+      .preview canvas { display: block; width: 100%; height: auto; }
+      .empty { color: var(--muted); font-size: 12px; padding: 60px 0; }
+
+      .meta { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
+      .meta b { color: var(--fg); font-weight: 500; }
+
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      button {
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--fg);
+        transition: background 120ms ease;
+      }
+      button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      button.primary { background: var(--accent); border-color: transparent; }
+      button.primary:hover:not(:disabled) { filter: brightness(1.1); }
+
+      .hint {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.6;
+        border-left: 2px solid var(--border);
+        padding-left: 10px;
+      }
+      .hint code { color: var(--fg); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Series Banner Forge</h1>
+      <p>
+        Load an image → halftone it with the landing-hero dither → export a PNG.
+        Dots are drawn light on transparent, matching the identicon convention
+        (banners always render on a dark backdrop, in both themes).
+      </p>
+    </header>
+
+    <main>
+      <div class="panel">
+        <h2>Source</h2>
+        <label class="drop" data-drop>
+          <b>Drop an image</b>
+          or click to browse
+          <input type="file" accept="image/*" data-file />
+        </label>
+
+        <div class="field">
+          <label for="ratio">Aspect</label>
+          <select id="ratio" data-ratio>
+            <option value={NATIVE_RATIO}>
+              {VIEW_COLS} / {VIEW_ROWS} — series banner (native)
+            </option>
+            <option value="2/1">2 / 1 — card, mobile</option>
+            <option value="16/9">16 / 9</option>
+            <option value="1/1">1 / 1</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="width">Output width <b data-out-dims>1600 × 300</b></label>
+          <input type="range" id="width" data-width min="400" max="3200" step="100" value="1600" />
+        </div>
+
+        <h2 style="margin-top: 24px">Halftone</h2>
+
+        <div class="field">
+          <label for="spacing">Dot spacing <b data-v="spacing">6</b>px</label>
+          <input type="range" id="spacing" data-spacing min="2" max="24" step="1" value="6" />
+        </div>
+
+        <div class="field">
+          <label for="radius">Dot size <b data-v="radius">0.40</b>×</label>
+          <input type="range" id="radius" data-radius min="0.1" max="0.8" step="0.05" value="0.4" />
+        </div>
+
+        <div class="field">
+          <label for="cutoff">Cutoff <b data-v="cutoff">0.04</b></label>
+          <input type="range" id="cutoff" data-cutoff min="0" max="0.5" step="0.01" value="0.04" />
+        </div>
+
+        <div class="field">
+          <label for="alpha">Opacity <b data-v="alpha">1.00</b></label>
+          <input type="range" id="alpha" data-alpha min="0.1" max="1" step="0.05" value="1" />
+        </div>
+
+        <div class="field">
+          <label for="color">Dot color</label>
+          <input type="color" id="color" class="swatch" data-color value="#eaeaea" />
+        </div>
+
+        <h2 style="margin-top: 24px">Pre-process</h2>
+
+        <div class="field">
+          <label for="brightness">Brightness <b data-v="brightness">0</b></label>
+          <input type="range" id="brightness" data-brightness min="-100" max="100" step="5" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="contrast">Contrast <b data-v="contrast">0</b></label>
+          <input type="range" id="contrast" data-contrast min="-100" max="100" step="5" value="0" />
+        </div>
+
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" data-invert />
+            Invert source (light subject → dots)
+          </label>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="panel">
+          <h2>Preview</h2>
+          <div class="preview" data-preview>
+            <div class="empty" data-empty>No image loaded.</div>
+            <canvas data-canvas hidden></canvas>
+          </div>
+          <div class="meta" style="margin-top: 12px">
+            <span>source <b data-src-dims>—</b></span>
+            <span>output <b data-canvas-dims>—</b></span>
+            <span>dots <b data-dot-count>—</b></span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Export</h2>
+          <div class="field" style="margin-top: 0">
+            <label for="filename">Filename</label>
+            <div class="row">
+              <input type="text" id="filename" data-filename value="series-banner" />
+              <button data-download disabled class="primary" style="flex: none">Download PNG</button>
+            </div>
+          </div>
+          <div class="controls" style="margin-top: 14px">
+            <button data-backdrop>Preview on light</button>
+            <button data-reset>Reset controls</button>
+          </div>
+          <p class="hint" style="margin-top: 16px">
+            Save into <code>public/series/&lt;series-id&gt;.png</code>, then reference it
+            from the series JSON. Nothing here writes to disk — the wiring
+            (<code>bannerImage</code> field + render sites) is not built yet, so for now
+            you place the file yourself.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      import { applyHalftone } from "../../components/dither-scene/dither";
+
+      // Must be a function declaration, not a generic arrow: `<T ...>` in an
+      // .astro <script> gets parsed as an HTML tag and breaks the compiler.
+      function $<T extends HTMLElement>(sel: string): T {
+        return document.querySelector(sel) as T;
+      }
+
+      const fileInput = $<HTMLInputElement>("[data-file]");
+      const drop = $<HTMLLabelElement>("[data-drop]");
+      const canvas = $<HTMLCanvasElement>("[data-canvas]");
+      const preview = $<HTMLElement>("[data-preview]");
+      const empty = $<HTMLElement>("[data-empty]");
+      const downloadBtn = $<HTMLButtonElement>("[data-download]");
+      const ctx = canvas.getContext("2d")!;
+
+      const inputs = {
+        ratio: $<HTMLSelectElement>("[data-ratio]"),
+        width: $<HTMLInputElement>("[data-width]"),
+        spacing: $<HTMLInputElement>("[data-spacing]"),
+        radius: $<HTMLInputElement>("[data-radius]"),
+        cutoff: $<HTMLInputElement>("[data-cutoff]"),
+        alpha: $<HTMLInputElement>("[data-alpha]"),
+        color: $<HTMLInputElement>("[data-color]"),
+        brightness: $<HTMLInputElement>("[data-brightness]"),
+        contrast: $<HTMLInputElement>("[data-contrast]"),
+        invert: $<HTMLInputElement>("[data-invert]"),
+      };
+
+      const readouts = {
+        spacing: $<HTMLElement>('[data-v="spacing"]'),
+        radius: $<HTMLElement>('[data-v="radius"]'),
+        cutoff: $<HTMLElement>('[data-v="cutoff"]'),
+        alpha: $<HTMLElement>('[data-v="alpha"]'),
+        brightness: $<HTMLElement>('[data-v="brightness"]'),
+        contrast: $<HTMLElement>('[data-v="contrast"]'),
+      };
+
+      /** Server-rendered default, sourced from identicon's VIEW_COLS/VIEW_ROWS. */
+      const NATIVE_RATIO = inputs.ratio.value;
+
+      let image: HTMLImageElement | null = null;
+
+      /** Scratch canvas holding the cover-fitted, grayscale, tone-adjusted source. */
+      const src = document.createElement("canvas");
+      const srcCtx = src.getContext("2d", { willReadFrequently: true })!;
+
+      function outputDims(): [number, number] {
+        const [rw, rh] = inputs.ratio.value.split("/").map(Number);
+        const w = Number(inputs.width.value);
+        return [w, Math.round((w * rh) / rw)];
+      }
+
+      function hexToRgb(hex: string): [number, number, number] {
+        const n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+
+      /**
+       * Draw the image cover-fitted (center-cropped) into the scratch canvas,
+       * then flatten to luminance and apply brightness/contrast/invert.
+       */
+      function buildSource(w: number, h: number): ImageData {
+        src.width = w;
+        src.height = h;
+
+        const scale = Math.max(w / image!.naturalWidth, h / image!.naturalHeight);
+        const dw = image!.naturalWidth * scale;
+        const dh = image!.naturalHeight * scale;
+        srcCtx.fillStyle = "#fff";
+        srcCtx.fillRect(0, 0, w, h);
+        srcCtx.drawImage(image!, (w - dw) / 2, (h - dh) / 2, dw, dh);
+
+        const data = srcCtx.getImageData(0, 0, w, h);
+        const px = data.data;
+        const brightness = Number(inputs.brightness.value);
+        // Standard contrast factor curve, centred on mid-grey.
+        const c = Number(inputs.contrast.value);
+        const factor = (259 * (c + 255)) / (255 * (259 - c));
+        const invert = inputs.invert.checked;
+
+        for (let i = 0; i < px.length; i += 4) {
+          let lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+          lum += brightness;
+          lum = factor * (lum - 128) + 128;
+          if (invert) lum = 255 - lum;
+          lum = lum < 0 ? 0 : lum > 255 ? 255 : lum;
+          px[i] = px[i + 1] = px[i + 2] = lum;
+          px[i + 3] = 255;
+        }
+        srcCtx.putImageData(data, 0, 0);
+        return data;
+      }
+
+      function render() {
+        for (const [k, el] of Object.entries(readouts)) {
+          const raw = inputs[k as keyof typeof readouts].value;
+          el.textContent = k === "spacing" || k === "brightness" || k === "contrast"
+            ? raw
+            : Number(raw).toFixed(2);
+        }
+
+        const [w, h] = outputDims();
+        $<HTMLElement>("[data-out-dims]").textContent = `${w} × ${h}`;
+        if (!image) return;
+
+        canvas.width = w;
+        canvas.height = h;
+        canvas.hidden = false;
+        empty.hidden = true;
+
+        const sourceData = buildSource(w, h);
+        const [r, g, b] = hexToRgb(inputs.color.value);
+        const spacing = Number(inputs.spacing.value);
+
+        applyHalftone(ctx, sourceData, w, h, spacing, r, g, b, Number(inputs.alpha.value), {
+          maxRadiusRatio: Number(inputs.radius.value),
+          darknessCutoff: Number(inputs.cutoff.value),
+        });
+
+        $<HTMLElement>("[data-canvas-dims]").textContent = `${w} × ${h}`;
+        $<HTMLElement>("[data-dot-count]").textContent =
+          `~${(Math.ceil(w / spacing) * Math.ceil(h / spacing)).toLocaleString()}`;
+        downloadBtn.disabled = false;
+      }
+
+      function loadFile(file: File) {
+        if (!file.type.startsWith("image/")) return;
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          image = img;
+          $<HTMLElement>("[data-src-dims]").textContent =
+            `${img.naturalWidth} × ${img.naturalHeight}`;
+          const base = file.name.replace(/\.[^.]+$/, "");
+          $<HTMLInputElement>("[data-filename]").value = base;
+          URL.revokeObjectURL(url);
+          render();
+        };
+        img.src = url;
+      }
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files?.[0];
+        if (file) loadFile(file);
+      });
+
+      for (const type of ["dragenter", "dragover"]) {
+        drop.addEventListener(type, (e) => {
+          e.preventDefault();
+          drop.classList.add("over");
+        });
+      }
+      for (const type of ["dragleave", "drop"]) {
+        drop.addEventListener(type, (e) => {
+          e.preventDefault();
+          drop.classList.remove("over");
+        });
+      }
+      drop.addEventListener("drop", (e) => {
+        const file = (e as DragEvent).dataTransfer?.files?.[0];
+        if (file) loadFile(file);
+      });
+
+      for (const el of Object.values(inputs)) {
+        el.addEventListener("input", render);
+      }
+
+      downloadBtn.addEventListener("click", () => {
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${$<HTMLInputElement>("[data-filename]").value || "series-banner"}.png`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, "image/png");
+      });
+
+      const backdropBtn = $<HTMLButtonElement>("[data-backdrop]");
+      backdropBtn.addEventListener("click", () => {
+        const light = preview.classList.toggle("light");
+        backdropBtn.textContent = light ? "Preview on dark" : "Preview on light";
+      });
+
+      $<HTMLButtonElement>("[data-reset]").addEventListener("click", () => {
+        inputs.ratio.value = NATIVE_RATIO;
+        inputs.width.value = "1600";
+        inputs.spacing.value = "6";
+        inputs.radius.value = "0.4";
+        inputs.cutoff.value = "0.04";
+        inputs.alpha.value = "1";
+        inputs.color.value = "#eaeaea";
+        inputs.brightness.value = "0";
+        inputs.contrast.value = "0";
+        inputs.invert.checked = false;
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

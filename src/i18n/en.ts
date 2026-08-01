@@ -148,6 +148,7 @@ export const en = {
       complete: "Complete",
       featured: "Featured",
       partOf: "Part {n} of {m}",
+      readNow: "Read now",
       backToSeries: "Back to series",
       prevInSeries: "Previous",
       nextInSeries: "Next",

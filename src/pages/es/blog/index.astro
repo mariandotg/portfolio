@@ -27,7 +27,7 @@ const archiveHref = getLocalizedPath("/blog/archive", lang);
     {series.length > 0 && (
       <section class="mb-14">
         <h2 class="section-heading">{t.blog.series.sectionTitle}</h2>
-        <div class="flex flex-col">
+        <div class="grid gap-5 sm:grid-cols-2">
           {series.map((s) => (
             <SeriesCard
               slug={s.slug}

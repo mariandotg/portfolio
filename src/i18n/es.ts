@@ -150,6 +150,7 @@ export const es: Translations = {
       complete: "Completa",
       featured: "Destacada",
       partOf: "Parte {n} de {m}",
+      readNow: "Leer ahora",
       backToSeries: "Volver a la serie",
       prevInSeries: "Anterior",
       nextInSeries: "Siguiente",

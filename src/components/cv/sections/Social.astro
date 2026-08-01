@@ -34,9 +34,7 @@ const DICTIONARY = DICTIONARIES[lang]
                 </a>
             </p>
             <div class="gap-x-1 pt-1 text-muted-foreground print:hidden hidden smx:flex">
-                <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang}>
-                    <ThemeToggle client:load />
-                </SocialMediaList>
+                <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang} />
             </div>
             <!-- <div class=" flex-col gap-x-1 text-muted-foreground print:flex print:text-[12px]"></div> -->
         </div>
@@ -49,8 +47,6 @@ const DICTIONARY = DICTIONARIES[lang]
         />
     </div>
     <div class="gap-x-1 pt-1 font-mono text-sm text-muted-foreground print:hidden flex smx:hidden">
-        <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang}>
-            <ThemeToggle client:load />
-        </SocialMediaList>
+        <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang} />
     </div>
 </div>

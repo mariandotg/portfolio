@@ -141,11 +141,6 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
   .banner :global(svg) {
     display: block;
   }
-  /* Halftone is authored for a dark backdrop; flip it for light mode. */
-  :global(html:not(.dark)) .banner :global(svg) {
-    filter: invert(1) hue-rotate(180deg);
-  }
-
   .series-strip {
     display: inline-flex;
     align-items: center;

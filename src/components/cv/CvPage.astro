@@ -20,13 +20,6 @@ const DICTIONARY = DICTIONARIES[lang]
 
 <div class="container relative mx-auto scroll-my-12 overflow-auto p-4 print:p-12 md:p-16">
   <div class="mx-auto w-full max-w-2xl space-y-8 print:space-y-4">
-    <div class="flex justify-end print:hidden">
-      <Button asChild size="xl">
-        <a href={`/mariano-guillaume-cv-${lang}.pdf`} target="_blank" rel="noopener noreferrer">
-          {DICTIONARY.DOWNLOAD}
-        </a>
-      </Button>
-    </div>
     <Social lang={lang} />
     <About lang={lang} />
     <WorkExp lang={lang} />

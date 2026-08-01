@@ -1,7 +1,7 @@
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import type { Lang } from "../i18n/utils";
-import { localizedSeries } from "../i18n/utils";
+import { localizedSeries, getLocalizedPath } from "../i18n/utils";
 import type { Translations } from "../i18n/en";
 
 export interface SeriesCardData {
@@ -92,6 +92,49 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
 export async function getSeriesPosts(slug: string): Promise<CollectionEntry<"blog">[]> {
   const posts = await getCollection("blog", ({ data }) => !data.draft);
   return postsInSeries(posts, slug);
+}
+
+export type RoadmapStatus = "read" | "current" | "available" | "upcoming";
+
+export interface RoadmapItem {
+  order: number;
+  href?: string;
+  title: string;
+  description: string;
+  eyebrow: string;
+  readingTime?: number;
+  status: RoadmapStatus;
+}
+
+function collectionLabel(collection: CollectionEntry<"blog">["data"]["collection"], t: Translations): string {
+  return collection === "building-in-public"
+    ? t.blog.collections.buildingInPublic
+    : t.blog.collections.engineeringNotes;
+}
+
+// Reading state is not persisted yet, so every published part is offered as
+// readable and the first one is highlighted as the entry point. Once progress
+// is tracked, only the `status` derivation below needs to change.
+export async function getSeriesRoadmap(
+  slug: string,
+  lang: Lang,
+  t: Translations,
+): Promise<RoadmapItem[]> {
+  const posts = await getSeriesPosts(slug);
+  return Promise.all(
+    posts.map(async (post, idx) => {
+      const { remarkPluginFrontmatter } = await render(post);
+      return {
+        order: idx + 1,
+        href: getLocalizedPath(`/blog/${post.id}`, lang),
+        title: post.data.title,
+        description: post.data.description,
+        eyebrow: collectionLabel(post.data.collection, t),
+        readingTime: remarkPluginFrontmatter?.readingTime as number | undefined,
+        status: (idx === 0 ? "current" : "available") as RoadmapStatus,
+      };
+    }),
+  );
 }
 
 export { metaLabel };

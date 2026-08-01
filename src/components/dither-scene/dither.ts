@@ -14,6 +14,13 @@ interface HalftoneOptions {
   offsetX?: number;
   /** Y offset where sourceData's (0,0) maps on the destination canvas. */
   offsetY?: number;
+  /**
+   * Maximum dot radius as a fraction of dotSpacing (default: 0.40).
+   * 0.5 makes the biggest dots tangent to their neighbors; above that they overlap.
+   */
+  maxRadiusRatio?: number;
+  /** Darkness below which a dot is skipped entirely (default: 0.04). */
+  darknessCutoff?: number;
 }
 
 export function applyHalftone(
@@ -38,12 +45,8 @@ export function applyHalftone(
   const offsetX = options?.offsetX ?? 0;
   const offsetY = options?.offsetY ?? 0;
 
-  /**
-   * Maximum dot radius as a fraction of dotSpacing.
-   * 0.55 means the biggest dots almost touch neighbors (0.5 would be tangent).
-   * Increase for overlapping dots, decrease for more whitespace between dots.
-   */
-  const maxRadius = dotSpacing * 0.40;
+  const maxRadius = dotSpacing * (options?.maxRadiusRatio ?? 0.40);
+  const darknessCutoff = options?.darknessCutoff ?? 0.04;
 
   const fillStyle = `rgba(${fgR},${fgG},${fgB},${fgAlpha})`;
 
@@ -78,8 +81,7 @@ export function applyHalftone(
       // Invert: darker areas get bigger dots
       const darkness = 1 - lum;
 
-      /** Skip very faint areas — tweak this threshold to control dot cutoff */
-      if (darkness < 0.04) continue;
+      if (darkness < darknessCutoff) continue;
 
       const radius = maxRadius * darkness;
 

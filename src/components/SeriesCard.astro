@@ -21,12 +21,12 @@ const banner = identiconSvg(bannerSeed || slug);
 ---
 
 <a href={href} class="sc group">
-  <div class="sc-banner" aria-hidden="true" set:html={banner}></div>
+  <div class="sc-banner" aria-hidden="true">
+    <div class="sc-banner-art" set:html={banner}></div>
+    {featured && <span class="sc-badge">{t.blog.series.featured}</span>}
+  </div>
   <div class="sc-body">
-    <div class="sc-tags">
-      {featured && <span class="sc-badge">{t.blog.series.featured}</span>}
-      <span class:list={["sc-meta", { "sc-meta-soon": comingSoon }]}>{meta}</span>
-    </div>
+    <span class:list={["sc-meta", { "sc-meta-soon": comingSoon }]}>{meta}</span>
     <h3 class="sc-title">
       <span class="sc-title-text">{title}</span>
       <span class="sc-arrow" aria-hidden="true">→</span>
@@ -37,63 +37,70 @@ const banner = identiconSvg(bannerSeed || slug);
 
 <style>
   .sc {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 22px;
-    align-items: center;
-    padding: 20px 4px;
-    border-top: 1px solid hsl(var(--border));
-    transition: padding-left 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    overflow: hidden;
+    background: hsl(var(--card));
+    transition:
+      border-color 200ms ease,
+      transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .sc:hover {
-    padding-left: 10px;
+    border-color: color-mix(in srgb, hsl(var(--primary)) 55%, hsl(var(--border)));
+    transform: translateY(-2px);
   }
+
   .sc-banner {
-    width: 100%;
-    aspect-ratio: 2 / 1;
-    border-radius: 6px;
-    border: 1px solid hsl(var(--border));
-    background: hsl(var(--background));
+    position: relative;
+    aspect-ratio: 16 / 9;
     overflow: hidden;
+    border-bottom: 1px solid hsl(var(--border));
   }
-  .sc-banner :global(svg) {
+  .sc-banner-art {
+    width: 100%;
+    height: 100%;
+    transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .sc:hover .sc-banner-art {
+    transform: scale(1.04);
+  }
+  .sc-banner-art :global(svg) {
     display: block;
     width: 100%;
     height: 100%;
   }
-  /* Halftone is authored for a dark backdrop; flip it for light mode. */
-  html:not(.dark) .sc-banner :global(svg) {
-    filter: invert(1) hue-rotate(180deg);
-  }
 
-  .sc-body {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-  .sc-tags {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
   .sc-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
     font-family: var(--font-family-mono);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: hsl(var(--primary));
-    border: 1px solid color-mix(in srgb, hsl(var(--primary)) 45%, transparent);
+    color: #fff;
+    background: color-mix(in srgb, hsl(var(--primary)) 88%, transparent);
     border-radius: 999px;
-    padding: 1px 7px;
+    padding: 2px 8px;
     line-height: 1.5;
+    backdrop-filter: blur(4px);
+  }
+
+  .sc-body {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 16px;
+    min-width: 0;
   }
   .sc-meta {
     font-family: var(--font-family-mono);
     font-size: 12px;
     letter-spacing: 0.01em;
     color: hsl(var(--muted-foreground));
+    margin-bottom: 6px;
   }
   .sc-meta-soon {
     color: hsl(var(--primary));
@@ -104,7 +111,7 @@ const banner = identiconSvg(bannerSeed || slug);
     font-weight: 600;
     line-height: 1.35;
     color: hsl(var(--foreground));
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     transition: color 150ms ease-in-out;
   }
   .sc:hover .sc-title {
@@ -129,27 +136,22 @@ const banner = identiconSvg(bannerSeed || slug);
     color: hsl(var(--muted-foreground));
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  @media (max-width: 640px) {
-    .sc {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    .sc-banner {
-      aspect-ratio: 80 / 15;
-    }
-  }
   @media (prefers-reduced-motion: reduce) {
     .sc,
-    .sc-arrow {
+    .sc-arrow,
+    .sc-banner-art {
       transition: none;
     }
     .sc:hover {
-      padding-left: 4px;
+      transform: none;
+    }
+    .sc:hover .sc-banner-art {
+      transform: none;
     }
   }
 </style>

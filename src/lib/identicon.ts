@@ -30,6 +30,10 @@ function mulberry32(seed: number): () => number {
 export const VIEW_COLS = 80;
 export const VIEW_ROWS = 15;
 
+// The halftone is authored light-on-dark. The backdrop is baked into the SVG so
+// the banner renders identically in both themes instead of tracking --background.
+export const BANNER_BACKDROP = "#0b0b0f";
+
 export interface IdenticonOptions {
   cols?: number;
   rows?: number;
@@ -138,6 +142,7 @@ export function identiconSvg(seed: string, opts: IdenticonOptions = {}): string 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cols} ${rows}" ` +
     `width="100%" height="100%" preserveAspectRatio="xMidYMid slice">` +
+    `<rect width="${cols}" height="${rows}" fill="${BANNER_BACKDROP}"/>` +
     `<g>${dots}</g>` +
     `</svg>`
   );

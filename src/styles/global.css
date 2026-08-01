@@ -91,6 +91,17 @@
   --font-family-display: 'IBM Plex Sans', system-ui, sans-serif;
   --font-family-mono: 'IBM Plex Mono', system-ui, monospace;
   --font-family-inter: 'Inter', system-ui, sans-serif;
+
+  /* Tailwind v4 namespaces — without these, `font-sans`/`font-mono` fall back
+     to Tailwind's default stacks instead of IBM Plex. */
+  --font-sans: var(--font-family-display);
+  --font-mono: var(--font-family-mono);
+
+  /* Ported from the CV project's tailwind.config fontSize extend. */
+  --text-title: 1rem;
+  --text-title--line-height: 1rem;
+  --text-name: 1.5rem;
+  --text-name--line-height: 1.5rem;
 }
 
 @theme {
@@ -148,9 +159,13 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: hsl(var(--foreground));
-  font-weight: 600;
+/* Must stay inside @layer base: unlayered rules outrank @layer utilities, which
+   would make font-* utilities on headings silently no-op. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
 }
 
 a {

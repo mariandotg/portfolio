@@ -27,7 +27,7 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
           </div>
         </div>
 
-        <h4 className="font-base text-sm leading-none print:text-[12px]">
+        <h4 className="font-normal text-sm leading-none print:text-[12px]">
           {work.title}
         </h4>
       </CardHeader>

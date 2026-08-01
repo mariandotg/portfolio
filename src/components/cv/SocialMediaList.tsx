@@ -7,7 +7,7 @@ export interface SocialMediaListProps {
   email: string
   socials: readonly Social[]
   resume: string
-  children: ReactNode
+  children?: ReactNode
   locale: string
 }
 
@@ -28,7 +28,7 @@ const SocialMediaList = ({
   email,
   socials,
   resume,
-  children,
+  children = null,
   locale,
 }: SocialMediaListProps) => {
   return (
@@ -63,7 +63,7 @@ const SocialMediaList = ({
           </a>
         </Button>
       ))}
-      {children}
+      {children ? children : null}
       <Button className="h-8" variant="default" size="sm" asChild>
         <a href={resume} target="_blank" rel="noopener noreferrer">
           {LOCALIZED_LABELS[locale].DOWNLOAD}

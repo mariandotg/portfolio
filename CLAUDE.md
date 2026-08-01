@@ -79,6 +79,7 @@ Never hardcode a series URL — call `seriesPath(id, rootLevel)` from `src/lib/s
 
 - The `series` schema has a `collection` field that **nothing reads** (`series.ts` never touches it), and it can even contradict its posts — `agent-vs-cursor.json` says `building-in-public` while its posts are `engineering-notes`. Treat it as dead until a decision is made to either drop it or make series inherit/validate a collection.
 - The old `/`→`cv.marianoguillaume.com` redirect in `vercel.json` is **gone** (`vercel.json` is now `{}`). `/` renders the CV directly. Finishing the deploy-side consolidation (deprecating the old CV project/subdomain) is a manual runbook in `docs/vercel-consolidation.md`.
+- `src/legacy/` holds the frozen `DitherScene` halftone renderer (canvas 2D, CPU). Two consumers: `/landing` (the scene itself) and `/dev/series-banner`, which imports `applyHalftone` from it. Don't add more — it's slated for replacement by a WebGL backdrop (see `docs/tickets/T3-backdrop-paper-dithering.md`).
 - `deprecated-nextjs/` is a dead prior implementation. Ignore it. `/Users/marianoguillaume/Code/projects/cv` is the former CV repo (now the source of this port) — also being deprecated.
 - Blog MDX authoring (custom components, `client:*` directives) is documented in `src/components/README.md` and `docs/MDX-COMPONENTS.md`.
 - `docs/` also holds product/strategy notes unrelated to the portfolio code; don't treat them as engineering specs.

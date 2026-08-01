@@ -123,6 +123,10 @@ function getResponsiveParams(width: number) {
 /**
  * Initializes the dither scene on the given canvas element.
  * Returns a cleanup function to stop animation and disconnect observers.
+ *
+ * @deprecated Frozen. Kept only for `/landing`, which is still on legacy crimson tokens.
+ * Slated for replacement by a WebGL backdrop — see `docs/tickets/T3-backdrop-paper-dithering.md`.
+ * Don't add consumers or features here.
  */
 export function init(canvas: HTMLCanvasElement): () => void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });

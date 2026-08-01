@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 import { backdropEffect as Effect } from "../../lib/effects/backdrop";
+import { readShaderToken, TRANSPARENT_BACK } from "../../lib/effects/backdrop/color";
 import type { BackdropProps } from "../../lib/effects/backdrop/types";
 
-function readToken(name: string): string {
-  return `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
-}
-
-/**
- * El canvas es un overlay sobre la página, así que el fondo del shader debe ser
- * transparente: sólo pintan las celdas encendidas. Pasarle `--background` pinta
- * un rectángulo opaco y aplasta el contraste del dither hasta dejarlo plano.
- */
 function readColors(): BackdropProps {
-  return { colorBack: "rgba(0, 0, 0, 0)", colorFront: readToken("--primary") };
+  return {
+    colorBack: TRANSPARENT_BACK,
+    colorFront: readShaderToken("--primary", "hsl(247, 76%, 66%)"),
+  };
 }
 
 /** Si no puede correr en condiciones, no se muestra nada. No hay fallback CSS. */

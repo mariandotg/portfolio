@@ -13,7 +13,9 @@ export default defineConfig({
     domains: ["images.unsplash.com"],
   },
   adapter: vercel(),
-  integrations: [mdx(), react(), sitemap()],
+  // El sitemap enumera rutas, no archivos emitidos: las páginas de /dev/ no
+  // generan HTML en prod (devuelven 404) pero igual entraban al índice.
+  integrations: [mdx(), react(), sitemap({ filter: (page) => !page.includes("/dev/") })],
   vite: {
     plugins: [tailwindcss()],
   },

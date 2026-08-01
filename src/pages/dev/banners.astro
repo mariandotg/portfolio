@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import { identiconSvg } from "../../lib/identicon";
+import { bannerSvg } from "@/lib/effects/banner";
 
 // Dev-only banner curation tool. Roll candidate seeds per post, save the one
 // you like into that post's frontmatter (bannerSeed). Not built in production.
@@ -15,7 +15,7 @@ const rows = posts.map((p) => ({
   title: p.data.title,
   draft: p.data.draft,
   seed: p.data.bannerSeed ?? "",
-  currentSvg: identiconSvg(p.data.bannerSeed || p.id),
+  currentSvg: bannerSvg(p.data.bannerSeed || p.id),
 }));
 ---
 
@@ -184,7 +184,7 @@ const rows = posts.map((p) => ({
     <div class="toast" data-toast></div>
 
     <script>
-      import { identiconSvg } from "../../lib/identicon";
+      import { bannerSvg } from "@/lib/effects/banner";
 
       const toast = document.querySelector<HTMLElement>("[data-toast]")!;
       let toastTimer: number | undefined;
@@ -216,7 +216,7 @@ const rows = posts.map((p) => ({
       function bannerEl(seed: string): HTMLDivElement {
         const el = document.createElement("div");
         el.className = "banner";
-        el.innerHTML = identiconSvg(seed);
+        el.innerHTML = bannerSvg(seed);
         return el;
       }
 
@@ -228,7 +228,7 @@ const rows = posts.map((p) => ({
 
         const applySaved = (seed: string) => {
           badge.textContent = seed || "(slug)";
-          current.innerHTML = identiconSvg(seed || slug);
+          current.innerHTML = bannerSvg(seed || slug);
         };
 
         const roll = () => {

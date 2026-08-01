@@ -1,11 +1,14 @@
-// Deterministic halftone-gradient banner generator.
-// Pure, dependency-free, runs at build time and returns a self-contained SVG string.
+// Deterministic halftone-gradient banner generator ("halftone" banner effect).
+// Pure, dependency-free and isomorphic (build time + browser); returns a
+// self-contained SVG string.
 // Same seed -> same SVG. The WHOLE banner is a halftone dot grid: every cell has a
 // dot. A smooth seed-derived intensity field (soft radial glow + linear gradient +
 // a little grain) drives each dot's size and brightness, so faint background dots
 // sit under a brighter gradient bloom.
 // Aspect ratio is fixed (VIEW_COLS x VIEW_ROWS) so dots stay circular; callers must
 // give the banner the same aspect-ratio so card and header render identically.
+
+import type { BannerOptions } from "./types";
 
 function fnv1a(str: string): number {
   let h = 0x811c9dc5;
@@ -34,11 +37,6 @@ export const VIEW_ROWS = 15;
 // the banner renders identically in both themes instead of tracking --background.
 export const BANNER_BACKDROP = "#0b0b0f";
 
-export interface IdenticonOptions {
-  cols?: number;
-  rows?: number;
-}
-
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
@@ -49,7 +47,7 @@ interface Glow {
   amp: number;
 }
 
-export function identiconSvg(seed: string, opts: IdenticonOptions = {}): string {
+export function halftoneSvg(seed: string, opts: BannerOptions = {}): string {
   const cols = opts.cols ?? VIEW_COLS;
   const rows = opts.rows ?? VIEW_ROWS;
   const rng = mulberry32(fnv1a(seed));

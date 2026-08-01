@@ -4,7 +4,7 @@ import PageLayout from "../../layouts/PageLayout.astro";
 import SeriesRoadmap from "../../components/SeriesRoadmap.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../i18n/utils";
 import { getSeriesPosts, getSeriesRoadmap, getRootLevelSeries, metaLabel } from "../../lib/series";
-import { identiconSvg } from "../../lib/identicon";
+import { bannerSvg } from "@/lib/effects/banner";
 
 export async function getStaticPaths() {
   const entries = await getRootLevelSeries();
@@ -21,7 +21,7 @@ const meta = metaLabel(posts.length, entry.data.status, t);
 const comingSoon = posts.length === 0;
 const roadmap = await getSeriesRoadmap(entry.id, lang, t);
 
-const banner = identiconSvg(entry.data.bannerSeed || entry.id);
+const banner = bannerSvg(entry.data.bannerSeed || entry.id);
 const blogHref = getLocalizedPath("/blog", lang);
 ---
 

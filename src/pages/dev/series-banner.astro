@@ -1,5 +1,5 @@
 ---
-import { VIEW_COLS, VIEW_ROWS } from "../../lib/identicon";
+import { VIEW_COLS, VIEW_ROWS } from "@/lib/effects/banner";
 
 // Dev-only banner forge. Load an image, run it through the same halftone
 // post-processor the landing hero uses, export a PNG for a series banner.
@@ -7,7 +7,7 @@ import { VIEW_COLS, VIEW_ROWS } from "../../lib/identicon";
 // return above them breaks the compiler's generated render function.
 if (!import.meta.env.DEV) return new Response(null, { status: 404 });
 
-// Keep the default export ratio locked to the identicon's, so a photo banner
+// Keep the default export ratio locked to the banner effect's, so a photo banner
 // drops into the same slot as a generated one.
 const NATIVE_RATIO = `${VIEW_COLS}/${VIEW_ROWS}`;
 ---
@@ -168,7 +168,7 @@ const NATIVE_RATIO = `${VIEW_COLS}/${VIEW_ROWS}`;
       <h1>Series Banner Forge</h1>
       <p>
         Load an image → halftone it with the landing-hero dither → export a PNG.
-        Dots are drawn light on transparent, matching the identicon convention
+        Dots are drawn light on transparent, matching the banner effect convention
         (banners always render on a dark backdrop, in both themes).
       </p>
     </header>
@@ -322,7 +322,7 @@ const NATIVE_RATIO = `${VIEW_COLS}/${VIEW_ROWS}`;
         contrast: $<HTMLElement>('[data-v="contrast"]'),
       };
 
-      /** Server-rendered default, sourced from identicon's VIEW_COLS/VIEW_ROWS. */
+      /** Server-rendered default, sourced from the banner effect's VIEW_COLS/VIEW_ROWS. */
       const NATIVE_RATIO = inputs.ratio.value;
 
       let image: HTMLImageElement | null = null;

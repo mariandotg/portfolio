@@ -4,7 +4,7 @@ import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
 import TableOfContents from "../components/blog/TableOfContents.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
-import { identiconSvg } from "../lib/identicon";
+import { bannerSvg } from "@/lib/effects/banner";
 import { seriesPath } from "../lib/series";
 
 interface Props {
@@ -35,7 +35,7 @@ const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const banner = identiconSvg(bannerSeed || slug);
+const banner = bannerSvg(bannerSeed || slug);
 const blogHref = getLocalizedPath("/blog", lang);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {

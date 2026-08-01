@@ -1,6 +1,6 @@
 ---
 import { getLangFromUrl, getLocalizedPath, useTranslations } from "../i18n/utils";
-import { identiconSvg } from "../lib/identicon";
+import { bannerSvg } from "@/lib/effects/banner";
 
 interface Props {
   slug: string;
@@ -17,7 +17,7 @@ const { slug, path, title, description, meta, comingSoon = false, featured = fal
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const href = getLocalizedPath(path, lang);
-const banner = identiconSvg(bannerSeed || slug);
+const banner = bannerSvg(bannerSeed || slug);
 ---
 
 <a href={href} class="sc group">

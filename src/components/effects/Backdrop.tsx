@@ -6,8 +6,13 @@ function readToken(name: string): string {
   return `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
 }
 
+/**
+ * El canvas es un overlay sobre la página, así que el fondo del shader debe ser
+ * transparente: sólo pintan las celdas encendidas. Pasarle `--background` pinta
+ * un rectángulo opaco y aplasta el contraste del dither hasta dejarlo plano.
+ */
 function readColors(): BackdropProps {
-  return { colorBack: readToken("--background"), colorFront: readToken("--primary") };
+  return { colorBack: "rgba(0, 0, 0, 0)", colorFront: readToken("--primary") };
 }
 
 /** Si no puede correr en condiciones, no se muestra nada. No hay fallback CSS. */

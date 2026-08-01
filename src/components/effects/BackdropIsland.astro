@@ -15,15 +15,15 @@ import Backdrop from "./Backdrop.tsx";
     /* atenuar el centro para no competir con el texto */
     --mask: linear-gradient(
       to right,
-      black 0%,
-      rgba(0, 0, 0, 0.82) 14%,
-      rgba(0, 0, 0, 0.4) 50%,
-      rgba(0, 0, 0, 0.82) 86%,
-      black 100%
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 18%,
+      rgba(0, 0, 0, 0.13) 50%,
+      rgba(0, 0, 0, 0.4) 82%,
+      rgba(0, 0, 0, 0.7) 100%
     );
     -webkit-mask-image: var(--mask);
     mask-image: var(--mask);
-    opacity: 0.42;
+    opacity: 0.85;
   }
 
   @media print {

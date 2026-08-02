@@ -53,6 +53,20 @@ const FALLBACK_FRONT = "hsl(247, 76%, 66%)";
 const FALLBACK_BACK = "hsl(0, 0%, 4%)";
 
 /**
+ * `minPixelRatio` del shader, que es lo que decide el tamaño real del canvas
+ * (`max(devicePixelRatio, minPixelRatio)`). Como el shader escala `pxSize` por ese mismo
+ * factor, subirlo da más píxeles con el mismo look: es el control de resolución del export.
+ * El tope 4 mantiene el canvas por debajo del `maxPixelCount` por defecto de la librería.
+ */
+const DEFAULT_PIXEL_RATIO = 2;
+const MAX_PIXEL_RATIO = 4;
+
+function fileStem(name: string): string {
+  const base = name.replace(/^.*[\\/]/, "").replace(/\.[^.]+$/, "");
+  return base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "image";
+}
+
+/**
  * Los tres colores salen de tokens shadcn, que son tripletas separadas por espacios; el parser
  * de la librería sólo acepta `hsl()` con comas y ante un fallo devuelve gris medio sin lanzar.
  * `readShaderToken` normaliza, así que nunca hay que pasar `var(--token)` crudo al shader.
@@ -212,9 +226,14 @@ export default function ImageDitherLab() {
   const [imageName, setImageName] = useState(SEED_IMAGE);
   const [dragging, setDragging] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pixelRatio, setPixelRatio] = useState(DEFAULT_PIXEL_RATIO);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [canvasSize, setCanvasSize] = useState<{ w: number; h: number } | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const objectUrl = useRef<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const preview = useRef<HTMLDivElement>(null);
 
   // Sin esto cada imagen soltada queda retenida por su blob URL hasta recargar.
   useEffect(
@@ -223,6 +242,37 @@ export default function ImageDitherLab() {
     },
     []
   );
+
+  // El canvas lo crea `ShaderMount` después de resolver la imagen (async), así que no existe
+  // en el primer effect: hay que esperarlo en vez de leerlo una sola vez.
+  useEffect(() => {
+    let raf = 0;
+    const find = () => {
+      const found = preview.current?.querySelector("canvas") ?? null;
+      if (found) setCanvas(found);
+      else raf = requestAnimationFrame(find);
+    };
+    find();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // El shader redimensiona su buffer en su propio observer; leer en el frame siguiente evita
+  // publicar el tamaño viejo. `pixelRatio` y `ratio` entran como deps porque cambian el buffer
+  // sin cambiar necesariamente el tamaño CSS que observa el ResizeObserver.
+  useEffect(() => {
+    if (!canvas) return;
+    let raf = 0;
+    const read = () => {
+      raf = requestAnimationFrame(() => setCanvasSize({ w: canvas.width, h: canvas.height }));
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(canvas);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [canvas, pixelRatio, ratio]);
 
   const palette = override ?? tokenPalette;
 
@@ -258,6 +308,44 @@ export default function ImageDitherLab() {
   const reset = () => {
     setConfig(DEFAULTS);
     setOverride(null);
+    setPixelRatio(DEFAULT_PIXEL_RATIO);
+  };
+
+  /**
+   * Baja el canvas tal cual se ve: `preserveDrawingBuffer` ya está activo, así que el buffer
+   * sigue leíble después de compositar. Una imagen de otro origen sin CORS tiñe el canvas y
+   * `toBlob` tira SecurityError — se reporta en vez de fallar en silencio.
+   */
+  const exportPng = () => {
+    if (!canvas) return;
+    setExportError(null);
+    const name = [
+      fileStem(imageName),
+      "dither",
+      config.type,
+      `${canvas.width}x${canvas.height}`,
+    ].join("-");
+
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setExportError("el canvas no devolvió PNG");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${name}.png`;
+        // El ancla va al DOM y la URL se revoca en el próximo turno: revocar en el mismo
+        // tick cancela la descarga en Firefox.
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }, "image/png");
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "export falló");
+    }
   };
 
   const snippet = [
@@ -273,6 +361,7 @@ export default function ImageDitherLab() {
     `  colorFront="${palette.front}"`,
     `  colorBack="${palette.back}"`,
     `  colorHighlight="${palette.highlight}"`,
+    ...(pixelRatio === DEFAULT_PIXEL_RATIO ? [] : [`  minPixelRatio={${pixelRatio}}`]),
     `  style={{ width: "100%", aspectRatio: "${ratio}" }}`,
     "/>",
     override
@@ -349,6 +438,15 @@ export default function ImageDitherLab() {
           value={ratio}
           options={RATIOS.map((r) => r.css)}
           onChange={setRatio}
+        />
+
+        <Slider
+          label="export pixel ratio"
+          value={pixelRatio}
+          min={1}
+          max={MAX_PIXEL_RATIO}
+          step={1}
+          onChange={setPixelRatio}
         />
 
         <Toggle
@@ -446,8 +544,26 @@ export default function ImageDitherLab() {
             </figure>
 
             <figure className="grid gap-1.5">
-              <figcaption className="text-[11px] text-muted-foreground">dithered</figcaption>
+              <figcaption className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                <span>
+                  dithered
+                  {canvasSize && (
+                    <span className="ml-2 tabular-nums">
+                      {canvasSize.w}×{canvasSize.h}
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={exportPng}
+                  disabled={!canvas}
+                  className="rounded-md border border-border px-2 py-0.5 text-[11px] text-foreground hover:bg-muted disabled:opacity-50"
+                >
+                  Export PNG
+                </button>
+              </figcaption>
               <div
+                ref={preview}
                 className="overflow-hidden rounded-lg border border-border bg-background"
                 style={{ aspectRatio: ratio }}
                 data-dither-preview
@@ -465,11 +581,15 @@ export default function ImageDitherLab() {
                   colorBack={palette.back}
                   colorHighlight={palette.highlight}
                   speed={0}
+                  minPixelRatio={pixelRatio}
                   // Sin esto el canvas se lee en negro al muestrear píxeles o sacar captura.
                   webGlContextAttributes={{ preserveDrawingBuffer: true }}
                   style={{ width: "100%", height: "100%" }}
                 />
               </div>
+              {exportError && (
+                <p className="text-[11px] text-destructive">export: {exportError}</p>
+              )}
             </figure>
           </div>
         </div>

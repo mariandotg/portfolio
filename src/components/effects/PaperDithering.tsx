@@ -16,7 +16,7 @@ export const PAPER_DITHERING_DEFAULTS: PaperDitheringCalibration = {
   type: "4x4",
   size: 2,
   speed: 0.4,
-  scale: 0.7,
+  scale: 0.9,
 };
 
 /** Los overrides existen sólo para la página de calibración; en producción no se pasan. */

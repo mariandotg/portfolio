@@ -6,7 +6,7 @@ import type { BackdropProps } from "../../lib/effects/backdrop/types";
 function readColors(): BackdropProps {
   return {
     colorBack: TRANSPARENT_BACK,
-    colorFront: readShaderToken("--primary", "hsl(247, 76%, 66%)"),
+    colorFront: readShaderToken("--primarya", "hsl(0, 0%, 100%)"),
   };
 }
 

@@ -29,7 +29,7 @@ const MASK =
   "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 18%, rgba(0,0,0,0.13) 50%, rgba(0,0,0,0.4) 82%, rgba(0,0,0,0.7) 100%)";
 
 /** El del island. El slider arranca acá para que el bloque copiable sea honesto. */
-const DEFAULT_OPACITY = 0.85;
+const DEFAULT_OPACITY = 0.35;
 
 const SAMPLE =
   "The backdrop sits behind the page, not in front of it. If this paragraph is " +

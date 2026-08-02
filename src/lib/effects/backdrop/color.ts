@@ -18,3 +18,18 @@ export function readShaderToken(name: string, fallback: string): string {
 
 /** El canvas es un overlay: sólo deben pintar las celdas encendidas. */
 export const TRANSPARENT_BACK = "rgba(0, 0, 0, 0)";
+
+/** En dark el patrón es blanco sobre casi negro: contrasta solo, sin pedirle nada a la marca. */
+export const DARK_FRONT = "hsl(0, 0%, 100%)";
+
+/** Espejo de `--primary` en `:root`, por si el token no resuelve. */
+export const LIGHT_FRONT_FALLBACK = "hsl(247, 76%, 61%)";
+
+/**
+ * El mismo blanco que funciona en dark desaparece sobre el fondo claro, así que en light el
+ * patrón toma el morado de marca. Fuente única para el island y para el banco de calibración.
+ */
+export function readFrontColor(): string {
+  const isDark = document.documentElement.classList.contains("dark");
+  return isDark ? DARK_FRONT : readShaderToken("--primary", LIGHT_FRONT_FALLBACK);
+}

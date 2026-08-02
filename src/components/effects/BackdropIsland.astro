@@ -23,7 +23,25 @@ import Backdrop from "./Backdrop.tsx";
     );
     -webkit-mask-image: var(--mask);
     mask-image: var(--mask);
+    /* El morado sobre fondo claro necesita más alpha que el blanco sobre fondo oscuro para
+       leerse igual de presente; de ahí que la opacidad sea por tema y no una sola. */
+    opacity: 0.3;
+  }
+
+  :global(.dark) .backdrop {
     opacity: 0.15;
+  }
+
+  /* `.backdrop-fade` lo pinta el island React, así que queda fuera del scoping de Astro. */
+  .backdrop :global(.backdrop-fade) {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 900ms ease-out;
+  }
+
+  .backdrop :global(.backdrop-fade[data-painted]) {
+    opacity: 1;
   }
 
   @media print {

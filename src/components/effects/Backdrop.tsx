@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { backdropEffect as Effect } from "../../lib/effects/backdrop";
-import { readShaderToken, TRANSPARENT_BACK } from "../../lib/effects/backdrop/color";
+import { readFrontColor, TRANSPARENT_BACK } from "../../lib/effects/backdrop/color";
 import type { BackdropProps } from "../../lib/effects/backdrop/types";
 
 function readColors(): BackdropProps {
   return {
     colorBack: TRANSPARENT_BACK,
-    colorFront: readShaderToken("--primarya", "hsl(0, 0%, 100%)"),
+    colorFront: readFrontColor(),
   };
 }
 
@@ -22,6 +22,7 @@ function canRender(): boolean {
 
 export default function Backdrop() {
   const [colors, setColors] = useState<BackdropProps | null>(null);
+  const [painted, setPainted] = useState(false);
 
   useEffect(() => {
     if (!canRender()) return;
@@ -34,6 +35,27 @@ export default function Backdrop() {
     return () => observer.disconnect();
   }, []);
 
+  /**
+   * El island hidrata tarde (`client:idle`) y el canvas WebGL recién pinta en el frame siguiente
+   * al montaje. Sin esperar ese frame el fade arrancaría sobre un canvas todavía vacío y se vería
+   * el mismo salto que se quiere evitar.
+   */
+  useEffect(() => {
+    if (!colors || painted) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setPainted(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [colors, painted]);
+
   if (!colors) return null;
-  return <Effect {...colors} />;
+  return (
+    <div className="backdrop-fade" data-painted={painted || undefined}>
+      <Effect {...colors} />
+    </div>
+  );
 }

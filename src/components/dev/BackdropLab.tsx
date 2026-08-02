@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BACKDROP_EFFECTS, ACTIVE_BACKDROP_EFFECT } from "@/lib/effects/backdrop";
-import { readShaderToken, TRANSPARENT_BACK } from "@/lib/effects/backdrop/color";
+import { LIGHT_FRONT_FALLBACK, readFrontColor, TRANSPARENT_BACK } from "@/lib/effects/backdrop/color";
 import {
   PAPER_DITHERING_DEFAULTS,
   type PaperDitheringCalibration,
@@ -28,27 +28,21 @@ const TYPES: PaperDitheringCalibration["type"][] = ["random", "2x2", "4x4", "8x8
 const MASK =
   "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 18%, rgba(0,0,0,0.13) 50%, rgba(0,0,0,0.4) 82%, rgba(0,0,0,0.7) 100%)";
 
-/** El del island. El slider arranca acá para que el bloque copiable sea honesto. */
-const DEFAULT_OPACITY = 0.35;
+/** El slider arranca acá para que el bloque copiable sea honesto. El island usa 0.3 en light y 0.15 en dark. */
+const DEFAULT_OPACITY = 0.3;
 
 const SAMPLE =
   "The backdrop sits behind the page, not in front of it. If this paragraph is " +
   "hard to read, the calibration is wrong — lower the opacity, raise the cell " +
   "size, or leave the centre mask on.";
 
-const FALLBACK_PRIMARY = "hsl(247, 76%, 66%)";
-
-function readPrimary(): string {
-  return readShaderToken("--primary", FALLBACK_PRIMARY);
-}
-
 function useThemeColor(): string {
-  const [color, setColor] = useState(FALLBACK_PRIMARY);
+  const [color, setColor] = useState(LIGHT_FRONT_FALLBACK);
 
   useEffect(() => {
-    setColor(readPrimary());
+    setColor(readFrontColor());
     const observer = new MutationObserver((records) => {
-      if (records.some((r) => r.attributeName === "class")) setColor(readPrimary());
+      if (records.some((r) => r.attributeName === "class")) setColor(readFrontColor());
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();

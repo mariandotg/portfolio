@@ -206,6 +206,26 @@ blockquote {
   color: hsl(var(--muted-foreground));
 }
 
+/* Selection — monochromatic. Inverts foreground/background, so it flips with the
+   theme and never introduces a hue (the shadcn neutrals are all 0% saturation). */
+::selection {
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+  text-shadow: none;
+}
+
+/* Gradient text paints through -webkit-text-fill-color, which would otherwise stay
+   transparent while selected. */
+.gradient-text::selection {
+  -webkit-text-fill-color: hsl(var(--background));
+}
+
+/* Shiki sets span colors with !important; selection must still read as one block. */
+.shiki span::selection,
+.astro-code span::selection {
+  color: hsl(var(--background)) !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

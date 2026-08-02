@@ -9,7 +9,10 @@ const t = useTranslations(lang);
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-auto" style="border-top: 1px solid hsl(var(--border));">
+<footer
+  class="mt-auto border-t bg-background/95 supports-[backdrop-filter]:bg-background/55 backdrop-blur-xl backdrop-saturate-150"
+  style="border-color: color-mix(in srgb, hsl(var(--border)) 60%, transparent);"
+>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 pt-8 pb-6">
     <!-- Newsletter -->
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">

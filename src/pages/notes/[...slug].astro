@@ -1,19 +1,19 @@
 ---
 import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
-import BlogPost from "../../layouts/BlogPost.astro";
+import NotePost from "../../layouts/NotePost.astro";
 import { getLangFromUrl, localizedSeries } from "../../i18n/utils";
 import { getSeriesPosts } from "../../lib/series";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("blog", ({ data }) => !data.draft);
+  const entries = await getCollection("notes", ({ data }) => !data.draft);
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
   }));
 }
 
-const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
+const { entry } = Astro.props as { entry: CollectionEntry<"notes"> };
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 const { title, description, pubDate, updatedDate, tags, image, imageAlt } = entry.data;
 const readingTime = remarkPluginFrontmatter?.readingTime;
@@ -27,7 +27,7 @@ if (entry.data.series) {
   if (seriesEntry) {
     const siblings = await getSeriesPosts(entry.data.series);
     const idx = siblings.findIndex((p) => p.id === entry.id);
-    const toRef = (p: CollectionEntry<"blog">) => ({ slug: p.id, title: p.data.title });
+    const toRef = (p: CollectionEntry<"notes">) => ({ slug: p.id, title: p.data.title });
     seriesContext = {
       slug: seriesEntry.id,
       rootLevel: seriesEntry.data.rootLevel,
@@ -41,7 +41,7 @@ if (entry.data.series) {
 }
 ---
 
-<BlogPost
+<NotePost
   title={title}
   description={description}
   pubDate={pubDate}
@@ -54,4 +54,4 @@ if (entry.data.series) {
   seriesContext={seriesContext}
 >
   <Content />
-</BlogPost>
+</NotePost>

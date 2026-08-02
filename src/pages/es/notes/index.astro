@@ -11,22 +11,22 @@ const t = useTranslations(lang);
 
 const series = await getSeriesIndex(lang, t);
 
-const posts = await getCollection("blog", ({ data }) => !data.draft);
+const posts = await getCollection("notes", ({ data }) => !data.draft);
 const latest = posts
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 
-const archiveHref = getLocalizedPath("/blog/archive", lang);
+const archiveHref = getLocalizedPath("/notes/archive", lang);
 ---
 
-<PageLayout title={t.blog.pageTitle} description={t.blog.pageSubtitle}>
+<PageLayout title={t.notes.pageTitle} description={t.notes.pageSubtitle}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <h1 class="text-xl font-semibold text-foreground mb-1">{t.blog.pageTitle}</h1>
-    <p class="text-sm text-muted-foreground mb-10">{t.blog.pageSubtitle}</p>
+    <h1 class="text-xl font-semibold text-foreground mb-1">{t.notes.pageTitle}</h1>
+    <p class="text-sm text-muted-foreground mb-10">{t.notes.pageSubtitle}</p>
 
     {series.length > 0 && (
       <section class="mb-14">
-        <h2 class="section-heading">{t.blog.series.sectionTitle}</h2>
+        <h2 class="section-heading">{t.notes.series.sectionTitle}</h2>
         <div class="grid gap-5 sm:grid-cols-2">
           {series.map((s) => (
             <SeriesCard
@@ -46,8 +46,8 @@ const archiveHref = getLocalizedPath("/blog/archive", lang);
 
     <section>
       <div class="flex items-baseline justify-between mb-6">
-        <h2 class="section-heading mb-0">{t.blog.series.latestNotes}</h2>
-        <a href={archiveHref} class="all-notes-link">{t.blog.series.allNotes} →</a>
+        <h2 class="section-heading mb-0">{t.notes.series.latestNotes}</h2>
+        <a href={archiveHref} class="all-notes-link">{t.notes.series.allNotes} →</a>
       </div>
       <div class="flex flex-col">
         {latest.map((post) => (

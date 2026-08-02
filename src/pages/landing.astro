@@ -15,7 +15,7 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const isBookingExternal = SITE.bookingUrl.startsWith("http");
 
-const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const allPosts = await getCollection("notes", ({ data }) => !data.draft);
 const latestPosts = allPosts
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
@@ -289,17 +289,17 @@ const engagementPaths = [
     </div>
   </section> -->
 
-  <!-- Latest Blog Posts -->
+  <!-- Latest Notes -->
   {
     latestPosts.length > 0 && (
       <section data-scroll class="max-w-5xl mx-auto px-4 sm:px-6 py-16 border-t border-[var(--color-legacy-light-subtle)] dark:border-[var(--color-legacy-dark-subtle)]">
         <div class="flex justify-between items-end mb-10">
-          <SectionHeader title={t.home.blogTitle} subtitle={t.home.blogSubtitle} class="mb-0" />
+          <SectionHeader title={t.home.notesTitle} subtitle={t.home.notesSubtitle} class="mb-0" />
           <a
-            href={getLocalizedPath("/blog", lang)}
+            href={getLocalizedPath("/notes", lang)}
             class="text-sm font-medium text-[var(--color-legacy-primary)] hover:underline whitespace-nowrap"
           >
-            {t.home.blogCta} →
+            {t.home.notesCta} →
           </a>
         </div>
         <div class="flex flex-col max-w-2xl">

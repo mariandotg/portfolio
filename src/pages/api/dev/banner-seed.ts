@@ -4,9 +4,9 @@ import type { APIRoute } from "astro";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-// Dev-only endpoint: persists the chosen banner seed into a blog post's
+// Dev-only endpoint: persists the chosen banner seed into a note's
 // frontmatter. Never reachable in a production build.
-const BLOG_DIR = path.join(process.cwd(), "src", "content", "blog");
+const NOTES_DIR = path.join(process.cwd(), "src", "content", "notes");
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -17,9 +17,9 @@ function json(data: unknown, status = 200) {
 
 async function resolvePostFile(slug: string): Promise<string | null> {
   for (const ext of [".mdx", ".md"]) {
-    const file = path.resolve(BLOG_DIR, slug + ext);
-    // Guard against path traversal: the resolved file must live under BLOG_DIR.
-    if (!file.startsWith(BLOG_DIR + path.sep)) return null;
+    const file = path.resolve(NOTES_DIR, slug + ext);
+    // Guard against path traversal: the resolved file must live under NOTES_DIR.
+    if (!file.startsWith(NOTES_DIR + path.sep)) return null;
     try {
       await fs.access(file);
       return file;

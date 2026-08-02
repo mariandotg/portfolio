@@ -1,7 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import ThemeToggle from "./ThemeToggle.tsx";
-import LanguageSwitcher from "./LanguageSwitcher.astro";
 import { SITE } from "../config";
 
 interface Props {
@@ -21,7 +20,7 @@ const t = useTranslations(lang);
   <nav class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 h-14 flex items-center justify-between">
     <!-- Site name -->
     <a
-      href={getLocalizedPath("/blog", lang)}
+      href={getLocalizedPath("/notes", lang)}
       class="nav-title text-sm font-semibold text-foreground hover:opacity-70"
       data-nav-title
       data-hidden={revealTitleOnScroll ? "" : undefined}
@@ -32,13 +31,12 @@ const t = useTranslations(lang);
     <!-- Right side -->
     <div class="flex items-center gap-4">
       <a
-        href={getLocalizedPath("/blog", lang)}
+        href={getLocalizedPath("/notes", lang)}
         class="text-sm text-muted-foreground hover:text-foreground"
         style="transition: color 150ms ease-in-out;"
       >
-        {t.nav.blog}
+        {t.nav.notes}
       </a>
-      <LanguageSwitcher />
       <ThemeToggle client:load />
     </div>
   </nav>

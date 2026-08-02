@@ -1,6 +1,7 @@
 ---
 import { getLangFromUrl, useTranslations } from "../i18n/utils";
 import SocialLinks from "./SocialLinks.astro";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
 import NewsletterCard from "./NewsletterCard.tsx";
 import { SITE } from "../config";
 
@@ -38,7 +39,11 @@ const year = new Date().getFullYear();
       <p class="text-xs text-muted-foreground">
         © {year} {SITE.name}. {t.footer.rights}
       </p>
-      <SocialLinks />
+      <div class="flex items-center gap-4">
+        <LanguageSwitcher />
+        <span class="h-3 w-px" style="background-color: hsl(var(--border));" aria-hidden="true"></span>
+        <SocialLinks />
+      </div>
     </div>
   </div>
 </footer>

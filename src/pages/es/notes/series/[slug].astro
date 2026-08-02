@@ -1,9 +1,9 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import PageLayout from "../../../layouts/PageLayout.astro";
-import SeriesRoadmap from "../../../components/SeriesRoadmap.astro";
-import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../../i18n/utils";
-import { getSeriesPosts, getSeriesRoadmap, getStandardSeries, metaLabel } from "../../../lib/series";
+import PageLayout from "../../../../layouts/PageLayout.astro";
+import SeriesRoadmap from "../../../../components/SeriesRoadmap.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../../../i18n/utils";
+import { getSeriesPosts, getSeriesRoadmap, getStandardSeries, metaLabel } from "../../../../lib/series";
 import SeriesBanner from "@/components/effects/SeriesBanner.astro";
 import { seriesBannerBase } from "@/lib/effects/banner/assets";
 
@@ -22,14 +22,14 @@ const meta = metaLabel(posts.length, entry.data.status, t);
 const comingSoon = posts.length === 0;
 const roadmap = await getSeriesRoadmap(entry.id, lang, t);
 
-const blogHref = getLocalizedPath("/blog", lang);
+const notesHref = getLocalizedPath("/notes", lang);
 ---
 
 <PageLayout title={title} description={description}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={blogHref} class="back-link">
+    <a href={notesHref} class="back-link">
       <span class="back-arrow" aria-hidden="true">←</span>
-      <span>{t.blog.backToBlog}</span>
+      <span>{t.notes.backToNotes}</span>
     </a>
 
     <SeriesBanner base={seriesBannerBase(entry.id, entry.data.bannerImage)} variant="hero" class="series-hero w-full mb-8 mt-5" />
@@ -45,7 +45,7 @@ const blogHref = getLocalizedPath("/blog", lang);
     </header>
 
     {comingSoon ? (
-      <p class="empty-state">{t.blog.series.emptyState}</p>
+      <p class="empty-state">{t.notes.series.emptyState}</p>
     ) : (
       <SeriesRoadmap items={roadmap} />
     )}

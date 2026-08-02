@@ -1,1 +1,8 @@
-{}
+{
+  "redirects": [
+    { "source": "/blog", "destination": "/notes", "permanent": true },
+    { "source": "/blog/:path*", "destination": "/notes/:path*", "permanent": true },
+    { "source": "/es/blog", "destination": "/es/notes", "permanent": true },
+    { "source": "/es/blog/:path*", "destination": "/es/notes/:path*", "permanent": true }
+  ]
+}

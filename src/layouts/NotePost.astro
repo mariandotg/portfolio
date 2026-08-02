@@ -2,7 +2,7 @@
 import type { MarkdownHeading } from "astro";
 import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
-import TableOfContents from "../components/blog/TableOfContents.astro";
+import TableOfContents from "../components/notes/TableOfContents.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import { seriesPath } from "../lib/series";
 
@@ -32,7 +32,7 @@ const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const blogHref = getLocalizedPath("/blog", lang);
+const notesHref = getLocalizedPath("/notes", lang);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
   year: "numeric",
@@ -48,17 +48,17 @@ const formattedUpdated = updatedDate?.toLocaleDateString(lang === "es" ? "es-AR"
 
 const seriesHref = seriesContext ? getLocalizedPath(seriesPath(seriesContext.slug, seriesContext.rootLevel), lang) : undefined;
 const seriesPartLabel = seriesContext
-  ? t.blog.series.partOf.replace("{n}", String(seriesContext.part)).replace("{m}", String(seriesContext.total))
+  ? t.notes.series.partOf.replace("{n}", String(seriesContext.part)).replace("{m}", String(seriesContext.total))
   : undefined;
-const prevHref = seriesContext?.prev ? getLocalizedPath(`/blog/${seriesContext.prev.slug}`, lang) : undefined;
-const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.next.slug}`, lang) : undefined;
+const prevHref = seriesContext?.prev ? getLocalizedPath(`/notes/${seriesContext.prev.slug}`, lang) : undefined;
+const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.next.slug}`, lang) : undefined;
 ---
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
   <article class="post max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={blogHref} class="back-link">
+    <a href={notesHref} class="back-link">
       <span class="back-arrow" aria-hidden="true">←</span>
-      <span>{t.blog.backToBlog}</span>
+      <span>{t.notes.backToNotes}</span>
     </a>
 
     {seriesContext && (
@@ -75,7 +75,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
         {readingTime && (
           <>
             <span>·</span>
-            <span>{readingTime} {t.blog.readingTime}</span>
+            <span>{readingTime} {t.notes.readingTime}</span>
           </>
         )}
         {formattedUpdated && (
@@ -99,7 +99,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
 
     <hr class="mb-8" style="border-color: hsl(var(--border)); opacity: 0.5;" />
 
-    {hasToc && <TableOfContents headings={headings} label={t.blog.onThisPage} />}
+    {hasToc && <TableOfContents headings={headings} label={t.notes.onThisPage} />}
 
     <div class="prose prose-sm dark:prose-invert max-w-none">
       <slot />
@@ -109,13 +109,13 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
       <nav class="series-nav">
         {seriesContext.prev ? (
           <a href={prevHref} class="series-nav-item series-nav-prev">
-            <span class="series-nav-dir">← {t.blog.series.prevInSeries}</span>
+            <span class="series-nav-dir">← {t.notes.series.prevInSeries}</span>
             <span class="series-nav-title">{seriesContext.prev.title}</span>
           </a>
         ) : <span />}
         {seriesContext.next ? (
           <a href={nextHref} class="series-nav-item series-nav-next">
-            <span class="series-nav-dir">{t.blog.series.nextInSeries} →</span>
+            <span class="series-nav-dir">{t.notes.series.nextInSeries} →</span>
             <span class="series-nav-title">{seriesContext.next.title}</span>
           </a>
         ) : <span />}

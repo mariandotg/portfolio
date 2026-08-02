@@ -10,7 +10,7 @@ import { es } from "../i18n/es";
 // when the requested path lives under /es.
 const t = en.notFound;
 
-const posts = await getCollection("blog", ({ data }) => !data.draft);
+const posts = await getCollection("notes", ({ data }) => !data.draft);
 const sorted = posts
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 6);
@@ -44,8 +44,8 @@ const i18n = { en: en.notFound, es: es.notFound };
       <a href="/" class="nf-btn nf-btn-primary" data-home>
         <span data-i18n="homeCta">{t.homeCta}</span>
       </a>
-      <a href="/blog" class="nf-btn" data-blog>
-        <span data-i18n="blogCta">{t.blogCta}</span>
+      <a href="/notes" class="nf-btn" data-notes>
+        <span data-i18n="notesCta">{t.notesCta}</span>
       </a>
     </div>
 
@@ -104,11 +104,11 @@ const i18n = { en: en.notFound, es: es.notFound };
       if (t[key]) el.textContent = t[key];
     });
     const home = document.querySelector("[data-home]");
-    const blog = document.querySelector("[data-blog]");
+    const notes = document.querySelector("[data-notes]");
     if (home) home.setAttribute("href", "/es");
-    if (blog) blog.setAttribute("href", "/es/blog");
+    if (notes) notes.setAttribute("href", "/es/notes");
     document
-      .querySelectorAll('a[href^="/blog/"]')
+      .querySelectorAll('a[href^="/notes/"]')
       .forEach((a) =>
         a.setAttribute("href", "/es" + a.getAttribute("href"))
       );

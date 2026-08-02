@@ -1,4 +1,4 @@
-# Blog MDX Components
+# Notes MDX Components
 
 Use React components directly in MDX files by importing them.
 
@@ -9,7 +9,7 @@ Use React components directly in MDX files by importing them.
 ```mdx
 ---
 title: "My Post"
-description: "Interactive blog post"
+description: "Interactive note"
 pubDate: 2025-02-15
 ---
 

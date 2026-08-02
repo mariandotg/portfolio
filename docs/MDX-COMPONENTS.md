@@ -1,4 +1,4 @@
-# Using React Components in MDX Blog Posts
+# Using React Components in MDX Notes
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ pubDate: 2025-02-15
 import Counter from "../../components/Counter";
 import AlertBox from "../../components/AlertBox";
 
-# My Blog Post
+# My Note
 
 Use components with the client:load directive:
 
@@ -75,4 +75,4 @@ Run the dev server:
 pnpm dev
 ```
 
-Visit your blog at `http://localhost:4321/blog/hello-world`
+Visit your note at `http://localhost:4321/notes/hello-world`

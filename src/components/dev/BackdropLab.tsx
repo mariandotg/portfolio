@@ -40,7 +40,7 @@ const MASK =
 const DEFAULT_OPACITY = 0.3;
 
 /** Las 4 rutas que hoy llevan backdrop, ya normalizadas como las siembra `BackdropIsland`. */
-const ROUTE_SEEDS = [backdropSeed("/blog"), backdropSeed("/cv")];
+const ROUTE_SEEDS = [backdropSeed("/notes"), backdropSeed("/cv")];
 
 const SAMPLE =
   "The backdrop sits behind the page, not in front of it. If this paragraph is " +

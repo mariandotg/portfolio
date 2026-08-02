@@ -21,12 +21,12 @@ export interface SeriesCardData {
 // Top-level routes a rootLevel series would collide with. A rootLevel series
 // lives at `/<id>`, sharing the namespace with these static pages.
 const RESERVED_ROOT_SLUGS = new Set([
-  "about", "about-me", "contact", "blog", "work", "dev", "api", "rss.xml", "404", "index", "es",
+  "about", "about-me", "contact", "notes", "blog", "work", "dev", "api", "rss.xml", "404", "index", "es",
   "cv", "landing",
 ]);
 
 export function seriesPath(id: string, rootLevel: boolean): string {
-  return rootLevel ? `/${id}` : `/blog/series/${id}`;
+  return rootLevel ? `/${id}` : `/notes/series/${id}`;
 }
 
 export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]> {
@@ -46,19 +46,19 @@ export function getStandardSeries(): Promise<CollectionEntry<"series">[]> {
 }
 
 function statusLabel(status: "ongoing" | "complete", t: Translations): string {
-  return status === "complete" ? t.blog.series.complete : t.blog.series.inProgress;
+  return status === "complete" ? t.notes.series.complete : t.notes.series.inProgress;
 }
 
 function metaLabel(count: number, status: "ongoing" | "complete", t: Translations): string {
-  if (count === 0) return t.blog.series.comingSoon;
-  const unit = count === 1 ? t.blog.series.partsCountOne : t.blog.series.partsCount;
+  if (count === 0) return t.notes.series.comingSoon;
+  const unit = count === 1 ? t.notes.series.partsCountOne : t.notes.series.partsCount;
   return `${statusLabel(status, t)} · ${count} ${unit}`;
 }
 
 function postsInSeries(
-  posts: CollectionEntry<"blog">[],
+  posts: CollectionEntry<"notes">[],
   slug: string,
-): CollectionEntry<"blog">[] {
+): CollectionEntry<"notes">[] {
   return posts
     .filter((p) => p.data.series === slug)
     .sort((a, b) => (a.data.seriesOrder ?? 99) - (b.data.seriesOrder ?? 99));
@@ -67,7 +67,7 @@ function postsInSeries(
 export async function getSeriesIndex(lang: Lang, t: Translations): Promise<SeriesCardData[]> {
   const [seriesEntries, posts] = await Promise.all([
     getCollection("series"),
-    getCollection("blog", ({ data }) => !data.draft),
+    getCollection("notes", ({ data }) => !data.draft),
   ]);
 
   return seriesEntries
@@ -90,8 +90,8 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
     });
 }
 
-export async function getSeriesPosts(slug: string): Promise<CollectionEntry<"blog">[]> {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
+export async function getSeriesPosts(slug: string): Promise<CollectionEntry<"notes">[]> {
+  const posts = await getCollection("notes", ({ data }) => !data.draft);
   return postsInSeries(posts, slug);
 }
 
@@ -107,10 +107,10 @@ export interface RoadmapItem {
   status: RoadmapStatus;
 }
 
-function collectionLabel(collection: CollectionEntry<"blog">["data"]["collection"], t: Translations): string {
+function collectionLabel(collection: CollectionEntry<"notes">["data"]["collection"], t: Translations): string {
   return collection === "building-in-public"
-    ? t.blog.collections.buildingInPublic
-    : t.blog.collections.engineeringNotes;
+    ? t.notes.collections.buildingInPublic
+    : t.notes.collections.engineeringNotes;
 }
 
 // Reading state is not persisted yet, so every published part is offered as
@@ -127,7 +127,7 @@ export async function getSeriesRoadmap(
       const { remarkPluginFrontmatter } = await render(post);
       return {
         order: idx + 1,
-        href: getLocalizedPath(`/blog/${post.id}`, lang),
+        href: getLocalizedPath(`/notes/${post.id}`, lang),
         title: post.data.title,
         description: post.data.description,
         eyebrow: collectionLabel(post.data.collection, t),

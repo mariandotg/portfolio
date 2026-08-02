@@ -6,7 +6,7 @@ import { bannerSvg } from "@/lib/effects/banner";
 // you like into that post's frontmatter (bannerSeed). Not built in production.
 if (!import.meta.env.DEV) return new Response(null, { status: 404 });
 
-const posts = (await getCollection("blog")).sort(
+const posts = (await getCollection("notes")).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 

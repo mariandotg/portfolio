@@ -1,37 +1,37 @@
 ---
-import PageLayout from "../../layouts/PageLayout.astro";
-import PostListItem from "../../components/PostListItem.astro";
+import PageLayout from "../../../layouts/PageLayout.astro";
+import PostListItem from "../../../components/PostListItem.astro";
 import { getCollection } from "astro:content";
-import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../i18n/utils";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const posts = await getCollection("blog", ({ data }) => !data.draft);
+const posts = await getCollection("notes", ({ data }) => !data.draft);
 const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-const blogHref = getLocalizedPath("/blog", lang);
+const notesHref = getLocalizedPath("/notes", lang);
 ---
 
-<PageLayout title={t.blog.pageTitle} description={t.blog.pageSubtitle}>
+<PageLayout title={t.notes.pageTitle} description={t.notes.pageSubtitle}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={blogHref} class="back-link">
+    <a href={notesHref} class="back-link">
       <span class="back-arrow" aria-hidden="true">←</span>
-      <span>{t.blog.backToBlog}</span>
+      <span>{t.notes.backToNotes}</span>
     </a>
-    <h1 class="text-xl font-semibold text-foreground mb-1 mt-5">{t.blog.pageTitle}</h1>
-    <p class="text-sm text-muted-foreground mb-8">{t.blog.pageSubtitle}</p>
+    <h1 class="text-xl font-semibold text-foreground mb-1 mt-5">{t.notes.pageTitle}</h1>
+    <p class="text-sm text-muted-foreground mb-8">{t.notes.pageSubtitle}</p>
 
     <!-- Filter tabs -->
     <div class="filter-tabs flex gap-6 mb-8 border-b" style="border-color: hsl(var(--border));">
       <button class="tab-btn pb-3 text-sm active-tab" data-filter="all">
-        {t.blog.collections.all}
+        {t.notes.collections.all}
       </button>
       <button class="tab-btn pb-3 text-sm" data-filter="engineering-notes">
-        {t.blog.collections.engineeringNotes}
+        {t.notes.collections.engineeringNotes}
       </button>
       <button class="tab-btn pb-3 text-sm" data-filter="building-in-public">
-        {t.blog.collections.buildingInPublic}
+        {t.notes.collections.buildingInPublic}
       </button>
     </div>
 

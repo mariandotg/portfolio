@@ -12,6 +12,7 @@ interface Props {
   pubDate?: Date;
   noindex?: boolean;
   class?: string;
+  /** El backdrop va en todas las pantallas; apagarlo es para páginas con su propio fondo. */
   backdrop?: boolean;
   /** Siembra el campo del backdrop. Por defecto lo deriva de la ruta. */
   backdropSeed?: string;
@@ -27,7 +28,7 @@ const {
   pubDate,
   noindex,
   class: className,
-  backdrop = false,
+  backdrop = true,
   backdropSeed,
   revealTitleOnScroll = false,
 } = Astro.props;

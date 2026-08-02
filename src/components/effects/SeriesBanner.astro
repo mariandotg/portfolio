@@ -1,13 +1,13 @@
 ---
-import { VIEW_COLS, VIEW_ROWS } from "@/lib/effects/banner";
-import { seriesBannerSrc, type BannerVariant } from "@/lib/effects/banner/assets";
+import { BANNER_RATIOS, seriesBannerSrc, type BannerVariant } from "@/lib/effects/banner/assets";
 
 /**
  * El banner de una serie es **una imagen horneada** con el dither adentro: se exporta desde
  * `/dev/effects` y se guarda en `public/series/`. Acá no hay shader ni island — es un `<img>`.
  *
- * Los dos formatos son dos archivos, no un recorte en vivo: `-card` (16/9) y `-hero` (80/15).
- * Si falta el que corresponde, `seriesBannerSrc` cae al otro y `object-fit: cover` lo salva.
+ * Lo normal es **un solo archivo** por serie: a 16/9 y 3/1 el mismo recorte funciona en los dos
+ * lugares. `-card` / `-hero` existen para cuando una serie quiere un encuadre propio en el hero;
+ * si falta el que corresponde, `seriesBannerSrc` cae al otro y `object-fit: cover` lo salva.
  */
 interface Props {
   /** Base sin sufijo ni extensión, p.ej. `/series/agent-vs-cursor`. */
@@ -18,7 +18,7 @@ interface Props {
 }
 
 const { base, variant, alt = "", class: className } = Astro.props;
-const ratio = variant === "card" ? "16 / 9" : `${VIEW_COLS} / ${VIEW_ROWS}`;
+const ratio = BANNER_RATIOS[variant];
 const src = base ? seriesBannerSrc(base, variant) : undefined;
 ---
 

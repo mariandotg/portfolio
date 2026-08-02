@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageDithering, imageDitheringPresets } from "@paper-design/shaders-react";
 import { readShaderToken, TRANSPARENT_BACK, readBackdropColors } from "@/lib/effects/backdrop/color";
-import { VIEW_COLS, VIEW_ROWS } from "@/lib/effects/banner";
+import { BANNER_RATIOS } from "@/lib/effects/banner/assets";
 import PaperDithering from "@/components/effects/PaperDithering";
 import type { BackdropProps } from "@/lib/effects/backdrop/types";
 
@@ -49,7 +49,9 @@ const SEED_IMAGE = SOURCES[0].src;
 
 const DEFAULTS: DitherConfig = {
   type: "4x4",
-  size: 2,
+  // La celda del dither es lo que decide si el banner se ve pixelado, no la resolución del export:
+  // el shader escala `pxSize` por `minPixelRatio`, así que exportar más grande da el mismo look.
+  size: 1,
   colorSteps: 2,
   originalColors: false,
   inverted: false,
@@ -66,8 +68,8 @@ const CHECKER =
   "repeating-conic-gradient(#4a4a4a 0% 25%, #6e6e6e 0% 50%) 50% / 12px 12px";
 
 const RATIOS = [
-  { label: `banner ${VIEW_COLS}/${VIEW_ROWS}`, css: `${VIEW_COLS} / ${VIEW_ROWS}` },
-  { label: "card 16/9", css: "16 / 9" },
+  { label: `serie ${BANNER_RATIOS.card}`, css: BANNER_RATIOS.card },
+  { label: `hero ${BANNER_RATIOS.hero}`, css: BANNER_RATIOS.hero },
   { label: "mark 1/1", css: "1 / 1" },
 ] as const;
 
@@ -93,13 +95,17 @@ const FORMATS = ["webp", "png"] as const;
 type Format = (typeof FORMATS)[number];
 
 /**
- * El ratio elegido **es** la variante: no hay un control aparte que se pueda desincronizar del
- * encuadre. Un ratio fuera de estos dos (1/1, por ejemplo) no es un banner y no lleva nombre de
- * serie — el archivo sale con el nombre descriptivo de siempre.
+ * El ratio elegido **es** el sufijo del archivo: no hay un control aparte que se pueda
+ * desincronizar del encuadre.
+ *
+ * A 16/9 el sufijo es vacío a propósito — ese es el archivo único de la serie, el que sirve para
+ * la card y, recortado, también para el hero. El sufijo `-hero` sólo aparece cuando encuadrás a
+ * 3/1, que es justamente el caso de querer un hero distinto. Un ratio fuera de esos dos no es un
+ * banner y sale con el nombre descriptivo de siempre.
  */
-const RATIO_VARIANT: Record<string, "card" | "hero"> = {
-  "16 / 9": "card",
-  [`${VIEW_COLS} / ${VIEW_ROWS}`]: "hero",
+const RATIO_SUFFIX: Record<string, string> = {
+  [BANNER_RATIOS.card]: "",
+  [BANNER_RATIOS.hero]: "-hero",
 };
 
 const FALLBACK_FRONT = "hsl(247, 76%, 66%)";
@@ -291,7 +297,7 @@ export default function ImageDitherLab() {
 
   const [config, setConfig] = useState<DitherConfig>(DEFAULTS);
   const [override, setOverride] = useState<Palette | null>(null);
-  const [ratio, setRatio] = useState<string>("1 / 1");
+  const [ratio, setRatio] = useState<string>(BANNER_RATIOS.card);
   const [imageSrc, setImageSrc] = useState(SEED_IMAGE);
   const [imageName, setImageName] = useState(SEED_IMAGE);
   const [dragging, setDragging] = useState(false);
@@ -357,9 +363,9 @@ export default function ImageDitherLab() {
   }, [canvas, pixelRatio, ratio]);
 
   const palette = maskMode ? transparentBackPalette(tokenPalette) : (override ?? tokenPalette);
-  const bannerVariant = RATIO_VARIANT[ratio];
-  const exportName = seriesId.trim() && bannerVariant
-    ? `${fileStem(seriesId)}-${bannerVariant}.${format}`
+  const suffix = RATIO_SUFFIX[ratio];
+  const exportName = seriesId.trim() && suffix !== undefined
+    ? `${fileStem(seriesId)}${suffix}.${format}`
     : null;
 
   const set = <K extends keyof DitherConfig>(key: K, value: DitherConfig[K]) =>
@@ -605,7 +611,7 @@ export default function ImageDitherLab() {
           ) : !seriesId.trim() ? (
             "Poné el id de la serie para que el archivo salga con el nombre que el sitio busca."
           ) : (
-            "El aspect ratio elegido no es un banner: usá 16/9 (card) u 80/15 (hero)."
+            `El aspect ratio elegido no es un banner: usá ${BANNER_RATIOS.card} (la serie) o ${BANNER_RATIOS.hero} (hero aparte).`
           )}
         </p>
 
@@ -830,12 +836,8 @@ export default function ImageDitherLab() {
           {snapshot ? (
             <div className="grid gap-4">
               {[
-                { label: `card ${16}/${9}`, css: "16 / 9", width: "min(100%, 380px)" },
-                {
-                  label: `hero ${VIEW_COLS}/${VIEW_ROWS}`,
-                  css: `${VIEW_COLS} / ${VIEW_ROWS}`,
-                  width: "100%",
-                },
+                { label: `card ${BANNER_RATIOS.card}`, css: BANNER_RATIOS.card, width: "min(100%, 380px)" },
+                { label: `hero ${BANNER_RATIOS.hero}`, css: BANNER_RATIOS.hero, width: "100%" },
               ].map((tile) => (
                 <figure key={tile.label} className="grid justify-items-start gap-1.5">
                   <figcaption className="text-[11px] text-muted-foreground">{tile.label}</figcaption>

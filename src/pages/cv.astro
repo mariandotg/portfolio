@@ -17,7 +17,7 @@ const jsonLd = {
 };
 ---
 
-<PageLayout title={DATA.name} description={DATA.about} backdrop revealTitleOnScroll>
+<PageLayout title={DATA.name} description={DATA.about} revealTitleOnScroll>
   <CvPage />
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </PageLayout>

@@ -4,11 +4,9 @@ import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
 import TableOfContents from "../components/blog/TableOfContents.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
-import { bannerSvg } from "@/lib/effects/banner";
 import { seriesPath } from "../lib/series";
 
 interface Props {
-  slug: string;
   title: string;
   description: string;
   pubDate: Date;
@@ -18,7 +16,6 @@ interface Props {
   imageAlt?: string;
   readingTime?: number;
   headings?: MarkdownHeading[];
-  bannerSeed?: string;
   seriesContext?: {
     slug: string;
     rootLevel: boolean;
@@ -30,12 +27,11 @@ interface Props {
   };
 }
 
-const { slug, title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [], bannerSeed, seriesContext } = Astro.props;
+const { title, description, pubDate, updatedDate, tags = [], image, readingTime, headings = [], seriesContext } = Astro.props;
 const hasToc = headings.some((h) => h.depth === 2 || h.depth === 3);
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const banner = bannerSvg(bannerSeed || slug);
 const blogHref = getLocalizedPath("/blog", lang);
 
 const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
@@ -64,8 +60,6 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
       <span class="back-arrow" aria-hidden="true">←</span>
       <span>{t.blog.backToBlog}</span>
     </a>
-
-    <div class="banner w-full overflow-hidden mb-8" aria-hidden="true" set:html={banner} />
 
     {seriesContext && (
       <a href={seriesHref} class="series-strip">
@@ -131,16 +125,6 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/blog/${seriesContext.n
 </PageLayout>
 
 <style>
-  .banner {
-    aspect-ratio: 80 / 15;
-    border-radius: 8px;
-    border: 1px solid hsl(var(--border));
-    background: hsl(var(--background));
-  }
-
-  .banner :global(svg) {
-    display: block;
-  }
   .series-strip {
     display: inline-flex;
     align-items: center;

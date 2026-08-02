@@ -18,7 +18,23 @@ const AVAILABLE: ReadonlySet<string> = new Set(
 
 export type BannerVariant = "card" | "hero";
 
-/** Card 16/9, hero 80/15. El sufijo del archivo es el contrato con quien exporta desde el lab. */
+/**
+ * El hero es 3/1, no la franja 80/15 que venía del halftone.
+ *
+ * Con `fit: contain`, el alto de la franja es lo que limita el tamaño de la marca: en 80/15 una
+ * marca cuadrada usaba 228px de un canvas de 1233 y en pantalla quedaban ~132px de dibujo en una
+ * banda de 704. Bajar el `size` del dither la deja nítida pero igual de chica — el que manda es
+ * el ratio.
+ *
+ * Consecuencia buena: a 3/1 la imagen de card recortada con `object-fit: cover` alcanza para los
+ * dos lugares, así que **lo normal es un archivo por serie**, no dos.
+ */
+export const BANNER_RATIOS: Record<BannerVariant, string> = {
+  card: "16 / 9",
+  hero: "3 / 1",
+};
+
+/** El sufijo del archivo es el contrato con quien exporta desde el lab. */
 const SUFFIX: Record<BannerVariant, string> = {
   card: "-card",
   hero: "-hero",

@@ -4,14 +4,28 @@ import ThemeToggle from "./ThemeToggle.tsx";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 import { SITE } from "../config";
 
+interface Props {
+  revealTitleOnScroll?: boolean;
+}
+
+const { revealTitleOnScroll = false } = Astro.props;
+
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
 
-<header class="sticky top-0 z-50 w-full border-b bg-background/95" style="border-color: hsl(var(--border));">
+<header
+  class="sticky top-0 z-50 w-full border-b bg-background/95 supports-[backdrop-filter]:bg-background/55 backdrop-blur-xl backdrop-saturate-150"
+  style="border-color: color-mix(in srgb, hsl(var(--border)) 60%, transparent);"
+>
   <nav class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 h-14 flex items-center justify-between">
     <!-- Site name -->
-    <a href={getLocalizedPath("/blog", lang)} class="text-sm font-semibold text-foreground hover:opacity-70" style="transition: opacity 150ms ease-in-out;">
+    <a
+      href={getLocalizedPath("/blog", lang)}
+      class="nav-title text-sm font-semibold text-foreground hover:opacity-70"
+      data-nav-title
+      data-hidden={revealTitleOnScroll ? "" : undefined}
+    >
       {SITE.name}
     </a>
 
@@ -29,3 +43,46 @@ const t = useTranslations(lang);
     </div>
   </nav>
 </header>
+
+<style>
+  .nav-title {
+    transition:
+      opacity 200ms ease-in-out,
+      transform 200ms ease-in-out;
+  }
+
+  .nav-title[data-hidden] {
+    opacity: 0;
+    transform: translateY(-0.375rem);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-title {
+      transition: opacity 200ms ease-in-out;
+    }
+
+    .nav-title[data-hidden] {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  // El título del nav duplica el <h1> de la página cuando ésta declara un ancla
+  // (`data-nav-title-anchor`): se revela recién cuando ese h1 pasa bajo la barra.
+  const title = document.querySelector<HTMLElement>("[data-nav-title]");
+  const anchor = document.querySelector<HTMLElement>("[data-nav-title-anchor]");
+
+  if (title && title.hasAttribute("data-hidden")) {
+    if (anchor) {
+      const observer = new IntersectionObserver(
+        ([entry]) => title.toggleAttribute("data-hidden", entry.isIntersecting),
+        { rootMargin: "-56px 0px 0px 0px" },
+      );
+      observer.observe(anchor);
+    } else {
+      title.removeAttribute("data-hidden");
+    }
+  }
+</script>

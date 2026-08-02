@@ -13,6 +13,8 @@ interface Props {
   noindex?: boolean;
   class?: string;
   backdrop?: boolean;
+  /** Oculta el nombre del nav hasta que el `[data-nav-title-anchor]` de la página sale de vista. */
+  revealTitleOnScroll?: boolean;
 }
 
 const {
@@ -24,6 +26,7 @@ const {
   noindex,
   class: className,
   backdrop = false,
+  revealTitleOnScroll = false,
 } = Astro.props;
 ---
 
@@ -36,7 +39,7 @@ const {
   noindex={noindex}
 >
   {backdrop && <BackdropIsland />}
-  <Nav />
+  <Nav revealTitleOnScroll={revealTitleOnScroll} />
   <main class:list={["flex-1", backdrop && "relative z-10", className]}>
     <slot />
   </main>

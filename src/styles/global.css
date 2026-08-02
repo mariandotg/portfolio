@@ -147,6 +147,9 @@
 html {
   height: 100%;
   scroll-behavior: smooth;
+  /* `clip` y no `hidden`: `hidden` convertiría al elemento en scroll container y
+     confinaría el header sticky a su caja. */
+  overflow-x: clip;
 }
 
 body {
@@ -155,8 +158,11 @@ body {
   line-height: 1.65;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  height: 100%;
-  overflow-x: hidden;
+  min-height: 100%;
+}
+
+html, body {
+  overscroll-behavior-y: none;
 }
 
 /* Must stay inside @layer base: unlayered rules outrank @layer utilities, which

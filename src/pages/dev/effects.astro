@@ -105,7 +105,8 @@ const banners = Object.entries(BANNER_EFFECTS).map(([name, effect]) => {
           </h2>
           <p class="mt-1 text-xs text-muted-foreground">
             Runtime WebGL, rendered without the <code>Backdrop</code> island so the colours stay
-            controllable. Background is always transparent — an opaque one flattens the dither.
+            controllable. The field is duotone — the background is a translucent second ink, never
+            an opaque layer, which would flatten the dither.
           </p>
         </div>
         <BackdropLab client:only="react" />

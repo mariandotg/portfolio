@@ -1,9 +1,17 @@
 ---
 import Backdrop from "./Backdrop.tsx";
+import { backdropSeed } from "../../lib/effects/backdrop/seed";
+
+interface Props {
+  /** Pisa el seed derivado de la ruta. Mismo seed = mismo campo. */
+  seed?: string;
+}
+
+const seed = Astro.props.seed ?? backdropSeed(Astro.url.pathname);
 ---
 
 <div class="backdrop" aria-hidden="true">
-  <Backdrop client:idle />
+  <Backdrop seed={seed} client:idle />
 </div>
 
 <style>
@@ -28,8 +36,10 @@ import Backdrop from "./Backdrop.tsx";
     opacity: 0.3;
   }
 
+  /* El duotono en dark tiene mucho menos rango que en light (la base violeta arranca casi del
+     negro del fondo), así que necesita algo más de alpha para leerse igual de presente. */
   :global(.dark) .backdrop {
-    opacity: 0.15;
+    opacity: 0.22;
   }
 
   /* `.backdrop-fade` lo pinta el island React, así que queda fuera del scoping de Astro. */

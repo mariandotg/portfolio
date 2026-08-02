@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { backdropEffect as Effect } from "../../lib/effects/backdrop";
-import { readFrontColor, TRANSPARENT_BACK } from "../../lib/effects/backdrop/color";
+import { readBackdropColors as readColors } from "../../lib/effects/backdrop/color";
 import type { BackdropProps } from "../../lib/effects/backdrop/types";
-
-function readColors(): BackdropProps {
-  return {
-    colorBack: TRANSPARENT_BACK,
-    colorFront: readFrontColor(),
-  };
-}
 
 /** Si no puede correr en condiciones, no se muestra nada. No hay fallback CSS. */
 function canRender(): boolean {
@@ -20,8 +13,8 @@ function canRender(): boolean {
   return true;
 }
 
-export default function Backdrop() {
-  const [colors, setColors] = useState<BackdropProps | null>(null);
+export default function Backdrop({ seed }: { seed?: string }) {
+  const [colors, setColors] = useState<Omit<BackdropProps, "seed"> | null>(null);
   const [painted, setPainted] = useState(false);
 
   useEffect(() => {
@@ -55,7 +48,7 @@ export default function Backdrop() {
   if (!colors) return null;
   return (
     <div className="backdrop-fade" data-painted={painted || undefined}>
-      <Effect {...colors} />
+      <Effect {...colors} seed={seed} />
     </div>
   );
 }

@@ -13,6 +13,8 @@ interface Props {
   noindex?: boolean;
   class?: string;
   backdrop?: boolean;
+  /** Siembra el campo del backdrop. Por defecto lo deriva de la ruta. */
+  backdropSeed?: string;
   /** Oculta el nombre del nav hasta que el `[data-nav-title-anchor]` de la página sale de vista. */
   revealTitleOnScroll?: boolean;
 }
@@ -26,6 +28,7 @@ const {
   noindex,
   class: className,
   backdrop = false,
+  backdropSeed,
   revealTitleOnScroll = false,
 } = Astro.props;
 ---
@@ -38,7 +41,7 @@ const {
   pubDate={pubDate}
   noindex={noindex}
 >
-  {backdrop && <BackdropIsland />}
+  {backdrop && <BackdropIsland seed={backdropSeed} />}
   <Nav revealTitleOnScroll={revealTitleOnScroll} />
   <main class:list={["flex-1", backdrop && "relative z-10", className]}>
     <slot />

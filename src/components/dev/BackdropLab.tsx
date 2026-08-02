@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { BACKDROP_EFFECTS, ACTIVE_BACKDROP_EFFECT } from "@/lib/effects/backdrop";
-import { LIGHT_FRONT_FALLBACK, readFrontColor, TRANSPARENT_BACK } from "@/lib/effects/backdrop/color";
+import {
+  LIGHT_FRONT_FALLBACK,
+  LIGHT_PAPER_BACK,
+  readBackdropColors,
+  TRANSPARENT_BACK,
+} from "@/lib/effects/backdrop/color";
+import type { BackdropProps } from "@/lib/effects/backdrop/types";
 import {
   PAPER_DITHERING_DEFAULTS,
+  seedVariation,
   type PaperDitheringCalibration,
 } from "@/components/effects/PaperDithering";
+import { backdropSeed } from "@/lib/effects/backdrop/seed";
 
 /**
  * Banco de calibración del backdrop. Monta cada estrategia del registry con los
@@ -28,27 +36,35 @@ const TYPES: PaperDitheringCalibration["type"][] = ["random", "2x2", "4x4", "8x8
 const MASK =
   "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 18%, rgba(0,0,0,0.13) 50%, rgba(0,0,0,0.4) 82%, rgba(0,0,0,0.7) 100%)";
 
-/** El slider arranca acá para que el bloque copiable sea honesto. El island usa 0.3 en light y 0.15 en dark. */
+/** El slider arranca acá para que el bloque copiable sea honesto. El island usa 0.3 en light y 0.22 en dark. */
 const DEFAULT_OPACITY = 0.3;
+
+/** Las 4 rutas que hoy llevan backdrop, ya normalizadas como las siembra `BackdropIsland`. */
+const ROUTE_SEEDS = [backdropSeed("/blog"), backdropSeed("/cv")];
 
 const SAMPLE =
   "The backdrop sits behind the page, not in front of it. If this paragraph is " +
   "hard to read, the calibration is wrong — lower the opacity, raise the cell " +
   "size, or leave the centre mask on.";
 
-function useThemeColor(): string {
-  const [color, setColor] = useState(LIGHT_FRONT_FALLBACK);
+const SSR_COLORS: BackdropProps = {
+  colorBack: LIGHT_PAPER_BACK,
+  colorFront: LIGHT_FRONT_FALLBACK,
+};
+
+function useThemeColors(): BackdropProps {
+  const [colors, setColors] = useState<BackdropProps>(SSR_COLORS);
 
   useEffect(() => {
-    setColor(readFrontColor());
+    setColors(readBackdropColors());
     const observer = new MutationObserver((records) => {
-      if (records.some((r) => r.attributeName === "class")) setColor(readFrontColor());
+      if (records.some((r) => r.attributeName === "class")) setColors(readBackdropColors());
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
-  return color;
+  return colors;
 }
 
 interface SliderProps {
@@ -107,11 +123,13 @@ function Picker<T extends string>({ label, value, options, onChange }: PickerPro
 }
 
 export default function BackdropLab() {
-  const colorFront = useThemeColor();
+  const colors = useThemeColors();
 
   const [cal, setCal] = useState<PaperDitheringCalibration>(PAPER_DITHERING_DEFAULTS);
   const [opacity, setOpacity] = useState(DEFAULT_OPACITY);
   const [masked, setMasked] = useState(true);
+  const [duotone, setDuotone] = useState(true);
+  const [seed, setSeed] = useState(ROUTE_SEEDS[0]);
   const [copied, setCopied] = useState(false);
 
   const set = <K extends keyof PaperDitheringCalibration>(
@@ -123,11 +141,20 @@ export default function BackdropLab() {
     setCal(PAPER_DITHERING_DEFAULTS);
     setOpacity(DEFAULT_OPACITY);
     setMasked(true);
+    setDuotone(true);
+    setSeed(ROUTE_SEEDS[0]);
   };
 
-  // colorBack SIEMPRE transparente: el canvas es un overlay. Un color opaco pinta
-  // un rectángulo sólido y aplasta el contraste del dither hasta dejarlo plano.
-  const effectProps = { colorBack: TRANSPARENT_BACK, colorFront, ...cal };
+  // El toggle compara el duotono vigente contra la tinta sola. `colorBack` nunca puede ser
+  // opaco: el canvas es un overlay y un rectángulo sólido aplasta el contraste del dither.
+  const effectProps = {
+    ...colors,
+    colorBack: duotone ? colors.colorBack : TRANSPARENT_BACK,
+    seed,
+    ...cal,
+  };
+
+  const varied = seed ? seedVariation(seed, cal.scale) : null;
 
   const snippet = [
     "// src/components/effects/PaperDithering.tsx",
@@ -205,6 +232,68 @@ export default function BackdropLab() {
           />
           Centre mask
         </label>
+
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            className="accent-primary"
+            checked={duotone}
+            onChange={(e) => setDuotone(e.target.checked)}
+          />
+          Duotone back
+        </label>
+
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          back <code className="text-foreground">{effectProps.colorBack}</code>
+          <br />
+          front <code className="text-foreground">{effectProps.colorFront}</code>
+        </p>
+
+        <div className="grid gap-2 border-t border-border pt-4">
+          <span className="text-[11px] block text-muted-foreground">
+            seed <span className="text-muted-foreground/70">— mismo seed, mismo campo</span>
+          </span>
+          <input
+            type="text"
+            value={seed}
+            onChange={(e) => setSeed(e.target.value)}
+            placeholder="(sin seed → campo por defecto)"
+            className="w-full rounded-md border border-border bg-transparent px-2 py-1.5 font-mono text-xs text-foreground"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {ROUTE_SEEDS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSeed(s)}
+                className="rounded border border-border px-2 py-1 font-mono text-[10px] text-foreground hover:bg-muted"
+              >
+                {s}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSeed(Math.random().toString(36).slice(2, 9))}
+              className="rounded border border-border px-2 py-1 text-[10px] text-foreground hover:bg-muted"
+            >
+              random
+            </button>
+            <button
+              type="button"
+              onClick={() => setSeed("")}
+              className="rounded border border-border px-2 py-1 text-[10px] text-foreground hover:bg-muted"
+            >
+              sin seed
+            </button>
+          </div>
+          {varied && (
+            <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+              frame {varied.frame} · offset {varied.offsetX.toFixed(2)},{" "}
+              {varied.offsetY.toFixed(2)} · rot {varied.rotation}° · scale{" "}
+              {varied.scale.toFixed(3)}
+            </p>
+          )}
+        </div>
 
         <button
           type="button"

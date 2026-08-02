@@ -4,6 +4,7 @@ import { BANNER_EFFECTS, ACTIVE_BANNER_EFFECT, VIEW_COLS, VIEW_ROWS } from "@/li
 import { ACTIVE_BACKDROP_EFFECT } from "@/lib/effects/backdrop";
 import { svgWeight } from "@/lib/dev/svg-weight";
 import BackdropLab from "@/components/dev/BackdropLab.tsx";
+import ImageDitherLab from "@/components/dev/ImageDitherLab.tsx";
 
 // Dev-only effects bench: compares every registered strategy of both registries
 // and calibrates the backdrop live. Never previews a swap — the real swap is
@@ -108,6 +109,20 @@ const banners = Object.entries(BANNER_EFFECTS).map(([name, effect]) => {
           </p>
         </div>
         <BackdropLab client:only="react" />
+      </section>
+
+      <section class="grid gap-4">
+        <div>
+          <h2 class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Image dithering
+          </h2>
+          <p class="mt-1 text-xs text-muted-foreground">
+            Runtime WebGL over a loaded image, seeded with <code>/me.webp</code>. Preview only:
+            this is <em>not</em> a registered banner strategy — <code>BannerEffect</code> is
+            <code>(seed, opts) =&gt; string</code>, built-time SVG. Images stay in the browser.
+          </p>
+        </div>
+        <ImageDitherLab client:only="react" />
       </section>
     </main>
 

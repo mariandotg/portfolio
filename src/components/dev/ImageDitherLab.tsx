@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageDithering, imageDitheringPresets } from "@paper-design/shaders-react";
-import { readShaderToken } from "@/lib/effects/backdrop/color";
+import { readShaderToken, TRANSPARENT_BACK, readBackdropColors } from "@/lib/effects/backdrop/color";
 import { VIEW_COLS, VIEW_ROWS } from "@/lib/effects/banner";
+import PaperDithering from "@/components/effects/PaperDithering";
+import type { BackdropProps } from "@/lib/effects/backdrop/types";
 
 /**
  * Banco de previsualización del dither sobre imágenes. Es tooling para decidir si los
@@ -31,8 +33,19 @@ interface Palette {
 const TYPES: DitherType[] = ["random", "2x2", "4x4", "8x8"];
 const FITS: Fit[] = ["none", "contain", "cover"];
 
-/** La única foto del repo: siembra la página para que sirva sin interacción. */
-const SEED_IMAGE = "/me.webp";
+/**
+ * Fuentes sembradas. Las marcas viven en `public/dev/` — gitignoreado: son logos de terceros
+ * traídos como material de prueba para decidir el modelo de banner, no arte del sitio.
+ */
+const SOURCES = [
+  { label: "claude · símbolo", src: "/dev/marks/claude-symbol.png" },
+  { label: "claude · logo", src: "/dev/marks/claude-logo.png" },
+  { label: "cursor · logo", src: "/dev/marks/cursor-logo.png" },
+  { label: "foto (me.webp)", src: "/me.webp" },
+] as const;
+
+/** La primera fuente siembra la página para que sirva sin interacción. */
+const SEED_IMAGE = SOURCES[0].src;
 
 const DEFAULTS: DitherConfig = {
   type: "4x4",
@@ -40,14 +53,54 @@ const DEFAULTS: DitherConfig = {
   colorSteps: 2,
   originalColors: false,
   inverted: false,
-  fit: "cover",
+  // `contain` porque la fuente sembrada es una marca, no una foto: recortarla la mutila.
+  fit: "contain",
   scale: 1,
 };
+
+/**
+ * Damero para leer el alpha del canvas en mask mode. Grises fijos a propósito: con tokens el
+ * damero se vuelve casi blanco en light y la marca (blanca) desaparece contra él.
+ */
+const CHECKER =
+  "repeating-conic-gradient(#4a4a4a 0% 25%, #6e6e6e 0% 50%) 50% / 12px 12px";
 
 const RATIOS = [
   { label: `banner ${VIEW_COLS}/${VIEW_ROWS}`, css: `${VIEW_COLS} / ${VIEW_ROWS}` },
   { label: "card 16/9", css: "16 / 9" },
+  { label: "mark 1/1", css: "1 / 1" },
 ] as const;
+
+/**
+ * Fondo transparente — el modo con el que se hornean los banners.
+ *
+ * El shader hace `opacity = colorFront.a * quantLum` y después `opacity += colorBack.a * (1 -
+ * opacity)`: con el back sin alpha, **el canal alpha de salida es la luminancia cuantizada**.
+ *
+ * Eso resuelve el problema de tema sin dejar de ser un `<img>`: la tinta viaja horneada en el
+ * archivo, pero todo lo que no es tinta es transparente, así que el fondo lo pone la página. La
+ * misma imagen funciona en light y en dark. Con back opaco habría que hornear dos archivos por
+ * variante y mantenerlos sincronizados con cada cambio de paleta.
+ */
+function transparentBackPalette(tokens: Palette): Palette {
+  return { front: tokens.front, back: TRANSPARENT_BACK, highlight: tokens.front };
+}
+
+const ANCHORS = ["left", "center"] as const;
+type Anchor = (typeof ANCHORS)[number];
+
+const FORMATS = ["webp", "png"] as const;
+type Format = (typeof FORMATS)[number];
+
+/**
+ * El ratio elegido **es** la variante: no hay un control aparte que se pueda desincronizar del
+ * encuadre. Un ratio fuera de estos dos (1/1, por ejemplo) no es un banner y no lleva nombre de
+ * serie — el archivo sale con el nombre descriptivo de siempre.
+ */
+const RATIO_VARIANT: Record<string, "card" | "hero"> = {
+  "16 / 9": "card",
+  [`${VIEW_COLS} / ${VIEW_ROWS}`]: "hero",
+};
 
 const FALLBACK_FRONT = "hsl(247, 76%, 66%)";
 const FALLBACK_BACK = "hsl(0, 0%, 4%)";
@@ -78,6 +131,22 @@ function readTokenPalette(): Palette {
     back: readShaderToken("--background", FALLBACK_BACK),
     highlight: front,
   };
+}
+
+/** El campo de la composición es el mismo `PaperDithering` del backdrop, con sus colores de tema. */
+function useBackdropColors(): BackdropProps | null {
+  const [colors, setColors] = useState<BackdropProps | null>(null);
+
+  useEffect(() => {
+    setColors(readBackdropColors());
+    const observer = new MutationObserver((records) => {
+      if (records.some((r) => r.attributeName === "class")) setColors(readBackdropColors());
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return colors;
 }
 
 function useTokenPalette(): Palette {
@@ -218,10 +287,11 @@ function ColorField({ label, value, onChange }: ColorFieldProps) {
 
 export default function ImageDitherLab() {
   const tokenPalette = useTokenPalette();
+  const backdropColors = useBackdropColors();
 
   const [config, setConfig] = useState<DitherConfig>(DEFAULTS);
   const [override, setOverride] = useState<Palette | null>(null);
-  const [ratio, setRatio] = useState<string>(RATIOS[0].css);
+  const [ratio, setRatio] = useState<string>("1 / 1");
   const [imageSrc, setImageSrc] = useState(SEED_IMAGE);
   const [imageName, setImageName] = useState(SEED_IMAGE);
   const [dragging, setDragging] = useState(false);
@@ -230,6 +300,18 @@ export default function ImageDitherLab() {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const [canvasSize, setCanvasSize] = useState<{ w: number; h: number } | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+
+  const [seriesId, setSeriesId] = useState("");
+  const [format, setFormat] = useState<Format>("webp");
+  const [maskMode, setMaskMode] = useState(true);
+  const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [fieldSeed, setFieldSeed] = useState("agent-vs-cursor");
+  const [markHeight, setMarkHeight] = useState(55);
+  const [anchor, setAnchor] = useState<Anchor>("center");
+  const [fieldOpacity, setFieldOpacity] = useState(0.35);
+  // La calibración del backdrop está pensada para el viewport entero; en una card se ve un recorte
+  // diminuto del campo. Este control existe para encontrar la escala propia del banner.
+  const [fieldScale, setFieldScale] = useState(0.9);
 
   const objectUrl = useRef<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -274,7 +356,11 @@ export default function ImageDitherLab() {
     };
   }, [canvas, pixelRatio, ratio]);
 
-  const palette = override ?? tokenPalette;
+  const palette = maskMode ? transparentBackPalette(tokenPalette) : (override ?? tokenPalette);
+  const bannerVariant = RATIO_VARIANT[ratio];
+  const exportName = seriesId.trim() && bannerVariant
+    ? `${fileStem(seriesId)}-${bannerVariant}.${format}`
+    : null;
 
   const set = <K extends keyof DitherConfig>(key: K, value: DitherConfig[K]) =>
     setConfig((c) => ({ ...c, [key]: value }));
@@ -315,38 +401,66 @@ export default function ImageDitherLab() {
    * Baja el canvas tal cual se ve: `preserveDrawingBuffer` ya está activo, así que el buffer
    * sigue leíble después de compositar. Una imagen de otro origen sin CORS tiñe el canvas y
    * `toBlob` tira SecurityError — se reporta en vez de fallar en silencio.
+   *
+   * El nombre sale del contrato de `seriesBannerSrc`: `<id>-card` / `<id>-hero`. Con un id puesto,
+   * lo que se baja se arrastra a `public/series/` y ya queda resuelto — no hay que renombrar nada.
    */
-  const exportPng = () => {
+  const exportImage = () => {
     if (!canvas) return;
     setExportError(null);
-    const name = [
-      fileStem(imageName),
-      "dither",
-      config.type,
-      `${canvas.width}x${canvas.height}`,
-    ].join("-");
+    const name = exportName
+      ? exportName.replace(/\.[^.]+$/, "")
+      : [fileStem(imageName), "dither", config.type, `${canvas.width}x${canvas.height}`].join("-");
 
     try {
       canvas.toBlob((blob) => {
         if (!blob) {
-          setExportError("el canvas no devolvió PNG");
+          setExportError(`el canvas no devolvió ${format}`);
           return;
         }
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `${name}.png`;
+        link.download = `${name}.${format}`;
         // El ancla va al DOM y la URL se revoca en el próximo turno: revocar en el mismo
         // tick cancela la descarga en Firefox.
         document.body.append(link);
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }, "image/png");
+        // `image/webp` con quality 1 es **lossless** en Chromium; cualquier valor menor mete
+        // ringing justo en los bordes duros del dither, que es todo lo que el dither tiene.
+      }, `image/${format}`, 1);
     } catch (error) {
       setExportError(error instanceof Error ? error.message : "export falló");
     }
   };
+
+  /**
+   * Congela el canvas en un PNG con alpha para poder usarlo como `mask-image`. El elemento
+   * `<canvas>` no sirve directo: `mask-image` sólo acepta una URL, no un nodo del DOM.
+   */
+  const takeSnapshot = () => {
+    if (!canvas) return;
+    setExportError(null);
+    try {
+      setSnapshot(canvas.toDataURL("image/png"));
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "snapshot falló");
+    }
+  };
+
+  const markStyle = {
+    WebkitMaskImage: snapshot ? `url(${snapshot})` : undefined,
+    maskImage: snapshot ? `url(${snapshot})` : undefined,
+    maskSize: "contain",
+    maskRepeat: "no-repeat",
+    maskPosition: anchor === "left" ? "left center" : "center",
+    WebkitMaskSize: "contain",
+    WebkitMaskRepeat: "no-repeat",
+    WebkitMaskPosition: anchor === "left" ? "left center" : "center",
+    background: "hsl(var(--primary))",
+  } as const;
 
   const snippet = [
     "<ImageDithering",
@@ -384,6 +498,26 @@ export default function ImageDitherLab() {
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Source
         </h3>
+
+        <div className="flex flex-wrap gap-1.5">
+          {SOURCES.map((s) => (
+            <button
+              key={s.src}
+              type="button"
+              onClick={() => {
+                setImageSrc(s.src);
+                setImageName(s.src);
+              }}
+              className={`rounded-md border px-2 py-1 text-[11px] ${
+                imageSrc === s.src
+                  ? "border-primary text-primary"
+                  : "border-border text-foreground hover:bg-muted"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
 
         <input
           ref={fileInput}
@@ -449,6 +583,32 @@ export default function ImageDitherLab() {
           onChange={setPixelRatio}
         />
 
+        <h3 className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Banner de serie
+        </h3>
+        <label className="block">
+          <span className="mb-1 block text-[11px] text-muted-foreground">series id</span>
+          <input
+            type="text"
+            value={seriesId}
+            onChange={(e) => setSeriesId(e.target.value)}
+            placeholder="agent-vs-cursor"
+            className="w-full rounded-md border border-border bg-transparent px-2 py-1.5 text-xs text-foreground"
+          />
+        </label>
+        <Picker label="format" value={format} options={FORMATS} onChange={setFormat} />
+        <p className="text-[11px] text-muted-foreground">
+          {exportName ? (
+            <>
+              Se baja como <code>{exportName}</code> → soltalo en <code>public/series/</code>.
+            </>
+          ) : !seriesId.trim() ? (
+            "Poné el id de la serie para que el archivo salga con el nombre que el sitio busca."
+          ) : (
+            "El aspect ratio elegido no es un banner: usá 16/9 (card) u 80/15 (hero)."
+          )}
+        </p>
+
         <Toggle
           label="originalColors"
           checked={config.originalColors}
@@ -459,29 +619,43 @@ export default function ImageDitherLab() {
         <h3 className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Palette
         </h3>
-        <p className="text-[11px] text-muted-foreground">
-          {override ? "manual" : "from --primary / --background"}
-          {config.originalColors && " · ignored while originalColors is on"}
-        </p>
-        <ColorField
-          label="colorFront"
-          value={palette.front}
-          onChange={(v) => setColor("front", v)}
-        />
-        <ColorField label="colorBack" value={palette.back} onChange={(v) => setColor("back", v)} />
-        <ColorField
-          label="colorHighlight"
-          value={palette.highlight}
-          onChange={(v) => setColor("highlight", v)}
-        />
-        {override && (
-          <button
-            type="button"
-            onClick={() => setOverride(null)}
-            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted"
-          >
-            Back to theme tokens
-          </button>
+        <Toggle label="fondo transparente (banner)" checked={maskMode} onChange={setMaskMode} />
+        {maskMode ? (
+          <p className="text-[11px] text-muted-foreground">
+            Tinta <code>--primary</code> horneada, fondo transparente: el alpha es la luminancia
+            cuantizada. Un solo archivo sirve en light y en dark porque el fondo lo pone la página.
+          </p>
+        ) : (
+          <>
+            <p className="text-[11px] text-muted-foreground">
+              {override ? "manual" : "from --primary / --background"}
+              {config.originalColors && " · ignored while originalColors is on"}
+            </p>
+            <ColorField
+              label="colorFront"
+              value={palette.front}
+              onChange={(v) => setColor("front", v)}
+            />
+            <ColorField
+              label="colorBack"
+              value={palette.back}
+              onChange={(v) => setColor("back", v)}
+            />
+            <ColorField
+              label="colorHighlight"
+              value={palette.highlight}
+              onChange={(v) => setColor("highlight", v)}
+            />
+            {override && (
+              <button
+                type="button"
+                onClick={() => setOverride(null)}
+                className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted"
+              >
+                Back to theme tokens
+              </button>
+            )}
+          </>
         )}
 
         <button
@@ -555,17 +729,17 @@ export default function ImageDitherLab() {
                 </span>
                 <button
                   type="button"
-                  onClick={exportPng}
+                  onClick={exportImage}
                   disabled={!canvas}
                   className="rounded-md border border-border px-2 py-0.5 text-[11px] text-foreground hover:bg-muted disabled:opacity-50"
                 >
-                  Export PNG
+                  Export {format.toUpperCase()}
                 </button>
               </figcaption>
               <div
                 ref={preview}
-                className="overflow-hidden rounded-lg border border-border bg-background"
-                style={{ aspectRatio: ratio }}
+                className="overflow-hidden rounded-lg border border-border"
+                style={{ aspectRatio: ratio, background: maskMode ? CHECKER : "hsl(var(--background))" }}
                 data-dither-preview
               >
                 <ImageDithering
@@ -592,6 +766,113 @@ export default function ImageDitherLab() {
               )}
             </figure>
           </div>
+        </div>
+
+        <div className="grid gap-3 rounded-xl border border-border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Composición · campo + marca
+              </h3>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                La marca se <em>posiciona</em>, no se recorta: card y hero comparten seed y máscara.
+                Usá el toggle de tema del header para verificar que la tinta sigue a{" "}
+                <code>--primary</code>.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={takeSnapshot}
+              disabled={!canvas}
+              className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted disabled:opacity-50"
+            >
+              {snapshot ? "Re-snapshot" : "Snapshot → componer"}
+            </button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_1fr_1fr]">
+            <label className="grid gap-1">
+              <span className="text-[11px] text-muted-foreground">field seed</span>
+              <input
+                type="text"
+                value={fieldSeed}
+                onChange={(e) => setFieldSeed(e.target.value)}
+                className="rounded-md border border-border bg-transparent px-2 py-1.5 text-xs text-foreground"
+              />
+            </label>
+            <Slider
+              label="mark height %"
+              value={markHeight}
+              min={20}
+              max={100}
+              step={5}
+              onChange={setMarkHeight}
+            />
+            <Slider
+              label="field opacity"
+              value={fieldOpacity}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={setFieldOpacity}
+            />
+            <Slider
+              label="field scale"
+              value={fieldScale}
+              min={0.1}
+              max={3}
+              step={0.1}
+              onChange={setFieldScale}
+            />
+            <Picker label="anchor" value={anchor} options={ANCHORS} onChange={setAnchor} />
+          </div>
+
+          {snapshot ? (
+            <div className="grid gap-4">
+              {[
+                { label: `card ${16}/${9}`, css: "16 / 9", width: "min(100%, 380px)" },
+                {
+                  label: `hero ${VIEW_COLS}/${VIEW_ROWS}`,
+                  css: `${VIEW_COLS} / ${VIEW_ROWS}`,
+                  width: "100%",
+                },
+              ].map((tile) => (
+                <figure key={tile.label} className="grid justify-items-start gap-1.5">
+                  <figcaption className="text-[11px] text-muted-foreground">{tile.label}</figcaption>
+                  <div
+                    className="relative overflow-hidden rounded-lg border border-border bg-card"
+                    style={{ aspectRatio: tile.css, width: tile.width }}
+                  >
+                    <div className="absolute inset-0" style={{ opacity: fieldOpacity }}>
+                      {backdropColors && (
+                        <PaperDithering
+                          key={`${fieldSeed}-${tile.label}`}
+                          {...backdropColors}
+                          seed={fieldSeed}
+                          scale={fieldScale}
+                        />
+                      )}
+                    </div>
+                    <div
+                      className="absolute inset-y-0"
+                      style={{
+                        ...markStyle,
+                        top: `${(100 - markHeight) / 2}%`,
+                        bottom: `${(100 - markHeight) / 2}%`,
+                        left: anchor === "left" ? "6%" : 0,
+                        right: 0,
+                      }}
+                    />
+                  </div>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[11px] text-muted-foreground">
+              Sacá un snapshot del canvas para componer. <code>mask-image</code> necesita una URL,
+              no un <code>&lt;canvas&gt;</code>.
+            </p>
+          )}
         </div>
 
         <div className="grid gap-2">

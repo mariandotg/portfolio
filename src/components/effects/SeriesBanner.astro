@@ -1,0 +1,59 @@
+---
+import { VIEW_COLS, VIEW_ROWS } from "@/lib/effects/banner";
+import { seriesBannerSrc, type BannerVariant } from "@/lib/effects/banner/assets";
+
+/**
+ * El banner de una serie es **una imagen horneada** con el dither adentro: se exporta desde
+ * `/dev/effects` y se guarda en `public/series/`. Acá no hay shader ni island — es un `<img>`.
+ *
+ * Los dos formatos son dos archivos, no un recorte en vivo: `-card` (16/9) y `-hero` (80/15).
+ * Si falta el que corresponde, `seriesBannerSrc` cae al otro y `object-fit: cover` lo salva.
+ */
+interface Props {
+  /** Base sin sufijo ni extensión, p.ej. `/series/agent-vs-cursor`. */
+  base?: string;
+  variant: BannerVariant;
+  alt?: string;
+  class?: string;
+}
+
+const { base, variant, alt = "", class: className } = Astro.props;
+const ratio = variant === "card" ? "16 / 9" : `${VIEW_COLS} / ${VIEW_ROWS}`;
+const src = base ? seriesBannerSrc(base, variant) : undefined;
+---
+
+<div
+  class:list={["sb", className]}
+  style={`--sb-ratio: ${ratio}`}
+  aria-hidden={alt ? undefined : "true"}
+>
+  {
+    src && (
+      <img
+        src={src}
+        alt={alt}
+        loading={variant === "card" ? "lazy" : "eager"}
+        decoding="async"
+      />
+    )
+  }
+</div>
+
+<style>
+  .sb {
+    position: relative;
+    aspect-ratio: var(--sb-ratio);
+    overflow: hidden;
+    /* Sin imagen el hueco no puede leerse como un error de carga. */
+    background: hsl(var(--muted));
+  }
+  .sb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* El dither es una grilla de píxeles: si el browser la escala, tiene que hacerlo sin
+       interpolar, o el patrón se convierte en una papilla gris. */
+    image-rendering: pixelated;
+  }
+</style>

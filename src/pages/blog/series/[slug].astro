@@ -4,7 +4,8 @@ import PageLayout from "../../../layouts/PageLayout.astro";
 import SeriesRoadmap from "../../../components/SeriesRoadmap.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../../i18n/utils";
 import { getSeriesPosts, getSeriesRoadmap, getStandardSeries, metaLabel } from "../../../lib/series";
-import { bannerSvg } from "@/lib/effects/banner";
+import SeriesBanner from "@/components/effects/SeriesBanner.astro";
+import { seriesBannerBase } from "@/lib/effects/banner/assets";
 
 export async function getStaticPaths() {
   const entries = await getStandardSeries();
@@ -21,7 +22,6 @@ const meta = metaLabel(posts.length, entry.data.status, t);
 const comingSoon = posts.length === 0;
 const roadmap = await getSeriesRoadmap(entry.id, lang, t);
 
-const banner = bannerSvg(entry.data.bannerSeed || entry.id);
 const blogHref = getLocalizedPath("/blog", lang);
 ---
 
@@ -32,7 +32,7 @@ const blogHref = getLocalizedPath("/blog", lang);
       <span>{t.blog.backToBlog}</span>
     </a>
 
-    <div class="banner w-full overflow-hidden mb-8 mt-5" aria-hidden="true" set:html={banner} />
+    <SeriesBanner base={seriesBannerBase(entry.id, entry.data.bannerImage)} variant="hero" class="series-hero w-full mb-8 mt-5" />
 
     <header class="mb-10">
       <span class:list={["series-meta", { "series-meta-soon": comingSoon }]}>{meta}</span>
@@ -53,14 +53,11 @@ const blogHref = getLocalizedPath("/blog", lang);
 </PageLayout>
 
 <style>
-  .banner {
-    aspect-ratio: 80 / 15;
+  /* `.series-hero` viaja como prop `class` al root de `SeriesBanner`, así que vive en el scope
+     del hijo: sin `:global` la regla no lo alcanza. Ratio, overflow y fondo los pone el banner. */
+  :global(.series-hero) {
     border-radius: 8px;
     border: 1px solid hsl(var(--border));
-    background: hsl(var(--background));
-  }
-  .banner :global(svg) {
-    display: block;
   }
   .series-meta {
     display: inline-block;

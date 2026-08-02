@@ -2,6 +2,7 @@ import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import type { Lang } from "../i18n/utils";
 import { localizedSeries, getLocalizedPath } from "../i18n/utils";
+import { seriesBannerBase } from "./effects/banner/assets";
 import type { Translations } from "../i18n/en";
 
 export interface SeriesCardData {
@@ -13,7 +14,7 @@ export interface SeriesCardData {
   count: number;
   status: "ongoing" | "complete";
   comingSoon: boolean;
-  bannerSeed?: string;
+  bannerBase: string;
   meta: string;
 }
 
@@ -83,7 +84,7 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
         count,
         status: s.data.status,
         comingSoon: count === 0,
-        bannerSeed: s.data.bannerSeed,
+        bannerBase: seriesBannerBase(s.id, s.data.bannerImage),
         meta: metaLabel(count, s.data.status, t),
       };
     });

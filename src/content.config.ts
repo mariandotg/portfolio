@@ -28,7 +28,11 @@ const series = defineCollection({
     collection: z.enum(['engineering-notes', 'building-in-public']),
     status: z.enum(['ongoing', 'complete']).default('ongoing'),
     order: z.number().default(99),
-    bannerSeed: z.string().optional(),
+    /**
+     * Pisa la base del banner. Sin esto se usa `/series/<id>`, y los archivos son
+     * `<base>-card.webp` y `<base>-hero.webp`. Va sin sufijo ni extensión.
+     */
+    bannerImage: z.string().optional(),
     rootLevel: z.boolean().default(false),
   }),
 });

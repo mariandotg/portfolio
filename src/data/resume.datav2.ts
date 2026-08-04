@@ -13,7 +13,7 @@ const EN_DATA = {
   about:
     'Backend Engineer & Tech Lead specializing in Java and distributed systems, with 4+ years delivering fintech solutions across enterprise clients.',
   summary:
-    'Backend engineer turned Tech Lead with 4+ years of remote experience building and scaling fintech systems. I have designed microservices for platforms serving 40,000+ companies, led cross-functional teams through major technical migrations, and driven architectural decisions across multiple enterprise client accounts. Currently leading development teams at Stefanini while also conducting technical assessments for engineering hiring. Based in Buenos Aires, Argentina with upper-intermediate English (B2).',
+    'Backend engineer turned Tech Lead with 4+ years of remote experience building and scaling fintech systems. I have designed microservices for platforms serving 40,000+ companies, led cross-functional teams through major technical migrations, and driven architectural decisions across multiple enterprise client accounts. Currently leading development teams at Stefanini while contributing hands-on as a full stack developer on Ford\'s data platform, and conducting technical assessments for engineering hiring. Based in Buenos Aires, Argentina with upper-intermediate English (B2).',
   avatarUrl: '/me.webp',
   personalWebsiteUrl: 'https://marianoguillaume.com',
   resumeUrl: '/mariano-guillaume-cv-en.pdf',
@@ -95,6 +95,7 @@ const EN_DATA = {
         {
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
+          role: 'Tech Lead',
           bullets: [
             'Leading a cross-functional team of 2 developers and 1 QA engineer, authoring functional specs and technical documents to reduce ambiguity and maintain delivery pace.',
             'Leading the design of a proprietary LLM + template-based OCR system for invoice text extraction, targeting an 80% reduction in cloud infrastructure costs.',
@@ -106,6 +107,7 @@ const EN_DATA = {
         {
           name: 'Banco Macro',
           logo: '/logos/banco-macro.png',
+          role: 'Tech Lead',
           bullets: [
             'Serve as development module lead for Sainapse at Banco Macro, acting as primary technical contact for client engineers adopting an AI-powered platform that uses LLMs for automated code analysis.',
             'Coordinate across a PM, QA lead, and 2 DevOps engineers to scope and ship product upgrades (including bug fixes and new features) aligned with Banco Macro\'s enterprise requirements.',
@@ -117,9 +119,16 @@ const EN_DATA = {
         {
           name: 'Ford',
           logo: '/logos/ford.ico',
+          role: 'Full Stack Developer',
           bullets: [
+            'Migrated NEW VAT\'s entire BigQuery query layer onto a refined dataset with zero regressions, expanding unit test coverage across the affected pipeline stages to validate the cutover.',
+            'Built and performance-tuned ingestion pipeline stages that pull data from BigQuery into a local PostgreSQL store.',
+            'Delivered REST endpoints for data search and retrieval, supporting dynamic filtering and pagination.',
+            'Shipped chart-based reporting views and UX quality-of-life improvements across the Angular frontend.',
+            'Provide technical analysis and production support for RPL, producing reports on platform behavior.',
             'Conduct technical interviews and assess mid-to-senior engineering candidates for Ford-related engineering positions.',
           ],
+          techStack: ['Angular 17', 'Java 17', 'BigQuery', 'PostgreSQL', 'GCP', 'Cloud Run', 'Docker'],
         },
       ],
     },
@@ -145,6 +154,7 @@ const EN_DATA = {
     'Kafka',
     'SQL',
     'PostgreSQL',
+    'BigQuery',
     'MongoDB',
     'Python',
     'Docker',
@@ -166,7 +176,7 @@ const ES_DATA = {
   about:
     'Ingeniero Backend y Tech Lead especializado en Java y sistemas distribuidos, con más de 4 años entregando soluciones fintech en clientes enterprise.',
   summary:
-    'Ingeniero backend convertido en Tech Lead con más de 4 años de experiencia remota construyendo y escalando sistemas fintech. Diseñé microservicios para plataformas con más de 40.000 empresas, lideré equipos en migraciones técnicas complejas y tomé decisiones de arquitectura en múltiples cuentas de clientes enterprise. Actualmente lidero equipos de desarrollo en Stefanini y realizo evaluaciones técnicas para procesos de selección de ingeniería. Vivo en Buenos Aires, Argentina y tengo inglés intermedio-alto (B2).',
+    'Ingeniero backend convertido en Tech Lead con más de 4 años de experiencia remota construyendo y escalando sistemas fintech. Diseñé microservicios para plataformas con más de 40.000 empresas, lideré equipos en migraciones técnicas complejas y tomé decisiones de arquitectura en múltiples cuentas de clientes enterprise. Actualmente lidero equipos de desarrollo en Stefanini mientras sigo desarrollando hands-on como full stack en la plataforma de datos de Ford, y realizo evaluaciones técnicas para procesos de selección de ingeniería. Vivo en Buenos Aires, Argentina y tengo inglés intermedio-alto (B2).',
   avatarUrl: '/me.webp',
   personalWebsiteUrl: 'https://marianoguillaume.com/es',
   resumeUrl: '/mariano-guillaume-cv-es.pdf',
@@ -248,6 +258,7 @@ const ES_DATA = {
         {
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
+          role: 'Tech Lead',
           bullets: [
             'Lidero un equipo cross-funcional de 2 desarrolladores y 1 QA, redactando especificaciones funcionales y documentos técnicos para reducir la ambigüedad y sostener la cadencia de entrega.',
             'Lidero el diseño de un sistema OCR propio basado en LLMs y templates para extracción de texto de facturas, con una reducción proyectada de hasta el 80% en costos de infraestructura en la nube.',
@@ -259,6 +270,7 @@ const ES_DATA = {
         {
           name: 'Banco Macro',
           logo: '/logos/banco-macro.png',
+          role: 'Tech Lead',
           bullets: [
             'Lidero el módulo de desarrollo de Sainapse en Banco Macro, siendo el referente técnico principal para los ingenieros del cliente que adoptan una plataforma potenciada por IA para análisis automático de código.',
             'Coordino un equipo compuesto por un PM, un líder de QA y 2 DevOps para definir y entregar mejoras al producto (incluyendo correcciones de bugs y nuevas funcionalidades) alineadas con los requerimientos enterprise de Banco Macro.',
@@ -270,9 +282,16 @@ const ES_DATA = {
         {
           name: 'Ford',
           logo: '/logos/ford.ico',
+          role: 'Desarrollador Full Stack',
           bullets: [
+            'Migré la totalidad de las queries de BigQuery de NEW VAT a un dataset refined sin regresiones, ampliando la cobertura de tests unitarios de los stages afectados para validar el cambio.',
+            'Construí y optimicé stages del pipeline de ingesta que obtienen datos de BigQuery y los persisten en una base PostgreSQL local.',
+            'Desarrollé endpoints REST para búsqueda y consulta de datos, con filtros dinámicos y paginación.',
+            'Entregué vistas de reporting basadas en gráficos y mejoras de UX en el frontend Angular.',
+            'Doy análisis técnico y soporte productivo en RPL, generando reportes sobre el comportamiento de la plataforma.',
             'Realizo entrevistas técnicas y evalúo candidatos de nivel semi-senior y senior para posiciones de ingeniería vinculadas al cliente Ford.',
           ],
+          techStack: ['Angular 17', 'Java 17', 'BigQuery', 'PostgreSQL', 'GCP', 'Cloud Run', 'Docker'],
         },
       ],
     },
@@ -298,6 +317,7 @@ const ES_DATA = {
     'Kafka',
     'SQL',
     'PostgreSQL',
+    'BigQuery',
     'MongoDB',
     'Python',
     'Docker',

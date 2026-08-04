@@ -70,6 +70,11 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
                     />
                   )}
                   <p className="text-sm font-semibold">{client.name}</p>
+                  {client.role && (
+                    <p className="text-xs text-muted-foreground print:text-[8px]">
+                      {client.role}
+                    </p>
+                  )}
                 </div>
                 <ul className="mt-2 ml-4 list-disc flex flex-col gap-1">
                   {client.bullets.map((bullet, i) => (

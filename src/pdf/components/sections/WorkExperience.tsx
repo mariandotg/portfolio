@@ -50,6 +50,11 @@ const styles = StyleSheet.create({
     color: THEME.colors.darkGray,
     marginBottom: 2,
   },
+  clientRole: {
+    fontFamily: THEME.fonts.bodyItalic,
+    fontSize: THEME.fontSize.small,
+    color: THEME.colors.mediumGray,
+  },
 })
 
 const BulletList: React.FC<{ bullets: readonly string[] }> = ({ bullets }) => (
@@ -72,7 +77,10 @@ const TechStack: React.FC<{ stack: readonly string[] }> = ({ stack }) => (
 
 const ClientEntry: React.FC<{ client: WorkClient }> = ({ client }) => (
   <View style={styles.clientBlock}>
-    <Text style={styles.clientName} minPresenceAhead={20}>{client.name}</Text>
+    <Text style={styles.clientName} minPresenceAhead={20}>
+      {client.name}
+      {client.role && <Text style={styles.clientRole}> — {client.role}</Text>}
+    </Text>
     <BulletList bullets={client.bullets} />
     {client.techStack && client.techStack.length > 0 && (
       <TechStack stack={client.techStack} />

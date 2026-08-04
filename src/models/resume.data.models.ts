@@ -56,6 +56,7 @@ export interface Link {
 export interface WorkClient {
   name: string
   logo?: string
+  role?: string
   bullets: readonly string[]
   techStack?: readonly string[]
 }

@@ -45,23 +45,6 @@ export default function Backdrop({ seed }: { seed?: string }) {
     };
   }, [colors, painted]);
 
-  /**
-   * El island persiste entre navegaciones, pero el `<div class="backdrop">` que lo envuelve no: en
-   * cada swap el canvas se transplanta al div nuevo, o sea que el elemento que observa el
-   * `ResizeObserver` del shader se desconecta y se vuelve a conectar. Cuando eso pasa la medida en
-   * píxeles físicos se puede perder y el shader vuelve a pintar a la mitad de resolución — la trama
-   * del dither se ve el doble de gruesa.
-   *
-   * `@paper-design/shaders` re-mide cuando cambia el visual viewport: desconecta el observer y lo
-   * vuelve a enganchar para forzar un callback fresco. Le disparamos ese mismo evento después de
-   * cada navegación. Si la medida ya era correcta, `handleResize` no hace nada.
-   */
-  useEffect(() => {
-    const remeasure = () => window.visualViewport?.dispatchEvent(new Event("resize"));
-    document.addEventListener("astro:page-load", remeasure);
-    return () => document.removeEventListener("astro:page-load", remeasure);
-  }, []);
-
   if (!colors) return null;
   return (
     <div className="backdrop-fade" data-painted={painted || undefined}>

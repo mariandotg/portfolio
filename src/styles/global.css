@@ -303,6 +303,37 @@ html.dark .prose a:hover {
   .gradient-text { animation: none; }
 }
 
+/* Estilos del canvas de los shaders
+   --------------------------------
+   `@paper-design/shaders` inyecta su hoja en `document.head` imperativamente al construir el mount
+   (`shader-mount.js`, `defaultStyle`). El ClientRouter reemplaza el `<head>` en cada navegación y
+   ese `<style>` no existe en el HTML de la página entrante, así que se lo lleva puesto: el canvas
+   pierde el `width/height: 100%` y cae a su tamaño intrínseco, que son los atributos `width`/
+   `height` en píxeles FÍSICOS. En una pantalla 2x eso se dibuja al doble — la trama del dither se
+   ve el doble de gruesa y así queda.
+
+   Tagearlo con `data-astro-transition-persist` no alcanza: Astro sólo conserva un elemento viejo
+   del head si el head entrante trae su contraparte, y esta hoja se crea en runtime. Los
+   `link[rel=stylesheet]` sí sobreviven por href, así que las reglas viven acá.
+
+   Espeja `defaultStyle` de la librería. Si actualizás `@paper-design/shaders`, revisá que siga
+   coincidiendo. */
+[data-paper-shader] {
+  isolation: isolate;
+  position: relative;
+}
+
+[data-paper-shader] canvas {
+  contain: strict;
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
 /* View transitions
    ---------------
    El fade de navegación vive sólo en `<main>` (`transition:animate` en PageLayout).

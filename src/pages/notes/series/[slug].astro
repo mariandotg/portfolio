@@ -20,7 +20,7 @@ const { title, description } = localizedSeries(entry.data, lang);
 const posts = await getSeriesPosts(entry.id);
 const meta = metaLabel(posts.length, entry.data.status, t);
 const comingSoon = posts.length === 0;
-const roadmap = await getSeriesRoadmap(entry.id, lang, t);
+const roadmap = await getSeriesRoadmap(entry.id, lang);
 
 const notesHref = getLocalizedPath("/notes", lang);
 ---

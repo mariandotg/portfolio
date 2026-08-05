@@ -1,0 +1,33 @@
+---
+import { getLangFromUrl, useTranslations } from '@/i18n/utils'
+import { getSeriesIndex } from '@/lib/series'
+import SeriesCard from '@/components/SeriesCard.astro'
+
+const lang = getLangFromUrl(Astro.url)
+const t = useTranslations(lang)
+
+const series = await getSeriesIndex(lang, t)
+---
+
+{series.length > 0 && (
+  <section class="flex flex-col gap-y-3">
+    <div>
+      <h2 class="text-lg font-bold">{t.notes.series.sectionTitle}</h2>
+      <p class="text-sm text-muted-foreground">{t.notes.series.sectionDescription}</p>
+    </div>
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+      {series.map((s) => (
+        <SeriesCard
+          slug={s.slug}
+          path={s.path}
+          title={s.title}
+          description={s.description}
+          meta={s.meta}
+          comingSoon={s.comingSoon}
+          featured={s.featured}
+          bannerBase={s.bannerBase}
+        />
+      ))}
+    </div>
+  </section>
+)}

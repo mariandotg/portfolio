@@ -3,7 +3,7 @@ import PageLayout from "../../layouts/PageLayout.astro";
 import PostListItem from "../../components/PostListItem.astro";
 import SeriesCard from "../../components/SeriesCard.astro";
 import { getCollection } from "astro:content";
-import { getLangFromUrl, useTranslations, getLocalizedPath } from "../../i18n/utils";
+import { getLangFromUrl, useTranslations } from "../../i18n/utils";
 import { getSeriesIndex } from "../../lib/series";
 
 const lang = getLangFromUrl(Astro.url);
@@ -12,11 +12,7 @@ const t = useTranslations(lang);
 const series = await getSeriesIndex(lang, t);
 
 const posts = await getCollection("notes", ({ data }) => !data.draft);
-const latest = posts
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
-
-const archiveHref = getLocalizedPath("/notes/archive", lang);
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
 <PageLayout title={t.notes.pageTitle} description={t.notes.pageSubtitle}>
@@ -26,7 +22,10 @@ const archiveHref = getLocalizedPath("/notes/archive", lang);
 
     {series.length > 0 && (
       <section class="mb-14">
-        <h2 class="section-heading">{t.notes.series.sectionTitle}</h2>
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-foreground">{t.notes.series.sectionTitle}</h2>
+          <p class="text-sm text-muted-foreground">{t.notes.series.sectionDescription}</p>
+        </div>
         <div class="grid gap-5 sm:grid-cols-2">
           {series.map((s) => (
             <SeriesCard
@@ -45,12 +44,9 @@ const archiveHref = getLocalizedPath("/notes/archive", lang);
     )}
 
     <section>
-      <div class="flex items-baseline justify-between mb-6">
-        <h2 class="section-heading mb-0">{t.notes.series.latestNotes}</h2>
-        <a href={archiveHref} class="all-notes-link">{t.notes.series.allNotes} →</a>
-      </div>
+      <h2 class="text-lg font-bold text-foreground mb-4">{t.nav.notes}</h2>
       <div class="flex flex-col">
-        {latest.map((post) => (
+        {sortedPosts.map((post) => (
           <PostListItem
             slug={post.id}
             title={post.data.title}
@@ -62,24 +58,3 @@ const archiveHref = getLocalizedPath("/notes/archive", lang);
     </section>
   </div>
 </PageLayout>
-
-<style>
-  .section-heading {
-    font-family: var(--font-family-display);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 1rem;
-  }
-  .all-notes-link {
-    font-family: var(--font-family-mono);
-    font-size: 13px;
-    color: hsl(var(--muted-foreground));
-    transition: color 150ms ease-in-out;
-  }
-  .all-notes-link:hover {
-    color: hsl(var(--foreground));
-  }
-</style>

@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content'
+import { getLangFromUrl, useTranslations, getLocalizedPath } from '@/i18n/utils'
+import PostListItem from '@/components/PostListItem.astro'
+
+const lang = getLangFromUrl(Astro.url)
+const t = useTranslations(lang)
+
+const posts = await getCollection('notes', ({ data }) => !data.draft)
+const latest = posts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3)
+
+const notesHref = getLocalizedPath('/notes', lang)
+---
+
+{latest.length > 0 && (
+  <section class="flex flex-col gap-y-3">
+    <div class="flex items-baseline justify-between">
+      <h2 class="text-lg font-bold">{t.nav.notes}</h2>
+      <a href={notesHref} class="text-sm font-mono text-muted-foreground hover:text-foreground transition-colors">
+        {t.notes.series.allNotes} →
+      </a>
+    </div>
+    <div class="flex flex-col">
+      {latest.map((post) => (
+        <PostListItem
+          slug={post.id}
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate}
+        />
+      ))}
+    </div>
+  </section>
+)}

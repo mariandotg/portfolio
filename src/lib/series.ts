@@ -102,25 +102,14 @@ export interface RoadmapItem {
   href?: string;
   title: string;
   description: string;
-  eyebrow: string;
   readingTime?: number;
   status: RoadmapStatus;
-}
-
-function collectionLabel(collection: CollectionEntry<"notes">["data"]["collection"], t: Translations): string {
-  return collection === "building-in-public"
-    ? t.notes.collections.buildingInPublic
-    : t.notes.collections.engineeringNotes;
 }
 
 // Reading state is not persisted yet, so every published part is offered as
 // readable and the first one is highlighted as the entry point. Once progress
 // is tracked, only the `status` derivation below needs to change.
-export async function getSeriesRoadmap(
-  slug: string,
-  lang: Lang,
-  t: Translations,
-): Promise<RoadmapItem[]> {
+export async function getSeriesRoadmap(slug: string, lang: Lang): Promise<RoadmapItem[]> {
   const posts = await getSeriesPosts(slug);
   return Promise.all(
     posts.map(async (post, idx) => {
@@ -130,7 +119,6 @@ export async function getSeriesRoadmap(
         href: getLocalizedPath(`/notes/${post.id}`, lang),
         title: post.data.title,
         description: post.data.description,
-        eyebrow: collectionLabel(post.data.collection, t),
         readingTime: remarkPluginFrontmatter?.readingTime as number | undefined,
         status: (idx === 0 ? "current" : "available") as RoadmapStatus,
       };

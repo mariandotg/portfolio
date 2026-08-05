@@ -12,11 +12,14 @@ interface Props {
 const { slug, title, description, pubDate, kicker } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 
-const formattedDate = pubDate.toLocaleDateString(lang === "es" ? "es-AR" : "en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
+// es-AR's Intl month/day format ("1 de may. de 2026") overflows the fixed-width
+// date column in the card layout — spell it out manually, short and "de"-free.
+const MONTHS_ES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+const formattedDate =
+  lang === "es"
+    ? `${pubDate.getDate()} ${MONTHS_ES[pubDate.getMonth()]} ${pubDate.getFullYear()}`
+    : pubDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
 const href = getLocalizedPath(`/notes/${slug}`, lang);
 ---

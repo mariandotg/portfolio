@@ -139,7 +139,7 @@ export const en = {
     },
     series: {
       sectionTitle: "Series",
-      latestNotes: "Latest notes",
+      sectionDescription: "A series is a collection of notes grouped by domain or context, meant to be read in order.",
       allNotes: "View all notes",
       partsCount: "parts",
       partsCountOne: "part",
@@ -148,7 +148,6 @@ export const en = {
       complete: "Complete",
       featured: "Featured",
       partOf: "Part {n} of {m}",
-      readNow: "Read now",
       backToSeries: "Back to series",
       prevInSeries: "Previous",
       nextInSeries: "Next",

@@ -141,7 +141,7 @@ export const es: Translations = {
     },
     series: {
       sectionTitle: "Series",
-      latestNotes: "Últimas notas",
+      sectionDescription: "Una serie es una colección de notas agrupadas por dominio o contexto, pensada para leerse en orden.",
       allNotes: "Ver todas las notas",
       partsCount: "partes",
       partsCountOne: "parte",
@@ -150,7 +150,6 @@ export const es: Translations = {
       complete: "Completa",
       featured: "Destacada",
       partOf: "Parte {n} de {m}",
-      readNow: "Leer ahora",
       backToSeries: "Volver a la serie",
       prevInSeries: "Anterior",
       nextInSeries: "Siguiente",

@@ -23,32 +23,19 @@ const t = useTranslations(lang);
         </div>
 
         <Tag href={linkable ? item.href : undefined} class="rm-body">
-          <span class="rm-eyebrow">{item.eyebrow}</span>
-          <h3 class="rm-title">{item.title}</h3>
+          <h3 class="rm-title">
+            <span class="rm-title-text">{item.title}</span>
+            <span class="rm-arrow" aria-hidden="true">→</span>
+          </h3>
           <p class="rm-desc">{item.description}</p>
 
           <div class="rm-foot">
             {item.status === "upcoming" ? (
-              <span class="rm-soon">
-                <svg class="rm-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <rect x="3.25" y="7" width="9.5" height="6.5" rx="1.5" stroke="currentColor" stroke-width="1.3" />
-                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.3" />
-                </svg>
-                <span>{t.notes.series.comingSoon}</span>
-              </span>
+              <span>{t.notes.series.comingSoon}</span>
             ) : (
               <>
-                {item.readingTime && (
-                  <span class="rm-time">{item.readingTime} {t.notes.readingTime}</span>
-                )}
-                {item.status === "read" ? (
-                  <svg class="rm-check" viewBox="0 0 16 16" aria-hidden="true">
-                    <circle cx="8" cy="8" r="8" fill="currentColor" />
-                    <path d="M4.6 8.2l2.2 2.2 4.6-4.6" stroke="hsl(var(--primary-foreground))" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                  </svg>
-                ) : (
-                  <span class="rm-cta">{t.notes.series.readNow}</span>
-                )}
+                {item.status === "read" && <span class="rm-check" aria-hidden="true">✓</span>}
+                {item.readingTime && <span>{item.readingTime} {t.notes.readingTime}</span>}
               </>
             )}
           </div>
@@ -66,13 +53,14 @@ const t = useTranslations(lang);
   }
   .rm-item {
     display: grid;
-    grid-template-columns: 34px 1fr;
+    grid-template-columns: 30px 1fr;
     column-gap: 20px;
   }
-  /* The gap between parts lives on the body, not the row, so the rail (and its
-     connector line) stretches the full distance between two nodes. */
   .rm-body {
-    padding-bottom: 34px;
+    padding-bottom: 26px;
+    display: block;
+    min-width: 0;
+    padding-top: 5px;
   }
   .rm-item:last-child .rm-body {
     padding-bottom: 0;
@@ -88,14 +76,13 @@ const t = useTranslations(lang);
     display: grid;
     place-items: center;
     flex: none;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 999px;
     border: 1px solid hsl(var(--border));
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.02em;
     color: hsl(var(--muted-foreground));
     background: hsl(var(--background));
     transition: border-color 180ms ease, color 180ms ease;
@@ -103,13 +90,12 @@ const t = useTranslations(lang);
   .rm-line {
     flex: 1;
     width: 1px;
-    margin-top: 8px;
+    margin-top: 6px;
     background: hsl(var(--border));
   }
   .rm-item:last-child .rm-line {
     display: none;
   }
-
   .is-read .rm-node {
     background: hsl(var(--primary));
     border-color: transparent;
@@ -118,39 +104,18 @@ const t = useTranslations(lang);
   .is-current .rm-node {
     border-color: hsl(var(--primary));
     color: hsl(var(--primary));
-    box-shadow: 0 0 0 4px color-mix(in srgb, hsl(var(--primary)) 14%, transparent);
   }
   .is-upcoming .rm-node {
     opacity: 0.65;
   }
 
-  .rm-body {
-    display: block;
-    min-width: 0;
-    padding-top: 3px;
-  }
-
-  .rm-eyebrow {
-    display: block;
-    font-family: var(--font-family-mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 8px;
-  }
-  .is-current .rm-eyebrow,
-  .is-read .rm-eyebrow {
-    color: hsl(var(--primary));
-  }
-
+  /* Same weight/size as the notes cards' title — this is the core "feeling" fix. */
   .rm-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.35;
     color: hsl(var(--foreground));
-    margin: 0 0 8px;
+    margin: 0 0 5px;
     transition: color 150ms ease-in-out;
   }
   a.rm-body:hover .rm-title {
@@ -160,73 +125,59 @@ const t = useTranslations(lang);
     color: hsl(var(--muted-foreground));
   }
 
+  .rm-arrow {
+    display: inline-block;
+    margin-left: 0.35em;
+    color: hsl(var(--primary));
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  a.rm-body:hover .rm-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Clamped to one line like the cards, instead of a full paragraph. */
   .rm-desc {
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5;
     color: hsl(var(--muted-foreground));
     margin: 0;
-    max-width: 62ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .rm-foot {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-top: 14px;
+    gap: 6px;
+    margin-top: 8px;
     font-family: var(--font-family-mono);
     font-size: 12px;
     color: hsl(var(--muted-foreground));
   }
-  .rm-cta {
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: hsl(var(--primary));
-    opacity: 0;
-    transform: translateX(-4px);
-    transition: opacity 180ms ease, transform 180ms ease;
-  }
-  .is-current .rm-cta,
-  a.rm-body:hover .rm-cta,
-  a.rm-body:focus-visible .rm-cta {
-    opacity: 1;
-    transform: translateX(0);
-  }
   .rm-check {
-    width: 16px;
-    height: 16px;
     color: hsl(var(--primary));
-  }
-  .rm-soon {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .rm-icon {
-    width: 14px;
-    height: 14px;
+    font-weight: 700;
   }
 
   @media (max-width: 640px) {
     .rm-item {
-      grid-template-columns: 28px 1fr;
+      grid-template-columns: 26px 1fr;
       column-gap: 14px;
     }
-    .rm-body {
-      padding-bottom: 28px;
-    }
     .rm-node {
-      width: 28px;
-      height: 28px;
-      font-size: 11px;
-    }
-    .rm-title {
-      font-size: 16px;
+      width: 26px;
+      height: 26px;
+      font-size: 10px;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .rm-cta,
+    .rm-arrow,
     .rm-title,
     .rm-node {
       transition: none;

@@ -56,7 +56,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
   <article class="post max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={notesHref} class="back-link">
+    <a href={notesHref} class="back-link" id="post-back-link">
       <span class="back-arrow" aria-hidden="true">←</span>
       <span>{t.notes.backToNotes}</span>
     </a>
@@ -123,6 +123,26 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
     )}
   </article>
 </PageLayout>
+
+<script>
+  // "Back to notes" defaults to /notes (works with JS off, or on a fresh tab
+  // with no history). When we actually got here via an in-site click — index,
+  // archive, a series page, another post — go back to that exact page instead.
+  const link = document.getElementById("post-back-link");
+  const ref = document.referrer;
+  if (link && ref && window.history.length > 1) {
+    try {
+      if (new URL(ref).origin === location.origin) {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          history.back();
+        });
+      }
+    } catch {
+      // Malformed/opaque referrer — fall through to the static /notes href.
+    }
+  }
+</script>
 
 <style>
   .series-strip {
@@ -206,10 +226,11 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
   }
 
   .back-link {
-    display: inline-flex;
+    display: flex;
+    width: fit-content;
     align-items: center;
     gap: 6px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     font-family: var(--font-family-mono);
     font-size: 13px;
     color: hsl(var(--muted-foreground));

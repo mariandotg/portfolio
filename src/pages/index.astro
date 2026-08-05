@@ -1,6 +1,6 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import CvPage from "../components/cv/CvPage.astro";
+import MiniCvPage from "../components/cv/MiniCvPage.astro";
 import { RESUME_DATA } from "../data/resume.datav2";
 import { getLangFromUrl } from "../i18n/utils";
 
@@ -18,6 +18,6 @@ const jsonLd = {
 ---
 
 <PageLayout title={DATA.name} description={DATA.about} revealTitleOnScroll>
-  <CvPage />
+  <MiniCvPage />
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </PageLayout>

@@ -305,12 +305,28 @@ html.dark .prose a:hover {
 
 /* View transitions
    ---------------
-   El fade de navegación vive sólo en `<main>` (`transition:animate` en PageLayout). El snapshot
-   raíz —nav sticky, footer, backdrop persistido— no se anima: son idénticos entre páginas y
-   atenuarlos se lee como parpadeo. */
-::view-transition-old(root),
-::view-transition-new(root) {
+   El fade de navegación vive sólo en `<main>` (`transition:animate` en PageLayout).
+
+   El root NO se captura. Por defecto la API snapshotea todo el documento, y el backdrop —un canvas
+   WebGL de trama fina— entra en ese snapshot: el navegador lo rasteriza y lo vuelve a escalar, así
+   que en pantallas de DPR alto la trama se ve el doble de gruesa mientras dura la transición.
+   Sacando el nombre al root, nav / footer / backdrop se siguen pintando en vivo y sólo `<main>`
+   entra al overlay. */
+:root {
+  view-transition-name: none;
+}
+
+/* Sólo opacidad, nada de morph de caja: entre vistas el alto de `<main>` cambia muchísimo (una
+   lista de notas vs. el CV entero) y el grupo lo animaría estirando el snapshot viejo. */
+::view-transition-group(*) {
   animation: none;
+}
+
+::view-transition-old(*),
+::view-transition-new(*) {
+  height: auto;
+  object-fit: none;
+  object-position: top left;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -23,7 +23,15 @@ const seed = Astro.props.seed ?? SITE_BACKDROP_SEED;
 <style>
   .backdrop {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* `inset: 0` se resuelve contra el viewport chico en iOS Safari (barra expandida), así que
+       al colapsarse la barra al scrollear queda una banda sin pintar abajo. `lvh` es la altura
+       máxima que llega a tener el viewport y no cambia con la barra: cubre siempre, y al ser
+       estática no dispara resizes del shader. `vh` queda de fallback (equivale a `lvh` en iOS). */
+    height: 100vh;
+    height: 100lvh;
     z-index: 0;
     pointer-events: none;
     /* atenuar el centro para no competir con el texto */

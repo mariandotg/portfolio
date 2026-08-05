@@ -86,5 +86,7 @@
     select(0);
   }
 
-  document.querySelectorAll(".tabs").forEach(initTabs);
+  document.addEventListener("astro:page-load", () =>
+    document.querySelectorAll(".tabs").forEach(initTabs),
+  );
 </script>

@@ -108,23 +108,27 @@ const notesHref = getLocalizedPath("/notes", lang);
 </style>
 
 <script>
-  const buttons = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
-  const cards = document.querySelectorAll<HTMLElement>('.post-card');
+  function initCollectionTabs() {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+    const cards = document.querySelectorAll<HTMLElement>('.post-card');
 
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const filter = btn.dataset.filter;
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter;
 
-      buttons.forEach((b) => b.classList.remove('active-tab'));
-      btn.classList.add('active-tab');
+        buttons.forEach((b) => b.classList.remove('active-tab'));
+        btn.classList.add('active-tab');
 
-      cards.forEach((card) => {
-        if (filter === 'all' || card.dataset.collection === filter) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
+        cards.forEach((card) => {
+          if (filter === 'all' || card.dataset.collection === filter) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
       });
     });
-  });
+  }
+
+  document.addEventListener('astro:page-load', initCollectionTabs);
 </script>

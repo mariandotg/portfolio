@@ -303,6 +303,24 @@ html.dark .prose a:hover {
   .gradient-text { animation: none; }
 }
 
+/* View transitions
+   ---------------
+   El fade de navegación vive sólo en `<main>` (`transition:animate` en PageLayout). El snapshot
+   raíz —nav sticky, footer, backdrop persistido— no se anima: son idénticos entre páginas y
+   atenuarlos se lee como parpadeo. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 .font-inter {
   font-family: var(--font-family-inter);
 }

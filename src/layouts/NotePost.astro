@@ -128,20 +128,35 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
   // "Back to notes" defaults to /notes (works with JS off, or on a fresh tab
   // with no history). When we actually got here via an in-site click — index,
   // archive, a series page, another post — go back to that exact page instead.
-  const link = document.getElementById("post-back-link");
-  const ref = document.referrer;
-  if (link && ref && window.history.length > 1) {
+  //
+  // Con el ClientRouter `document.referrer` deja de servir: no se actualiza en las navegaciones
+  // client-side, así que quedaría clavado en el referrer del documento original. La página previa
+  // se toma del propio router (`astro:before-preparation` trae `from`/`to`) y el referrer sólo
+  // cubre la primera carga del documento.
+  let cameFromSite = isInternal(document.referrer);
+
+  function isInternal(url: string) {
+    if (!url) return false;
     try {
-      if (new URL(ref).origin === location.origin) {
-        link.addEventListener("click", (e) => {
-          e.preventDefault();
-          history.back();
-        });
-      }
+      return new URL(url).origin === location.origin;
     } catch {
       // Malformed/opaque referrer — fall through to the static /notes href.
+      return false;
     }
   }
+
+  document.addEventListener("astro:before-preparation", (e) => {
+    cameFromSite = isInternal(e.from.href);
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    const link = document.getElementById("post-back-link");
+    if (!link || !cameFromSite || window.history.length <= 1) return;
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      history.back();
+    });
+  });
 </script>
 
 <style>

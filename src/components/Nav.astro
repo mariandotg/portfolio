@@ -69,18 +69,27 @@ const t = useTranslations(lang);
 <script>
   // El título del nav duplica el <h1> de la página cuando ésta declara un ancla
   // (`data-nav-title-anchor`): se revela recién cuando ese h1 pasa bajo la barra.
-  const title = document.querySelector<HTMLElement>("[data-nav-title]");
-  const anchor = document.querySelector<HTMLElement>("[data-nav-title-anchor]");
+  let observer: IntersectionObserver | null = null;
 
-  if (title && title.hasAttribute("data-hidden")) {
-    if (anchor) {
-      const observer = new IntersectionObserver(
-        ([entry]) => title.toggleAttribute("data-hidden", entry.isIntersecting),
-        { rootMargin: "-56px 0px 0px 0px" },
-      );
-      observer.observe(anchor);
-    } else {
+  function initNavTitle() {
+    observer?.disconnect();
+    observer = null;
+
+    const title = document.querySelector<HTMLElement>("[data-nav-title]");
+    const anchor = document.querySelector<HTMLElement>("[data-nav-title-anchor]");
+    if (!title || !title.hasAttribute("data-hidden")) return;
+
+    if (!anchor) {
       title.removeAttribute("data-hidden");
+      return;
     }
+
+    observer = new IntersectionObserver(
+      ([entry]) => title.toggleAttribute("data-hidden", entry.isIntersecting),
+      { rootMargin: "-56px 0px 0px 0px" },
+    );
+    observer.observe(anchor);
   }
+
+  document.addEventListener("astro:page-load", initNavTitle);
 </script>

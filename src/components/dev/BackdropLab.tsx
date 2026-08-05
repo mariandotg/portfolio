@@ -12,7 +12,7 @@ import {
   seedVariation,
   type PaperDitheringCalibration,
 } from "@/components/effects/PaperDithering";
-import { backdropSeed } from "@/lib/effects/backdrop/seed";
+import { SITE_BACKDROP_SEED } from "@/lib/effects/backdrop/seed";
 
 /**
  * Banco de calibración del backdrop. Monta cada estrategia del registry con los
@@ -39,8 +39,8 @@ const MASK =
 /** El slider arranca acá para que el bloque copiable sea honesto. El island usa 0.3 en light y 0.22 en dark. */
 const DEFAULT_OPACITY = 0.3;
 
-/** Las 4 rutas que hoy llevan backdrop, ya normalizadas como las siembra `BackdropIsland`. */
-const ROUTE_SEEDS = [backdropSeed("/notes"), backdropSeed("/cv")];
+/** El seed que usa el sitio. Es uno solo: el backdrop persiste entre navegaciones. */
+const ROUTE_SEEDS = [SITE_BACKDROP_SEED];
 
 const SAMPLE =
   "The backdrop sits behind the page, not in front of it. If this paragraph is " +

@@ -139,5 +139,7 @@
     go(0);
   }
 
-  document.querySelectorAll(".stepper").forEach(initStepper);
+  document.addEventListener("astro:page-load", () =>
+    document.querySelectorAll(".stepper").forEach(initStepper),
+  );
 </script>

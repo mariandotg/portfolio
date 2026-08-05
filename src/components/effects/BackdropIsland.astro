@@ -1,17 +1,23 @@
 ---
 import Backdrop from "./Backdrop.tsx";
-import { backdropSeed } from "../../lib/effects/backdrop/seed";
+import { SITE_BACKDROP_SEED } from "../../lib/effects/backdrop/seed";
 
 interface Props {
-  /** Pisa el seed derivado de la ruta. Mismo seed = mismo campo. */
+  /** Pisa el seed del sitio. Mismo seed = mismo campo. */
   seed?: string;
 }
 
-const seed = Astro.props.seed ?? backdropSeed(Astro.url.pathname);
+const seed = Astro.props.seed ?? SITE_BACKDROP_SEED;
 ---
 
+{/*
+  `transition:persist` transplanta el island hidratado al documento nuevo en cada navegación: React
+  no se desmonta, el canvas WebGL no se recrea y el fade de entrada no se vuelve a disparar.
+  `transition:persist-props` congela el seed — sin él Astro le pasaría las props de la página nueva
+  y el shader se re-inicializaría.
+*/}
 <div class="backdrop" aria-hidden="true">
-  <Backdrop seed={seed} client:idle />
+  <Backdrop seed={seed} client:idle transition:persist="backdrop" transition:persist-props />
 </div>
 
 <style>

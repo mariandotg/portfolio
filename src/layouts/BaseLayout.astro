@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import SEO from "../components/SEO.astro";
 import "../styles/global.css";
 import { getLangFromUrl } from "../i18n/utils";
@@ -34,12 +35,22 @@ const lang = getLangFromUrl(Astro.url);
       lang={lang}
       noindex={noindex}
     />
+    <ClientRouter />
     <script is:inline>
-      // Prevent flash of wrong theme
-      const stored = localStorage.getItem("theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (stored === "dark" || (!stored && prefersDark)) {
-        document.documentElement.classList.add("dark");
+      // Prevent flash of wrong theme. El swap del router copia los atributos del <html> entrante
+      // (que nunca trae `dark`), así que hay que reponer la clase en cada navegación.
+      function applyTheme() {
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const dark = stored === "dark" || (!stored && prefersDark);
+        document.documentElement.classList.toggle("dark", dark);
+      }
+      applyTheme();
+      // El head persistido no debería re-ejecutar este script, pero si lo hace no queremos apilar
+      // listeners.
+      if (!window.__themeSwapBound) {
+        window.__themeSwapBound = true;
+        document.addEventListener("astro:after-swap", applyTheme);
       }
     </script>
   </head>

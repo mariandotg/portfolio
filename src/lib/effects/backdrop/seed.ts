@@ -1,17 +1,12 @@
 /**
- * Seed del backdrop derivado de la ruta.
+ * Seed del backdrop.
  *
- * Dos decisiones que importan:
+ * **Un solo campo para todo el sitio.** Antes se derivaba de la ruta (cada página tenía el suyo),
+ * pero el canvas ahora se monta una vez y sobrevive las navegaciones vía `transition:persist` —
+ * ver `BackdropIsland.astro`. Un seed por ruta obligaría a re-inicializar el shader en cada swap,
+ * que es exactamente el re-render que se quiso eliminar.
  *
- * 1. **El prefijo de locale se descarta.** `/notes` y `/es/notes` son la misma página en dos
- *    idiomas, así que comparten campo. Si no se descartara, cambiar de idioma cambiaría el fondo
- *    y parecería un bug.
- * 2. **Es la ruta, no el contenido.** El backdrop hoy vive en 4 rutas fijas (`/cv` y `/notes` por
- *    locale), así que la ruta alcanza como identidad. El día que un post o una serie quiera su
- *    propio campo, la página le pasa su `bannerSeed` a `<BackdropIsland seed=... />` y este
- *    default deja de aplicar — por eso el seed entra por prop y no se lee acá adentro.
+ * El seed sigue entrando por prop en `BackdropIsland`, así que una página puede pisar este default
+ * (`/dev`, o el día que una serie quiera su propio campo) a costa de que ese campo no persista.
  */
-export function backdropSeed(pathname: string): string {
-  const normalized = pathname.replace(/^\/es(?=\/|$)/, "").replace(/\/+$/, "");
-  return normalized === "" ? "/" : normalized;
-}
+export const SITE_BACKDROP_SEED = "/";

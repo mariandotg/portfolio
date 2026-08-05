@@ -14,11 +14,18 @@ const lang = getLangFromUrl(Astro.url)
 const DICTIONARY = DICTIONARIES[lang]
 ---
 
-<script is:inline>
-  document.body.classList.add('cv-print')
+<script>
+  // Los estilos de impresión están gateados en `body.cv-print`. Con navegación client-side el body
+  // sobrevive el swap, así que la clase se pone y se saca según haya CV en la página nueva.
+  document.addEventListener('astro:page-load', () =>
+    document.body.classList.toggle('cv-print', !!document.querySelector('[data-cv-page]')),
+  )
 </script>
 
-<div class="container relative mx-auto scroll-my-12 overflow-auto p-4 print:p-12 md:p-16">
+<div
+  data-cv-page
+  class="container relative mx-auto scroll-my-12 overflow-auto p-4 print:p-12 md:p-16"
+>
   <div class="mx-auto w-full max-w-2xl space-y-8 print:space-y-4">
     <Social lang={lang} />
     <About lang={lang} />

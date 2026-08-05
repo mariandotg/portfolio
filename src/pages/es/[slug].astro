@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import PageLayout from "../../layouts/PageLayout.astro";
 import SeriesRoadmap from "../../components/SeriesRoadmap.astro";
+import BackLink from "../../components/BackLink.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath, localizedSeries } from "../../i18n/utils";
 import { getSeriesPosts, getSeriesRoadmap, getRootLevelSeries, metaLabel } from "../../lib/series";
 import SeriesBanner from "@/components/effects/SeriesBanner.astro";
@@ -27,10 +28,7 @@ const notesHref = getLocalizedPath("/notes", lang);
 
 <PageLayout title={title} description={description}>
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={notesHref} class="back-link">
-      <span class="back-arrow" aria-hidden="true">←</span>
-      <span>{t.notes.backToNotes}</span>
-    </a>
+    <BackLink href={notesHref} label={t.notes.backToNotes} />
 
     <SeriesBanner base={seriesBannerBase(entry.id, entry.data.bannerImage)} variant="hero" class="series-hero w-full mb-8 mt-5" />
 
@@ -74,25 +72,5 @@ const notesHref = getLocalizedPath("/notes", lang);
     font-size: 14px;
     color: hsl(var(--muted-foreground));
     padding: 2rem 0;
-  }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-family-mono);
-    font-size: 13px;
-    color: hsl(var(--muted-foreground));
-    transition: color 150ms ease-in-out;
-  }
-  .back-link:hover {
-    color: hsl(var(--foreground));
-  }
-  .back-arrow {
-    display: inline-block;
-    transition: transform 180ms ease;
-  }
-  .back-link:hover .back-arrow {
-    transform: translateX(-4px);
   }
 </style>

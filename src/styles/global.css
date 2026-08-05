@@ -33,6 +33,10 @@
   --ring: 247 76% 61%;
 
   --radius: 0.5rem;
+
+  /* Alto del header sticky (`Nav.astro` usa `h-14`). Lo consumen los anchors del TOC
+     para no quedar tapados al saltar a un heading. */
+  --nav-height: 3.5rem;
 }
 
 .dark {
@@ -171,6 +175,13 @@ html, body {
   h1, h2, h3, h4, h5, h6 {
     color: hsl(var(--foreground));
     font-weight: 600;
+  }
+
+  /* Targets de anchor (los headings con `id` que genera el MDX): el scroll frena
+     debajo del header sticky en vez de dejar el título tapado. */
+  :is(h1, h2, h3, h4, h5, h6)[id],
+  [id]:target {
+    scroll-margin-top: calc(var(--nav-height) + 1.5rem);
   }
 }
 

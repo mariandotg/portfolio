@@ -3,6 +3,7 @@ import type { MarkdownHeading } from "astro";
 import PageLayout from "./PageLayout.astro";
 import TagList from "../components/TagList.astro";
 import TableOfContents from "../components/notes/TableOfContents.astro";
+import BackLink from "../components/BackLink.astro";
 import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
 import { seriesPath } from "../lib/series";
 
@@ -56,10 +57,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
 
 <PageLayout title={title} description={description} image={image} type="article" pubDate={pubDate}>
   <article class="post max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
-    <a href={notesHref} class="back-link" id="post-back-link">
-      <span class="back-arrow" aria-hidden="true">←</span>
-      <span>{t.notes.backToNotes}</span>
-    </a>
+    <BackLink href={notesHref} label={t.notes.backToNotes} class="mb-4" />
 
     {seriesContext && (
       <a href={seriesHref} class="series-strip">
@@ -123,41 +121,6 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
     )}
   </article>
 </PageLayout>
-
-<script>
-  // "Back to notes" defaults to /notes (works with JS off, or on a fresh tab
-  // with no history). When we actually got here via an in-site click — index,
-  // archive, a series page, another post — go back to that exact page instead.
-  //
-  // Con el ClientRouter `document.referrer` deja de servir: no se actualiza en las navegaciones
-  // client-side, así que quedaría clavado en el referrer del documento original. La página previa
-  // se toma del propio router (`astro:before-preparation` trae `from`/`to`) y el referrer sólo
-  // cubre la primera carga del documento.
-  let cameFromSite = isInternal(document.referrer);
-
-  function isInternal(url: string) {
-    if (!url) return false;
-    try {
-      return new URL(url).origin === location.origin;
-    } catch {
-      // Malformed/opaque referrer — fall through to the static /notes href.
-      return false;
-    }
-  }
-
-  document.addEventListener("astro:before-preparation", (e) => {
-    cameFromSite = isInternal(e.from.href);
-  });
-
-  document.addEventListener("astro:page-load", () => {
-    const link = document.getElementById("post-back-link");
-    if (!link || !cameFromSite || window.history.length <= 1) return;
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      history.back();
-    });
-  });
-</script>
 
 <style>
   .series-strip {
@@ -240,33 +203,4 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
     }
   }
 
-  .back-link {
-    display: flex;
-    width: fit-content;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-    font-family: var(--font-family-mono);
-    font-size: 13px;
-    color: hsl(var(--muted-foreground));
-    transition: color 150ms ease-in-out;
-  }
-  .back-link:hover {
-    color: hsl(var(--foreground));
-  }
-  .back-arrow {
-    display: inline-block;
-    transition: transform 180ms ease;
-  }
-  .back-link:hover .back-arrow {
-    transform: translateX(-4px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .back-arrow {
-      transition: none;
-    }
-    .back-link:hover .back-arrow {
-      transform: none;
-    }
-  }
 </style>

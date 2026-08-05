@@ -1,0 +1,85 @@
+---
+interface Props {
+  href: string;
+  label: string;
+  class?: string;
+}
+
+const { href, label, class: className } = Astro.props;
+---
+
+<a href={href} class:list={["back-link", className]} data-back-link>
+  <span class="back-arrow" aria-hidden="true">←</span>
+  <span>{label}</span>
+</a>
+
+<script>
+  // El href estático es el fallback (JS apagado, o pestaña nueva sin historial).
+  // Si llegamos acá por un click interno — index, archive, una serie, otro post —
+  // volvemos a esa página exacta en vez de mandar siempre a /notes.
+  //
+  // Con el ClientRouter `document.referrer` deja de servir: no se actualiza en las navegaciones
+  // client-side, así que quedaría clavado en el referrer del documento original. La página previa
+  // se toma del propio router (`astro:before-preparation` trae `from`/`to`) y el referrer sólo
+  // cubre la primera carga del documento.
+  let cameFromSite = isInternal(document.referrer);
+
+  function isInternal(url: string) {
+    if (!url) return false;
+    try {
+      return new URL(url).origin === location.origin;
+    } catch {
+      // Referrer malformado/opaco — cae al href estático.
+      return false;
+    }
+  }
+
+  document.addEventListener("astro:before-preparation", (e) => {
+    cameFromSite = isInternal(e.from.href);
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    if (!cameFromSite || window.history.length <= 1) return;
+    document.querySelectorAll<HTMLAnchorElement>("[data-back-link]").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        history.back();
+      });
+    });
+  });
+</script>
+
+<style>
+  /* `flex` + `fit-content` y no `inline-flex`: en el post el link va en su propia línea,
+     seguido por el strip de serie (que también es inline). */
+  .back-link {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+    transition: color 150ms ease-in-out;
+  }
+  .back-link:hover {
+    color: hsl(var(--foreground));
+  }
+  .back-arrow {
+    display: inline-block;
+    transition: transform 180ms ease;
+  }
+  .back-link:hover .back-arrow {
+    transform: translateX(-4px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .back-link,
+    .back-arrow {
+      transition: none;
+    }
+    .back-link:hover .back-arrow {
+      transform: none;
+    }
+  }
+</style>

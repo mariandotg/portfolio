@@ -145,6 +145,8 @@ Once you have one deployed client on the platform:
 
 ---
 
+> Esta sección es sobre copy de landing, no sobre notas técnicas del blog — para eso ver `docs/content-manifesto.md`.
+
 ## Content principles
 
 - **Client-first language:** "Your business needs X" not "I offer X"

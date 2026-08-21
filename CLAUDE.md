@@ -49,11 +49,11 @@ A post **always** has one `collection` and **optionally** also belongs to a seri
 
 **Series routing — canonical path depends on `rootLevel`.** A series lives at exactly ONE URL, never both:
 - `rootLevel: false` (default) → `/notes/series/<id>` (page `src/pages/notes/series/[slug].astro`).
-- `rootLevel: true` → promoted to top level `/<id>`, sharing the namespace with static pages like `/about`, `/contact` (page `src/pages/[slug].astro`). Used for reference-material series (e.g. `cloud-certified-architect`).
+- `rootLevel: true` → promoted to top level `/<id>`, sharing the namespace with static pages like `/about`, `/contact` (page `src/pages/[slug].astro`). Used for reference-material series (e.g. `claude-certified-architect`).
 
 Never hardcode a series URL — call `seriesPath(id, rootLevel)` from `src/lib/series.ts` (used by `SeriesCard` and `NotePost`). The two page files split series by the flag via `getRootLevelSeries()` / `getStandardSeries()`. `getRootLevelSeries()` also enforces a build-time guard: a `rootLevel` series whose `id` hits `RESERVED_ROOT_SLUGS` (about, contact, notes, blog, work, es, cv, landing, …) throws instead of silently colliding — so promoting a series is a deliberate, checked act. Series **posts** always stay at `/notes/<post>` regardless of the flag; only the series landing moves. If you promote an already-linked series, add a redirect in `vercel.json` for its old `/notes/series/<id>` URL.
 
-**Series post count is derived, not stored.** `src/lib/series.ts` computes it by filtering published notes that reference the series. Consequence: a series with **0 posts renders as "coming soon"** (`comingSoon: count === 0`) — you can create a series JSON before writing any post and it shows up as upcoming (that's the current state of `cloud-certified-architect.json`). Always go through the helpers, never re-query ad hoc:
+**Series post count is derived, not stored.** `src/lib/series.ts` computes it by filtering published notes that reference the series. Consequence: a series with **0 posts renders as "coming soon"** (`comingSoon: count === 0`) — you can create a series JSON before writing any post and it shows up as upcoming (that's the current state of `claude-certified-architect.json`). Always go through the helpers, never re-query ad hoc:
 - `getSeriesIndex(lang, t)` → the series index: counts posts, sorts by `order`, localizes, builds the `meta` label ("Complete · 3 parts").
 - `getSeriesPosts(slug)` → a series' posts sorted by `seriesOrder`.
 

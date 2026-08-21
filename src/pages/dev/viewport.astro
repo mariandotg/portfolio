@@ -1,0 +1,146 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+
+// Página de diagnóstico: mide qué altura termina teniendo el backdrop contra el viewport real.
+// Pensada para abrirla en el teléfono y screenshotear con la barra del browser colapsada.
+---
+
+<PageLayout title="Viewport probe" noindex>
+  {/* Sondas de unidades: sus alturas se leen por JS, no se ven. */}
+  <div class="probes" aria-hidden="true">
+    <i data-unit="vh"></i>
+    <i data-unit="svh"></i>
+    <i data-unit="lvh"></i>
+    <i data-unit="dvh"></i>
+  </div>
+
+  <div class="mx-auto max-w-[800px] px-4 py-12">
+    <h1 class="text-xl font-semibold mb-6">Viewport probe</h1>
+    <p class="text-sm text-muted-foreground mb-8">
+      Scrolleá hasta colapsar la barra del browser y sacá el screenshot con el panel visible.
+    </p>
+    {Array.from({ length: 40 }).map((_, i) => (
+      <p class="text-sm text-muted-foreground py-3 border-b border-border">
+        Relleno para poder scrollear — línea {i + 1}
+      </p>
+    ))}
+  </div>
+
+  {/*
+    Las cuatro sangran igual (`fixed; bottom:-160px`) y sólo difieren en lo que fuerza capa
+    compositada. La que NO aparezca detrás de la barra de Safari es la causa.
+    1 rojo = plano · 2 verde = opacity · 3 azul = mask · 4 amarillo = opacity + mask (= .backdrop)
+  */}
+  <div class="t t1" aria-hidden="true"></div>
+  <div class="t t2" aria-hidden="true"></div>
+  <div class="t t3" aria-hidden="true"></div>
+  <div class="t t4" aria-hidden="true"></div>
+
+  <pre id="probe-readout" class="probe-readout">midiendo…</pre>
+</PageLayout>
+
+<style>
+  .probes {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .probes i {
+    display: block;
+    width: 1px;
+  }
+  .probes i[data-unit="vh"] { height: 100vh; }
+  .probes i[data-unit="svh"] { height: 100svh; }
+  .probes i[data-unit="lvh"] { height: 100lvh; }
+  .probes i[data-unit="dvh"] { height: 100dvh; }
+
+  /* Geometría IDÉNTICA a la franja amarilla que sí pintó en el test 2 — sin `width`, sin texto,
+     sin `font`. Lo único que cambia entre las cuatro es lo que fuerza capa compositada. */
+  .t {
+    position: fixed;
+    bottom: -160px;
+    height: 160px;
+    z-index: 90;
+    pointer-events: none;
+  }
+  /* Máscara totalmente opaca a propósito: si tapa, es el mecanismo de máscara, no el alpha. */
+  .t3, .t4 {
+    --m: linear-gradient(to right, rgb(0 0 0) 0%, rgb(0 0 0) 100%);
+    -webkit-mask-image: var(--m);
+    mask-image: var(--m);
+  }
+  .t1 { left: 0;   right: 75%; background: red; }
+  .t2 { left: 25%; right: 50%; background: lime;   opacity: 0.3; }
+  .t3 { left: 50%; right: 25%; background: deepskyblue; }
+  .t4 { left: 75%; right: 0;   background: yellow; opacity: 0.3; }
+
+  .probe-readout {
+    position: fixed;
+    top: 50%;
+    left: 8px;
+    right: 8px;
+    transform: translateY(-50%);
+    z-index: 100;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
+    font-family: var(--font-family-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-x: auto;
+  }
+</style>
+
+<script>
+  function unit(name: string) {
+    const el = document.querySelector<HTMLElement>(`.probes i[data-unit="${name}"]`);
+    return el ? el.getBoundingClientRect().height.toFixed(1) : "n/a";
+  }
+
+  function box(el: Element | null) {
+    if (!el) return "ausente";
+    const r = el.getBoundingClientRect();
+    return `top=${r.top.toFixed(1)} bottom=${r.bottom.toFixed(1)} h=${r.height.toFixed(1)}`;
+  }
+
+  function report() {
+    const out = document.getElementById("probe-readout");
+    if (!out) return;
+
+    const backdrop = document.querySelector(".backdrop");
+    const canvas = document.querySelector<HTMLCanvasElement>(".backdrop canvas");
+    const vv = window.visualViewport;
+    const cs = backdrop ? getComputedStyle(backdrop) : null;
+
+    out.textContent = [
+      `innerHeight        ${window.innerHeight}`,
+      `docEl.clientHeight ${document.documentElement.clientHeight}`,
+      `visualViewport     h=${vv?.height.toFixed(1)} offsetTop=${vv?.offsetTop.toFixed(1)} pageTop=${vv?.pageTop.toFixed(1)} scale=${vv?.scale}`,
+      `dpr                ${window.devicePixelRatio}`,
+      ``,
+      `100vh  ${unit("vh")}   100svh ${unit("svh")}`,
+      `100lvh ${unit("lvh")}   100dvh ${unit("dvh")}`,
+      ``,
+      `.backdrop  ${box(backdrop)}`,
+      `  position=${cs?.position} height=${cs?.height}`,
+      `canvas     ${box(canvas)}`,
+      `  buffer=${canvas?.width}x${canvas?.height}`,
+      ``,
+      `scrollY ${Math.round(window.scrollY)}`,
+    ].join("\n");
+  }
+
+  function bind() {
+    report();
+    addEventListener("scroll", report, { passive: true });
+    addEventListener("resize", report);
+    visualViewport?.addEventListener("resize", report);
+    visualViewport?.addEventListener("scroll", report);
+    setInterval(report, 500);
+  }
+
+  document.addEventListener("astro:page-load", bind);
+</script>

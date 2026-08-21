@@ -1,0 +1,36 @@
+---
+/**
+ * Rectángulo sólido fijo, por encima de todo, con geometría PROPIA — no comparte nada con el
+ * backdrop. Sirve para ver a ojo hasta dónde llega una caja `fixed` en un dispositivo real
+ * (típicamente: qué se come la barra del browser en iOS Safari) sin tocar el efecto.
+ *
+ * Apagarlo: `DEBUG_BOX` en `src/layouts/PageLayout.astro`.
+ */
+interface Props {
+  /** Cuánto se extiende por debajo del borde inferior del viewport. */
+  bleed?: string;
+  /** Aceptá alpha (`#00c853aa`) si necesitás ver el contenido debajo. */
+  color?: string;
+}
+
+const { bleed = "120px", color = "#00c853" } = Astro.props;
+---
+
+<div class="debug-box" aria-hidden="true" style={`--debug-bleed: ${bleed}; --debug-color: ${color};`}>
+</div>
+
+<style>
+  .debug-box {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* `lvh` y no `inset: 0`: en iOS Safari el ICB es el viewport chico, así que `inset: 0` mide
+       de menos. `vh` queda de fallback. */
+    /* height: 100vh; */
+    height: calc(100dvh + var(--debug-bleed));
+    z-index: 9999;
+    pointer-events: none;
+    background: var(--debug-color);
+  }
+</style>

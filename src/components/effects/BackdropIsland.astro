@@ -22,38 +22,64 @@ const seed = Astro.props.seed ?? SITE_BACKDROP_SEED;
 
 <style>
   .backdrop {
+    /* Cuánto sangra el backdrop por debajo del viewport. Medido: 57px en un iPhone con la barra
+       inferior colapsada. El margen es a propósito — el alto de esa barra lo decide el browser. */
+    --backdrop-bleed: 120px;
+
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    /* `inset: 0` se resuelve contra el viewport chico en iOS Safari (barra expandida), así que
-       al colapsarse la barra al scrollear queda una banda sin pintar abajo. `lvh` es la altura
-       máxima que llega a tener el viewport y no cambia con la barra: cubre siempre, y al ser
-       estática no dispara resizes del shader. `vh` queda de fallback (equivale a `lvh` en iOS). */
+    /* Dos cosas distintas, las dos medidas en un iPhone (ver notas abajo):
+
+       1. `inset: 0` se resuelve contra el ICB, que en iOS Safari es el viewport CHICO
+          (`documentElement.clientHeight` = 695 contra `innerHeight` = 735). Por eso la altura va
+          explícita en `lvh`: es la altura máxima del viewport, no cambia con la barra, y al ser
+          estática no dispara resizes del shader. `vh` queda de fallback.
+
+       2. Aun cubriendo el viewport entero queda una franja de ~57px detrás de la barra inferior
+          flotante de Safari que está FUERA del viewport: ninguna unidad CSS la alcanza (`lvh`,
+          `dvh` y `innerHeight` valen todos 735 y el corte cae justo ahí). Lo que sí llega son las
+          capas `fixed` desbordadas, así que el backdrop sangra por debajo del borde. Sin esto se
+          ve un escalón contra `--background` pelado. */
     height: 100vh;
-    height: 100lvh;
+    height: calc(100lvh + var(--backdrop-bleed));
     z-index: 0;
     pointer-events: none;
-    /* atenuar el centro para no competir con el texto */
-    --mask: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.4) 18%,
-      rgba(0, 0, 0, 0.13) 50%,
-      rgba(0, 0, 0, 0.4) 82%,
-      rgba(0, 0, 0, 0.7) 100%
-    );
-    -webkit-mask-image: var(--mask);
-    mask-image: var(--mask);
+
     /* El morado sobre fondo claro necesita más alpha que el blanco sobre fondo oscuro para
        leerse igual de presente; de ahí que la opacidad sea por tema y no una sola. */
-    opacity: 0.3;
+    --backdrop-alpha: 0.3;
   }
 
   /* El duotono en dark tiene mucho menos rango que en light (la base violeta arranca casi del
      negro del fondo), así que necesita algo más de alpha para leerse igual de presente. */
   :global(.dark) .backdrop {
-    opacity: 0.22;
+    --backdrop-alpha: 0.22;
+  }
+
+  /* Atenuar el centro para no competir con el texto.
+     Esto era un `mask-image` sobre `.backdrop`, y era la razón real de la franja sin pintar en
+     iOS Safari: Safari clipea al viewport las capas `fixed` ENMASCARADAS, así que por más que el
+     elemento midiera 855px nunca pintaba más allá de los 735 del viewport. Medido con cuatro
+     franjas de control: plana y con `opacity` sangran; con `mask` (con o sin `opacity`) no.
+
+     Equivalente sin máscara: en vez de recortarle alpha al backdrop, se pinta `--background`
+     encima con el alpha complementario (1 − alpha de la máscara). Sobre un fondo plano —y el
+     backdrop siempre está sobre `--background` pelado— el resultado compuesto es idéntico:
+     mix(bg, shader, α·m) sale igual por los dos caminos. */
+  .backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      hsl(var(--background) / 0.3) 0%,
+      hsl(var(--background) / 0.6) 18%,
+      hsl(var(--background) / 0.87) 50%,
+      hsl(var(--background) / 0.6) 82%,
+      hsl(var(--background) / 0.3) 100%
+    );
   }
 
   /* `.backdrop-fade` lo pinta el island React, así que queda fuera del scoping de Astro. */
@@ -64,9 +90,11 @@ const seed = Astro.props.seed ?? SITE_BACKDROP_SEED;
     transition: opacity 900ms ease-out;
   }
 
+  /* La opacidad del backdrop vive acá y no en `.backdrop`: el `::after` que atenúa el centro tiene
+     que pintar con alpha pleno, fuera de ella. */
   .backdrop :global(.backdrop-fade[data-painted]) {
-    opacity: 1;
-  }
+    opacity: var(--backdrop-alpha);
+  } 
 
   @media print {
     .backdrop {

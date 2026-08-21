@@ -4,6 +4,10 @@ import BaseLayout from "./BaseLayout.astro";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import BackdropIsland from "../components/effects/BackdropIsland.astro";
+import DebugBox from "../components/dev/DebugBox.astro";
+
+/** Caja verde de debug, independiente del backdrop. Poner en `false` para apagarla. */
+const DEBUG_BOX = false;
 
 interface Props {
   title?: string;
@@ -52,4 +56,5 @@ const {
     <slot />
   </main>
   <Footer />
+  {DEBUG_BOX && <DebugBox />}
 </BaseLayout>

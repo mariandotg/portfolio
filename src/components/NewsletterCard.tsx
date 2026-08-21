@@ -45,65 +45,29 @@ export default function NewsletterCard({ labels }: NewsletterCardProps) {
   }
 
   if (status === "success") {
-    return (
-      <p style={{ fontSize: "13px", color: "hsl(var(--muted-foreground))" }}>{labels.success}</p>
-    );
+    return <p className="text-[13px] text-muted-foreground">{labels.success}</p>;
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
       <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder={labels.placeholder}
         required
-        style={{
-          flex: "1",
-          minWidth: "200px",
-          padding: "6px 16px",
-          borderRadius: "999px",
-          border: "1px solid hsl(var(--border))",
-          background: "transparent",
-          fontSize: "13px",
-          outline: "none",
-          fontFamily: "var(--font-family-display)",
-        }}
+        className="flex-1 min-w-[200px] rounded-full border border-border bg-transparent px-4 py-1.5 text-[13px] font-sans focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <button
         type="submit"
         disabled={status === "loading"}
-        style={{
-          padding: "6px 16px",
-          borderRadius: "999px",
-          border: "1px solid hsl(var(--border))",
-          background: "transparent",
-          fontSize: "13px",
-          fontWeight: 500,
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-          fontFamily: "var(--font-family-display)",
-          transition: "background 150ms ease-in-out, color 150ms ease-in-out",
-          opacity: status === "loading" ? 0.6 : 1,
-        }}
-        onMouseEnter={(e) => {
-          const btn = e.currentTarget;
-          btn.style.background = "hsl(var(--foreground))";
-          btn.style.color = "hsl(var(--background))";
-        }}
-        onMouseLeave={(e) => {
-          const btn = e.currentTarget;
-          btn.style.background = "transparent";
-          btn.style.color = "";
-        }}
+        className="whitespace-nowrap rounded-full border border-border bg-transparent px-4 py-1.5 text-[13px] font-medium font-sans cursor-pointer transition-colors duration-150 ease-in-out hover:bg-foreground hover:text-background disabled:opacity-60"
       >
         {status === "loading" ? labels.subscribing : labels.subscribe}
       </button>
 
       {status === "error" && (
-        <p style={{ width: "100%", fontSize: "12px", color: "#dc2626", marginTop: "4px" }}>
-          {errorMessage || labels.error}
-        </p>
+        <p className="w-full text-xs text-destructive mt-1">{errorMessage || labels.error}</p>
       )}
     </form>
   );

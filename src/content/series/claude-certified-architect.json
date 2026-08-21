@@ -1,0 +1,14 @@
+{
+  "title": {
+    "en": "Claude Certified Architect Notes",
+    "es": "Apuntes de Claude Certified Architect"
+  },
+  "description": {
+    "en": "Field notes from Anthropic's AI training for Claude Certified Architects — turning the curriculum into durable, sharable reference material.",
+    "es": "Apuntes de la capacitación de IA de Anthropic para Claude Certified Architects — convirtiendo el temario en material de referencia perdurable y compartible."
+  },
+  "collection": "engineering-notes",
+  "status": "ongoing",
+  "order": 1,
+  "rootLevel": true
+}

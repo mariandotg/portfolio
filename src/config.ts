@@ -11,3 +11,5 @@ export const SITE = {
     twitter: "https://twitter.com/mguillaume06",
   },
 };
+
+export const FEATURES = { newsletter: false } as const;

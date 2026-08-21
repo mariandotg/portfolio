@@ -3,7 +3,7 @@ import { getLangFromUrl, useTranslations } from "../i18n/utils";
 import SocialLinks from "./SocialLinks.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 import NewsletterCard from "./NewsletterCard.tsx";
-import { SITE } from "../config";
+import { SITE, FEATURES } from "../config";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -15,24 +15,28 @@ const year = new Date().getFullYear();
   style="border-color: color-mix(in srgb, hsl(var(--border)) 60%, transparent);"
 >
   <div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 pt-8 pb-6">
-    <!-- Newsletter -->
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-      <span class="text-sm text-muted-foreground whitespace-nowrap">
-        {t.newsletter.title}
-      </span>
-      <NewsletterCard
-        client:visible
-        labels={{
-          placeholder: t.newsletter.placeholder,
-          subscribe: t.newsletter.subscribe,
-          subscribing: t.newsletter.subscribing,
-          success: t.newsletter.success,
-          error: t.newsletter.error,
-        }}
-      />
-    </div>
+    {FEATURES.newsletter && (
+      <>
+        <!-- Newsletter -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <span class="text-sm text-muted-foreground whitespace-nowrap">
+            {t.newsletter.title}
+          </span>
+          <NewsletterCard
+            client:visible
+            labels={{
+              placeholder: t.newsletter.placeholder,
+              subscribe: t.newsletter.subscribe,
+              subscribing: t.newsletter.subscribing,
+              success: t.newsletter.success,
+              error: t.newsletter.error,
+            }}
+          />
+        </div>
 
-    <hr style="border-color: hsl(var(--border)); opacity: 0.5; margin-bottom: 1.5rem;" />
+        <hr style="border-color: hsl(var(--border)); opacity: 0.5; margin-bottom: 1.5rem;" />
+      </>
+    )}
 
     <!-- Bottom row -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">

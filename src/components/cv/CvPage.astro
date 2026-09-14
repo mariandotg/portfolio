@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button'
 import Social from './sections/Social.astro'
 import About from './sections/About.astro'
 import WorkExp from './sections/WorkExp.astro'
-import Education from './sections/Education.astro'
+import EducationAndCertifications from './sections/EducationAndCertifications.astro'
 import Skills from './sections/Skills.astro'
 import Projects from './sections/Projects.astro'
-import Certificates from './sections/Certificates.astro'
 
 const lang = getLangFromUrl(Astro.url)
 const DICTIONARY = DICTIONARIES[lang]
@@ -30,9 +29,8 @@ const DICTIONARY = DICTIONARIES[lang]
     <Social lang={lang} />
     <About lang={lang} />
     <WorkExp lang={lang} />
-    <Education lang={lang} />
+    <EducationAndCertifications lang={lang} />
     <Skills lang={lang} />
     <Projects lang={lang} />
-    <Certificates lang={lang} />
   </div>
 </div>

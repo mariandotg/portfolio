@@ -9,6 +9,7 @@ const EN_DICTIONARY: Dictionary = {
   WORK_EXP: 'Work Experience',
   CERTIFICATES: 'Certificates',
   EDUCATION: 'Education',
+  EDUCATION_AND_CERTIFICATIONS: 'Education & Certifications',
   IN_PROGRESS: 'In Progress',
 }
 
@@ -21,6 +22,7 @@ const ES_DICTIONARY: Dictionary = {
   WORK_EXP: 'Experiencia Laboral',
   CERTIFICATES: 'Certificaciones',
   EDUCATION: 'Educación',
+  EDUCATION_AND_CERTIFICATIONS: 'Formación y certificaciones',
   IN_PROGRESS: 'En curso',
 }
 

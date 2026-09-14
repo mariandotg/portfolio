@@ -15,14 +15,20 @@ export type SkillCategory =
   | 'data-messaging'
   | 'ai-tooling'
 
-/** Tailwind classes per category, built on the accent tokens in `global.css`. */
+/**
+ * Tailwind classes per category, built on the accent tokens in `global.css`.
+ * Text-only accent — the badge keeps the site's standard neutral chrome
+ * (`variant="secondary"`, same background/border as every other badge); only
+ * the label color shifts per category, low-saturation, so it reads as sober
+ * and consistent with the rest of the (mostly grayscale) portfolio.
+ */
 const CATEGORY_CLASS_NAMES: Record<SkillCategory, string> = {
-  languages: 'bg-accent-blue/12 text-accent-blue dark:bg-accent-blue/18',
-  backend: 'bg-accent-teal/12 text-accent-teal dark:bg-accent-teal/18',
-  frontend: 'bg-accent-orange/12 text-accent-orange dark:bg-accent-orange/18',
-  'cloud-devops': 'bg-accent-amber/12 text-accent-amber dark:bg-accent-amber/18',
-  'data-messaging': 'bg-accent-pink/12 text-accent-pink dark:bg-accent-pink/18',
-  'ai-tooling': 'bg-accent-green/12 text-accent-green dark:bg-accent-green/18',
+  languages: 'text-accent-blue',
+  backend: 'text-accent-teal',
+  frontend: 'text-accent-orange',
+  'cloud-devops': 'text-accent-amber',
+  'data-messaging': 'text-accent-pink',
+  'ai-tooling': 'text-accent-green',
 }
 
 const SKILL_CATEGORY_MAP: Record<string, SkillCategory> = {

@@ -33,97 +33,83 @@ as `--accent-<hue>` (`--accent-blue`, not `--accent`). Don't confuse the two.
 
 ## New tokens: categorical accents
 
-Six hues, additive only — no existing token changed. Built with the `dataviz`
-skill's categorical-color method: fixed hue order, OKLCH lightness band,
-chroma floor, CVD (color-vision-deficiency) separation, and contrast, all
-machine-checked with `validate_palette.js` (not eyeballed).
+Six hues, additive only — no existing token changed. Used as **text-only**
+accents on the site's standard neutral badge (same background/border as every
+other badge, e.g. the certificate-date pill) — no tinted background — so they
+read as sober and consistent with the portfolio's mostly-grayscale palette
+next to the single purple `--primary` accent.
 
 | Token | Hue family | Light (HSL) | Light hex | Dark (HSL) | Dark hex |
 |---|---|---|---|---|---|
-| `--accent-blue` | blue | `213 68% 49%` | `#2874d2` | `213 77% 56%` | `#3987e5` |
-| `--accent-orange` | orange | `17 82% 44%` | `#cc4814` | `17 70% 50%` | `#d95926` |
-| `--accent-teal` | teal | `159 73% 30%` | `#15845d` | `159 73% 36%` | `#199e70` |
-| `--accent-amber` | amber | `41 100% 31%` | `#9e6c00` | `40 100% 39%` | `#c98500` |
-| `--accent-pink` | pink/magenta | `337 70% 52%` | `#da2f71` | `338 61% 58%` | `#d55181` |
-| `--accent-green` | green | `120 100% 27%` | `#008a00` | `120 90% 30%` | `#089108` |
+| `--accent-blue` | slate blue | `213 38% 49%` | `#4d78ac` | `213 45% 51%` | `#4a7cba` |
+| `--accent-orange` | clay/terracotta | `17 38% 47%` | `#a5644a` | `17 45% 49%` | `#b56545` |
+| `--accent-teal` | sage teal | `159 38% 37%` | `#3a8269` | `159 45% 40%` | `#389474` |
+| `--accent-amber` | olive/khaki | `41 38% 39%` | `#89713e` | `41 45% 40%` | `#947738` |
+| `--accent-pink` | dusty rose | `337 38% 50%` | `#b04f74` | `337 45% 54%` | `#be557d` |
+| `--accent-green` | moss green | `120 38% 37%` | `#3a823a` | `120 45% 40%` | `#389438` |
 
 Exposed via `@theme inline` as `--color-accent-<hue>`, so `bg-accent-blue`,
 `text-accent-blue`, `border-accent-blue` (and the other 5 hues) exist as
-Tailwind utilities, including opacity modifiers (`bg-accent-blue/12`).
+Tailwind utilities. Only `text-accent-<hue>` is actually used today (see
+"Usage rules").
 
 Hues were chosen to avoid `--primary`'s hue (247°, purple) and
-`--destructive`'s hue (0°, red) by a wide margin, so the new accents read as
-a distinct categorical set that still sits comfortably next to the purple
-brand color (same saturation/lightness philosophy as the rest of the shadcn
-palette).
+`--destructive`'s hue (0°, red) by a wide margin.
 
-### Why these values (not the raw dataviz reference hexes)
+### Design direction: sober over vivid
 
-The dataviz skill's default reference palette (`references/palette.md`) is
-tuned for **chart marks** — filled areas/lines/dots that don't carry their
-own text label. Its light-mode hexes for teal/amber/pink/orange land under
-3:1 contrast against a white surface (e.g. `#eda100` amber is 2.17:1) —
-correct for a chart mark next to a legend, wrong for a color used as small
-badge **text**.
+The first pass at this palette used the `dataviz` skill's categorical-color
+method at full saturation (chart-grade hues, ~68–100% HSL saturation) with a
+tinted badge background. On review that read as too colorful/playful for this
+portfolio's mostly-grayscale, single-accent (purple) visual language, so the
+palette was revised:
 
-Since these accents are used as text (see "Usage rules" below), each hue was
-independently re-stepped (same hue/saturation, different lightness) so the
-badge text itself clears **WCAG AA text contrast (>= 4.5:1)** against the
-page background in its own mode, not just the >= 3:1 mark-contrast bar. The
-`--primary`/`--foreground` design language (HSL, `.dark` override) was kept
-so the tokens drop into the existing system unchanged.
+- **Saturation cut roughly in half** (~38% light / ~45% dark, same hues and
+  lightness bands as the first pass) — dusty, muted tones instead of vivid
+  chart colors.
+- **No tinted background.** Badges keep the site's standard neutral chrome
+  (`variant="secondary"`, same as every other badge); only the label text
+  color shifts per category.
 
-### Validation results
+**Tradeoff, stated plainly**: at this saturation the palette no longer clears
+the dataviz skill's chroma-floor and CVD-separation gates (`validate_palette.js`
+reports FAIL on both for this hex set — chroma ~0.075–0.094, below the ~0.10
+floor, and several adjacent pairs under the color-vision-deficiency
+separation target). That method is built for chart marks, which often carry
+*no other* identity signal than color. That's not the case here: every skill
+badge always shows the skill's name as text — color is a quiet grouping cue
+layered on top of a label that's legible on its own, never the only way to
+tell two badges apart. Given that, and the explicit ask for a sober look
+aligned with the rest of the site, the tradeoff was accepted deliberately
+rather than automatically.
 
-Run against this site's actual surfaces (`#ffffff` light / `#0a0a0a` dark),
-in the fixed order above (this order is the CVD-safety mechanism — don't
-reorder without re-validating):
+**Non-negotiable kept**: WCAG AA text contrast (>= 4.5:1) against
+`--background`, in both modes — this is what actually matters for a label
+that must stay readable regardless of how muted its hue is.
 
-**Light** (`node validate_palette.js "#2874d2,#cc4814,#15845d,#9e6c00,#da2f71,#008a00" --mode light --surface "#ffffff"`)
-- Lightness band: PASS (all 6 inside OKLCH L 0.43–0.77)
-- Chroma floor: PASS (all 6 >= 0.10)
-- CVD separation (adjacent pairs): **WARN** — worst pair `#9e6c00` (amber) ↔ `#15845d` (teal), ΔE 7.7 (in the 6–8 "floor" band, legal only with secondary encoding)
-- Normal-vision floor: PASS — worst pair ΔE 16.0 (>= 15 hard gate)
-- Contrast vs surface: PASS (all 6 >= 3:1; all 6 are also individually >= 4.5:1 as text, see below)
-
-**Dark** (`--mode dark --surface "#0a0a0a"`)
-- Lightness band: PASS (all 6 inside OKLCH L 0.48–0.67)
-- Chroma floor: PASS
-- CVD separation: PASS — worst adjacent pair ΔE 8.4
-- Normal-vision floor: PASS — worst pair ΔE 19.3
-- Contrast vs surface: PASS (all 6 >= 3:1)
-
-**Text contrast per hue** (badge text color vs its mode's `--background`):
+### Text contrast per hue (kept from the original validation)
 
 | Hue | Light contrast | Dark contrast |
 |---|---|---|
-| blue | 4.65:1 | 4.60:1 |
-| orange | 4.66:1 | 4.59:1 |
-| teal | 4.68:1 | 5.81:1 |
-| amber | 4.57:1 | 6.45:1 |
-| pink | 4.54:1 | 4.60:1 |
-| green | 4.53:1 | 4.77:1 |
+| blue | 4.57:1 | 4.60:1 |
+| orange | 4.64:1 | 4.63:1 |
+| teal | 4.59:1 | 5.33:1 |
+| amber | 4.67:1 | 4.67:1 |
+| pink | 4.98:1 | 4.51:1 |
+| green | 4.74:1 | 5.15:1 |
 
 All 6 clear WCAG AA (>= 4.5:1) for normal text, in both modes.
-
-**Accepted deviation**: the light-mode adjacent pair amber/teal sits in the
-6–8 CVD "floor" band (WARN, not FAIL — the normal-vision floor still clears
-at 16.0). This is legal under the skill's own rule *only* with secondary
-encoding, which this use case always ships: every skill badge shows the
-skill's name as text — color is a supplementary grouping cue, never the only
-way to tell two badges apart. If a 7th category is ever needed, re-run the
-validator before adding a hue; don't eyeball it.
 
 ## Usage rules
 
 - **Additive only.** Never replace an existing shadcn or legacy token with an
   accent, and never repurpose `--accent` (singular, the shadcn hover surface)
   for categorical color.
-- **Badge pattern**: tinted background + solid text, both from the same
-  token — `bg-accent-<hue>/12 text-accent-<hue>` (see
-  `src/components/cv/ui/Badge.tsx`'s `category` variants). The background
-  tint is decorative (low opacity); the contrast guarantee above applies to
-  the text.
+- **Badge pattern**: `text-accent-<hue>` on the site's standard neutral badge
+  (`variant="secondary"` — unchanged background/border). See
+  `src/data/skill-categories.ts` and `src/components/cv/sections/Skills.astro`.
+  Don't add a tinted background back without re-discussing the sober
+  direction above.
 - **Fixed order.** When a new categorical grouping needs color (skills,
   tags, categories), assign hues in the fixed order above, never cycled or
   reordered per-instance.
@@ -132,4 +118,6 @@ validator before adding a hue; don't eyeball it.
   might look similar (e.g. don't read `--accent-green` as "success").
 - **Scope**: introduced for CV skill badges (`src/data/skill-categories.ts`,
   `src/components/cv/sections/Skills.astro`). Available site-wide as regular
-  Tailwind utilities for any future categorical UI (tags, filters, etc.).
+  Tailwind utilities for any future categorical UI (tags, filters, etc.) —
+  but re-check contrast (and reconsider the sober-vs-vivid tradeoff above) if
+  a future use case doesn't always carry its own text label.

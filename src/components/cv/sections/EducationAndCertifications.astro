@@ -1,8 +1,7 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
 import { PUBLIC_RESUME_DATA } from '@/data/resume'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card'
-import { Badge } from '../ui/Badge'
+import { CertificateCard } from '../ui/CertificateCard'
 
 interface Props {
   lang: 'en' | 'es'
@@ -38,26 +37,7 @@ const hasCertificates = DATA.certificates.length > 0
     {hasCertificates && (
       <div class="grid grid-cols-1 gap-3 print:grid-cols-2 print:gap-2 md:grid-cols-2 lg:grid-cols-2">
         {DATA.certificates.map((cert) => (
-          <a
-            href={cert.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block"
-          >
-            <Card className="print-avoid-break bg-transparent cursor-pointer transition-all hover:ring-1 hover:ring-border hover:bg-muted/30 p-3">
-              <CardHeader>
-                <div class="flex items-start justify-between gap-x-2">
-                  <CardTitle className="text-base font-semibold leading-none">
-                    {cert.title}
-                  </CardTitle>
-                  <Badge variant="secondary" className="shrink-0 text-xs">{cert.date}</Badge>
-                </div>
-                <CardDescription className="text-sm text-muted-foreground">
-                  {cert.issuer}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </a>
+          <CertificateCard certificate={cert} />
         ))}
       </div>
     )}

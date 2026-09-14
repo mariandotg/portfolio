@@ -44,6 +44,9 @@ the same rule.
   the build.
 - **Scope**: web only. The CV variants (`JAVA_SKILLS`, `TS_SKILLS`) and the
   PDF do not use this list or any color.
+- **JobCard tech stacks** get the same core accent, via the shared
+  `isCoreSkill` / `CORE_SKILL_BADGE_CLASS` helpers in `skill-categories.ts`
+  (with an explicit alias map for résumé techStack spellings like 'Java 17').
 
 ### Why `--skill-core` is not `--primary`
 

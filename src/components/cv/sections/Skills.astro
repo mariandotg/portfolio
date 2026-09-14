@@ -1,6 +1,6 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
-import { CORE_SKILLS, WEB_SKILL_GROUPS } from '@/data/skill-categories'
+import { CORE_SKILL_BADGE_CLASS, WEB_SKILL_GROUPS, isCoreSkill } from '@/data/skill-categories'
 import { cn } from '@/lib/utils'
 import { Badge } from '../ui/Badge'
 
@@ -24,7 +24,7 @@ const DICTIONARY = DICTIONARIES[lang]
                         <Badge
                           className={cn(
                             "print:text-[10px]",
-                            CORE_SKILLS.has(skill) && "bg-skill-core/8 text-skill-core hover:bg-skill-core/8",
+                            isCoreSkill(skill) && CORE_SKILL_BADGE_CLASS,
                           )}
                           variant={"secondary"}
                         >

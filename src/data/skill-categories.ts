@@ -50,3 +50,30 @@ for (const skill of CORE_SKILLS) {
     throw new Error(`CORE_SKILLS has "${skill}", which is not in WEB_SKILL_GROUPS`)
   }
 }
+
+/**
+ * Aliases for résumé techStack strings (JobCard) that name a core skill with
+ * different wording/version than its canonical `CORE_SKILLS` entry. Covers
+ * only obvious version/naming variants of the 5 core skills — ambiguous or
+ * generic strings (e.g. 'Java EE', 'Kotlin', 'Spring', 'RabbitMQ', 'Kafka
+ * Connect') are deliberately left unmapped.
+ */
+const CORE_SKILL_ALIASES: Readonly<Record<string, string>> = {
+  'Java 17': 'Java 17/21',
+  'Spring Boot 3': 'Spring Boot',
+}
+
+for (const target of Object.values(CORE_SKILL_ALIASES)) {
+  if (!CORE_SKILLS.has(target)) {
+    throw new Error(`CORE_SKILL_ALIASES points to "${target}", which is not in CORE_SKILLS`)
+  }
+}
+
+/** Shared accent classes for the core skill set. AA-checked in both themes, see docs/design/palette.md. */
+export const CORE_SKILL_BADGE_CLASS = 'bg-skill-core/8 text-skill-core hover:bg-skill-core/8'
+
+/** True for a skill/techStack string that is a core skill, or an explicit alias of one. */
+export function isCoreSkill(skill: string): boolean {
+  const alias = CORE_SKILL_ALIASES[skill]
+  return CORE_SKILLS.has(skill) || (alias !== undefined && CORE_SKILLS.has(alias))
+}

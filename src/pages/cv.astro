@@ -1,11 +1,11 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
 import CvPage from "../components/cv/CvPage.astro";
-import { RESUME_DATA } from "../data/resume.datav2";
+import { PUBLIC_RESUME_DATA } from "../data/resume";
 import { getLangFromUrl } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
-const DATA = RESUME_DATA[lang];
+const DATA = PUBLIC_RESUME_DATA[lang];
 
 const jsonLd = {
   "@context": "https://schema.org",

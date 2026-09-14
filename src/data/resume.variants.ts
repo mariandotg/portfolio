@@ -189,9 +189,7 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
           'banco-macro': {
             bullets: [
               'Served as development module lead for Sainapse at Banco Macro, acting as primary technical contact for client engineers adopting an AI-powered platform that used LLMs for automated code analysis.',
-              'Coordinated a PM, QA lead, and 2 DevOps engineers to scope and ship product upgrades (including bug fixes and new features) aligned with Banco Macro\'s enterprise requirements.',
               'Designed and implemented a cloud abstraction layer across 5 microservices, enabling deployment on either AWS (DynamoDB, S3, Bedrock, Secrets Manager) or GCP (Cloud Storage, Firestore, Vertex AI, Secret Manager) without code changes.',
-              'Built a provider-agnostic git integration layer across 2 microservices, enabling Sainapse\'s repository analysis to run on both GitHub and GitLab without code changes.',
             ],
           },
         },
@@ -225,9 +223,7 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
           'banco-macro': {
             bullets: [
               'Lideré el módulo de desarrollo de Sainapse en Banco Macro, como referente técnico principal para los ingenieros del cliente que adoptaron una plataforma potenciada por IA para análisis automático de código.',
-              'Coordiné un equipo compuesto por un PM, un líder de QA y 2 DevOps para definir y entregar mejoras al producto (incluyendo correcciones de bugs y nuevas funcionalidades) alineadas con los requerimientos enterprise de Banco Macro.',
               'Diseñé e implementé una capa de abstracción de cloud en 5 microservicios, habilitando el despliegue tanto en AWS (DynamoDB, S3, Bedrock, Secrets Manager) como en GCP (Cloud Storage, Firestore, Vertex AI, Secret Manager) sin cambios en el código.',
-              'Construí una capa de integración git agnóstica al proveedor en 2 microservicios, habilitando el análisis de repositorios de Sainapse tanto en GitHub como en GitLab sin cambios en el código.',
             ],
           },
         },
@@ -360,6 +356,14 @@ interface ReusedBullets {
   a3: string
   /** Internal AI Products' "QA-facing web app prototype" bullet ("A4"). */
   a4: string
+  /** Upward's Node.js/Express microservices bullet. */
+  upNode: string
+  /** Upward's Kotlin/Javalin endpoints bullet. */
+  upKotlin: string
+  /** Upward's 80% unit test coverage bullet. */
+  upTests: string
+  /** Upward's Python/Selenium scraping bot bullet. */
+  upSelenium: string
 }
 
 /** Builds the merged Stefanini job (java/ts variants only), given which final bullets each client uses. */
@@ -369,7 +373,12 @@ function buildRestructuredWork(
   pick: (
     reused: ReusedBullets,
     text: (typeof RESTRUCTURE_TEXT)[Lang],
-  ) => { rciBullets: readonly string[]; fordBullets: readonly string[]; aiProductsBullets: readonly string[] },
+  ) => {
+    rciBullets: readonly string[]
+    fordBullets: readonly string[]
+    aiProductsBullets: readonly string[]
+    upwardBullets: readonly string[]
+  },
 ): Work[] {
   const upward = helpers.job('upward')
   const techlead = helpers.job('stefanini-techlead')
@@ -395,9 +404,13 @@ function buildRestructuredWork(
     a2: aiProducts.bullets[1],
     a3: aiProducts.bullets[2],
     a4: aiProducts.bullets[3],
+    upNode: upward.bullets[0],
+    upKotlin: upward.bullets[1],
+    upTests: upward.bullets[2],
+    upSelenium: upward.bullets[3],
   }
   const text = RESTRUCTURE_TEXT[lang]
-  const { rciBullets, fordBullets, aiProductsBullets } = pick(reused, text)
+  const { rciBullets, fordBullets, aiProductsBullets, upwardBullets } = pick(reused, text)
 
   const stefanini: Work = {
     id: 'stefanini',
@@ -447,7 +460,7 @@ function buildRestructuredWork(
     ],
   }
 
-  return [upward, stefanini]
+  return [{ ...upward, bullets: upwardBullets }, stefanini]
 }
 
 // --- Variant-specific overrides ---------------------------------------------
@@ -558,6 +571,7 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
           fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
           aiProductsBullets: [reused.a1, reused.a2, reused.a3, reused.a4],
+          upwardBullets: [reused.upNode, reused.upKotlin, reused.upTests],
         })),
     },
     es: {
@@ -581,6 +595,7 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
           fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
           aiProductsBullets: [reused.a1, reused.a2, reused.a3, reused.a4],
+          upwardBullets: [reused.upNode, reused.upKotlin, reused.upTests],
         })),
     },
   },
@@ -606,6 +621,7 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
           fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
           aiProductsBullets: [reused.a4, reused.a1, reused.a2, reused.a3],
+          upwardBullets: [reused.upNode, reused.upTests, reused.upSelenium],
         })),
     },
     es: {
@@ -629,6 +645,7 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
           fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
           aiProductsBullets: [reused.a4, reused.a1, reused.a2, reused.a3],
+          upwardBullets: [reused.upNode, reused.upTests, reused.upSelenium],
         })),
     },
   },

@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import React from 'react'
 import { renderToFile } from '@react-pdf/renderer'
-import { RESUME_DATA } from '../data/resume.datav2'
+import { PUBLIC_RESUME_DATA } from '../data/resume'
 import { RESUME_VARIANT_IDS, getVariantResumeData, type Lang } from '../data/resume.variants'
 import { CvDocument } from './components/CvDocument'
 import { findTodos, printTodoReport } from './todo-report'
@@ -29,7 +29,7 @@ function buildTargets(): RenderTarget[] {
       label: `default/${locale}`,
       filename: `mariano-guillaume-cv-${locale}.pdf`,
       locale,
-      data: RESUME_DATA[locale],
+      data: PUBLIC_RESUME_DATA[locale],
       isDefault: true,
     })
   }

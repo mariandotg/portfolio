@@ -1,6 +1,8 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
 import { PUBLIC_RESUME_DATA } from '@/data/resume'
+import { getSkillCategoryClassName } from '@/data/skill-categories'
+import { cn } from '@/lib/utils'
 import { Badge } from '../ui/Badge'
 
 interface Props {
@@ -15,7 +17,7 @@ const DICTIONARY = DICTIONARIES[lang]
     <h2 class="text-lg font-bold">{DICTIONARY.SKILLS}</h2>
     <div class="flex flex-wrap gap-1">
         {DATA.skills.map((skill) =>
-            <Badge className="print:text-[10px]" variant={"secondary"}>
+            <Badge className={cn("print:text-[10px]", getSkillCategoryClassName(skill))} variant={"secondary"}>
                 {skill}
             </Badge>
         )}

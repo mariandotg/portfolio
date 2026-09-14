@@ -23,6 +23,9 @@ interface Props {
   backdropSeed?: string;
   /** Oculta el nombre del nav hasta que el `[data-nav-title-anchor]` de la página sale de vista. */
   revealTitleOnScroll?: boolean;
+  canonicalPath?: string;
+  hreflangEnPath?: string;
+  hreflangEsPath?: string;
 }
 
 const {
@@ -36,6 +39,9 @@ const {
   backdrop = true,
   backdropSeed,
   revealTitleOnScroll = false,
+  canonicalPath,
+  hreflangEnPath,
+  hreflangEsPath,
 } = Astro.props;
 ---
 
@@ -46,6 +52,9 @@ const {
   type={type}
   pubDate={pubDate}
   noindex={noindex}
+  canonicalPath={canonicalPath}
+  hreflangEnPath={hreflangEnPath}
+  hreflangEsPath={hreflangEsPath}
 >
   {backdrop && <BackdropIsland seed={backdropSeed} />}
   <Nav revealTitleOnScroll={revealTitleOnScroll} />

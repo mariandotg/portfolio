@@ -7,6 +7,8 @@ export interface Dictionary {
   PROJECTS: string
   CERTIFICATES: string
   EDUCATION: string
+  /** Site-only merged "Education" + "Certificates" section heading (src/components/cv/sections/EducationAndCertifications.astro). Not used by the PDF, which keeps separate sections. */
+  EDUCATION_AND_CERTIFICATIONS: string
   IN_PROGRESS: string
 }
 

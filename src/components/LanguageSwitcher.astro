@@ -4,8 +4,21 @@ import { getLangFromUrl } from "../i18n/utils";
 const lang = getLangFromUrl(Astro.url);
 const currentPath = Astro.url.pathname;
 
-const enPath = currentPath.replace(/^\/es/, "") || "/";
-const esPath = `/es${enPath === "/" ? "" : enPath}` || "/es";
+// `/resume` (canonical EN CV) and `/es/cv` (canonical ES CV) don't mirror by
+// simple `/es` prefixing, so the pair is special-cased here.
+const SPECIAL_PATH_PAIRS: Record<string, string> = {
+  "/resume": "/es/cv/",
+  "/es/cv": "/resume/",
+};
+// Prerendered static routes carry a trailing slash (`/resume/`); the map above doesn't.
+const normalizedPath = currentPath.replace(/\/$/, "") || "/";
+const specialPath = SPECIAL_PATH_PAIRS[normalizedPath];
+
+const defaultEnPath = currentPath.replace(/^\/es/, "") || "/";
+const defaultEsPath = `/es${defaultEnPath === "/" ? "" : defaultEnPath}` || "/es";
+
+const enPath = lang === "es" && specialPath ? specialPath : defaultEnPath;
+const esPath = lang === "en" && specialPath ? specialPath : defaultEsPath;
 ---
 
 <div class="flex items-center gap-0.5 text-xs">

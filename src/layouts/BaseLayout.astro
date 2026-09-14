@@ -11,9 +11,12 @@ interface Props {
   type?: "website" | "article";
   pubDate?: Date;
   noindex?: boolean;
+  canonicalPath?: string;
+  hreflangEnPath?: string;
+  hreflangEsPath?: string;
 }
 
-const { title, description, image, type, pubDate, noindex } = Astro.props;
+const { title, description, image, type, pubDate, noindex, canonicalPath, hreflangEnPath, hreflangEsPath } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 ---
 
@@ -34,6 +37,9 @@ const lang = getLangFromUrl(Astro.url);
       pubDate={pubDate}
       lang={lang}
       noindex={noindex}
+      canonicalPath={canonicalPath}
+      hreflangEnPath={hreflangEnPath}
+      hreflangEsPath={hreflangEsPath}
     />
     <ClientRouter />
     <script is:inline>

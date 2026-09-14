@@ -18,6 +18,11 @@ export const THEME = {
     itemGap: 7,
     bulletIndent: 10,
     lineHeight: 1.4,
+    // Points of content react-pdf must find directly after a job/client header
+    // before allowing a page break — roughly 2 lines of body text, so a
+    // header is never left alone at the bottom of a page. See
+    // https://react-pdf.org/advanced#orphan-&-widow-protection
+    headerMinPresenceAhead: 28,
   },
   colors: {
     black: '#111827',

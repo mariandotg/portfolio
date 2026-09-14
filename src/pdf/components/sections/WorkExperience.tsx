@@ -44,6 +44,11 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     paddingLeft: 6,
   },
+  clientHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
   clientName: {
     fontFamily: THEME.fonts.heading,
     fontSize: THEME.fontSize.body,
@@ -52,6 +57,10 @@ const styles = StyleSheet.create({
   },
   clientRole: {
     fontFamily: THEME.fonts.bodyItalic,
+    fontSize: THEME.fontSize.small,
+    color: THEME.colors.mediumGray,
+  },
+  clientDateRange: {
     fontSize: THEME.fontSize.small,
     color: THEME.colors.mediumGray,
   },
@@ -75,18 +84,33 @@ const TechStack: React.FC<{ stack: readonly string[] }> = ({ stack }) => (
   </Text>
 )
 
-const ClientEntry: React.FC<{ client: WorkClient }> = ({ client }) => (
-  <View style={styles.clientBlock}>
+const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ client, presentLabel }) => {
+  const nameLine = (
     <Text style={styles.clientName} minPresenceAhead={20}>
       {client.name}
       {client.role && <Text style={styles.clientRole}> — {client.role}</Text>}
     </Text>
-    <BulletList bullets={client.bullets} />
-    {client.techStack && client.techStack.length > 0 && (
-      <TechStack stack={client.techStack} />
-    )}
-  </View>
-)
+  )
+
+  return (
+    <View style={styles.clientBlock}>
+      {client.start != null ? (
+        <View style={styles.clientHeader}>
+          {nameLine}
+          <Text style={styles.clientDateRange}>
+            {client.start} — {client.end ?? presentLabel}
+          </Text>
+        </View>
+      ) : (
+        nameLine
+      )}
+      <BulletList bullets={client.bullets} />
+      {client.techStack && client.techStack.length > 0 && (
+        <TechStack stack={client.techStack} />
+      )}
+    </View>
+  )
+}
 
 const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, presentLabel }) => (
   <View style={styles.entryContainer}>
@@ -108,7 +132,7 @@ const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, prese
     {work.clients && work.clients.length > 0 && (
       <View>
         {work.clients.map((client, i) => (
-          <ClientEntry key={i} client={client} />
+          <ClientEntry key={i} client={client} presentLabel={presentLabel} />
         ))}
       </View>
     )}

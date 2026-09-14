@@ -58,6 +58,9 @@ export interface WorkClient {
   name: string
   logo?: string
   role?: string
+  /** Only rendered (right-aligned on the client header line) when set. */
+  start?: string | null
+  end?: string | null
   bullets: readonly string[]
   techStack?: readonly string[]
 }

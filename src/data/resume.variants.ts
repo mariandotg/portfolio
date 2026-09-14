@@ -13,6 +13,7 @@ import type { Welcome, Work, WorkClient } from '../models/resume.data.models'
 export type ResumeVariantId = 'java' | 'ts'
 export type Lang = 'en' | 'es'
 
+type WorkJobId = 'upward' | 'stefanini-fullstack' | 'stefanini-techlead'
 type FullstackClientId = 'rci' | 'interbanking'
 type TechLeadClientId = 'rci' | 'banco-macro' | 'ford'
 
@@ -36,6 +37,39 @@ interface JobOverride<ClientId extends string> {
   addClients?: readonly WorkClient[]
 }
 
+// --- Restructuring mechanism -------------------------------------------------
+//
+// Content overrides (above) never change the *shape* of `work`: which jobs
+// exist, which clients belong to which job, or their order. A variant that
+// needs that — e.g. merging two jobs into one, or reordering/re-parenting
+// clients — provides `restructureWork`. It runs *after* every content
+// override is applied, and receives typed helpers to fetch already-overridden
+// jobs/clients by id, so restructured strings are reused by reference, not
+// retyped. Fetching an unknown job/client id is a compile error for the known
+// unions below, and throws a clear error at build time otherwise (e.g. a
+// dynamically `addClients`-ed id like `'ai-products'`).
+
+export interface RestructureHelpers {
+  job(id: WorkJobId): Work
+  client(jobId: 'stefanini-fullstack', clientId: FullstackClientId): WorkClient
+  client(jobId: 'stefanini-techlead', clientId: TechLeadClientId | 'ai-products'): WorkClient
+  client(jobId: WorkJobId, clientId: string): WorkClient
+}
+
+function makeRestructureHelpers(jobs: readonly Work[]): RestructureHelpers {
+  function job(id: WorkJobId): Work {
+    const found = jobs.find((j) => j.id === id)
+    if (!found) throw new Error(`restructureWork: unknown job id "${id}"`)
+    return found
+  }
+  function client(jobId: WorkJobId, clientId: string): WorkClient {
+    const found = job(jobId).clients?.find((c) => c.id === clientId)
+    if (!found) throw new Error(`restructureWork: unknown client id "${clientId}" under job "${jobId}"`)
+    return found
+  }
+  return { job, client }
+}
+
 export interface ResumeOverride {
   about?: string
   summary?: string
@@ -45,6 +79,8 @@ export interface ResumeOverride {
     'stefanini-fullstack'?: JobOverride<FullstackClientId>
     'stefanini-techlead'?: JobOverride<TechLeadClientId>
   }
+  /** Runs after all content overrides above; reshapes the final `work` array. */
+  restructureWork?: (base: readonly Work[], helpers: RestructureHelpers) => Work[]
 }
 
 function applyClientOverride(client: WorkClient, override: ClientOverride | undefined): WorkClient {
@@ -130,6 +166,7 @@ export function mergeResumeOverrides(a: ResumeOverride, b: ResumeOverride): Resu
     about: b.about ?? a.about,
     summary: b.summary ?? a.summary,
     skills: b.skills ?? a.skills,
+    restructureWork: b.restructureWork ?? a.restructureWork,
     work: work as ResumeOverride['work'],
   }
 }
@@ -143,9 +180,6 @@ export function mergeResumeOverrides(a: ResumeOverride, b: ResumeOverride): Resu
 const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
   en: {
     work: {
-      'stefanini-fullstack': {
-        title: 'Full Stack Developer',
-      },
       'stefanini-techlead': {
         appendBullets: [
           '[[TODO: bullet about AI-assisted development workflow — Claude Code, Codex, Cursor, Copilot]]',
@@ -157,15 +191,6 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
               'Coordinated a PM, QA lead, and 2 DevOps engineers to scope and ship product upgrades (including bug fixes and new features) aligned with Banco Macro\'s enterprise requirements.',
               'Designed and implemented a cloud abstraction layer across 5 microservices, enabling deployment on either AWS (DynamoDB, S3, Bedrock, Secrets Manager) or GCP (Cloud Storage, Firestore, Vertex AI, Secret Manager) without code changes.',
               'Built a provider-agnostic git integration layer across 2 microservices, enabling Sainapse\'s repository analysis to run on both GitHub and GitLab without code changes.',
-            ],
-          },
-          ford: {
-            role: '[[TODO: current Ford role title — now full time on Ford]]',
-            appendBullets: [
-              '[[TODO: bullet about Java 17/21 + Spring Boot services delivered for Ford]]',
-              '[[TODO: bullet about supply-chain/security scanning with Fossa and Cycode]]',
-              '[[TODO: bullet about CI/CD pipelines with Tekton]]',
-              '[[TODO: bullet about GCP usage — BigQuery, Cloud Run, GCS]]',
             ],
           },
         },
@@ -186,9 +211,6 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
   },
   es: {
     work: {
-      'stefanini-fullstack': {
-        title: 'Desarrollador Full Stack',
-      },
       'stefanini-techlead': {
         appendBullets: [
           '[[TODO: bullet sobre el workflow de desarrollo asistido por IA — Claude Code, Codex, Cursor, Copilot]]',
@@ -200,15 +222,6 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
               'Coordiné un equipo compuesto por un PM, un líder de QA y 2 DevOps para definir y entregar mejoras al producto (incluyendo correcciones de bugs y nuevas funcionalidades) alineadas con los requerimientos enterprise de Banco Macro.',
               'Diseñé e implementé una capa de abstracción de cloud en 5 microservicios, habilitando el despliegue tanto en AWS (DynamoDB, S3, Bedrock, Secrets Manager) como en GCP (Cloud Storage, Firestore, Vertex AI, Secret Manager) sin cambios en el código.',
               'Construí una capa de integración git agnóstica al proveedor en 2 microservicios, habilitando el análisis de repositorios de Sainapse tanto en GitHub como en GitLab sin cambios en el código.',
-            ],
-          },
-          ford: {
-            role: '[[TODO: título del rol actual en Ford — ahora full time en Ford]]',
-            appendBullets: [
-              '[[TODO: bullet sobre servicios en Java 17/21 + Spring Boot para Ford]]',
-              '[[TODO: bullet sobre escaneo de seguridad de la cadena de suministro con Fossa y Cycode]]',
-              '[[TODO: bullet sobre pipelines de CI/CD con Tekton]]',
-              '[[TODO: bullet sobre uso de GCP — BigQuery, Cloud Run, GCS]]',
             ],
           },
         },
@@ -227,6 +240,188 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
       },
     },
   },
+}
+
+// --- Restructured Stefanini job (java + ts variants) ------------------------
+//
+// Both variants collapse `stefanini-fullstack` + `stefanini-techlead` into one
+// `Stefanini` job (title "Full Stack Developer", 2024–present), and rebuild
+// the RCI/Ford client entries with new final text. Bullets that are unchanged
+// from the base résumé (RCI's 2024–2025 Hub Digital/Angular-migration/DocAI
+// bullets, Ford's NEW VAT migration bullet, Ford's interviews bullet) are
+// fetched by id/index and reused by reference rather than retyped.
+
+const RESTRUCTURE_TEXT: Record<
+  Lang,
+  {
+    fullStackTitle: string
+    rciRole: string
+    fordRole: string
+    macroRole: string
+    r1: string
+    r2: string
+    r3: string
+    r4: string
+    f1: string
+    f2: string
+    f3: string
+    f4: string
+    f6: string
+    f7: string
+  }
+> = {
+  en: {
+    fullStackTitle: 'Full Stack Developer',
+    rciRole: 'Technical Lead (since 2025)',
+    fordRole: 'Full Stack Developer',
+    macroRole: 'Development Module Lead',
+    r1: 'Lead technical direction for a 2-developer team, authoring functional specs and technical documents, reviewing code, and unblocking delivery.',
+    r2: 'Leading an end-to-end modernization in its final stages: Java 8/Spring 4 to Java 17/Spring Boot 3, Tomcat 9 to 10, Activiti to Flowable BPMN, and consolidation of multiple Angular micro-frontends into a single frontend.',
+    r3: 'Delivered the invoice approval flow as the mobile app\'s first production MVP on iOS and Android (~50 users), then shipped push notifications through RabbitMQ.',
+    r4: 'Designed an LLM + template-based OCR architecture for invoice text extraction, estimated to cut OCR cloud costs by up to 80%.',
+    f1: 'Built BigQuery-sourced stages (delivery notes, supplier legal names) for a scheduled Spring Boot pipeline service in Java 17/21 that processes 20–30k vehicles per month.',
+    f2: 'Designed a weekly reconciliation job that re-queries a Ford internal microservice for all tracked vehicle parts and updates only changed records in PostgreSQL, keeping reference data current for the append-only daily pipelines.',
+    f3: 'Redesigned the Microsoft Teams notification flow (Power Automate webhooks) into standardized, reusable cards for data errors, exceptions, and pipeline start/finish events across all stages.',
+    f4: 'Refactored scattered role-based checks in the Angular frontend into declarative, granular permissions (e.g. canOpenMenu, canFilterByState), centralizing authorization logic.',
+    f6: 'Contributed to distributed locking across scheduled pipelines, preventing concurrent runs from overlapping.',
+    f7: 'Shipped chart-based reporting views in Angular and REST endpoints with dynamic filtering and pagination.',
+  },
+  es: {
+    fullStackTitle: 'Desarrollador Full Stack',
+    rciRole: 'Technical Lead (desde 2025)',
+    fordRole: 'Desarrollador Full Stack',
+    macroRole: 'Líder de Módulo de Desarrollo',
+    r1: 'Lidero la dirección técnica de un equipo de 2 desarrolladores: redacto especificaciones funcionales y documentos técnicos, reviso código y destrabo la entrega.',
+    r2: 'Lidero una modernización integral en etapas finales: Java 8/Spring 4 a Java 17/Spring Boot 3, Tomcat 9 a 10, Activiti a Flowable BPMN y unificación de varios micro-frontends Angular en un solo frontend.',
+    r3: 'Entregué el flujo de aprobación de facturas como primer MVP productivo de la app móvil en iOS y Android (~50 usuarios) y luego implementé notificaciones push con RabbitMQ.',
+    r4: 'Diseñé una arquitectura de OCR basada en LLMs y templates para extracción de texto de facturas, con un ahorro estimado de hasta el 80% en costos de OCR en la nube.',
+    f1: 'Construí stages que obtienen datos de BigQuery (remitos, razones sociales de proveedores) para un servicio de pipelines programados en Spring Boot y Java 17/21 que procesa 20–30k vehículos por mes.',
+    f2: 'Diseñé un job semanal de reconciliación que consulta un microservicio interno de Ford por todas las piezas y actualiza en PostgreSQL solo los registros que cambiaron, manteniendo vigentes los datos de referencia de los pipelines diarios.',
+    f3: 'Rediseñé las notificaciones en Microsoft Teams (webhooks de Power Automate) con cards estandarizadas y reutilizables para errores de datos, excepciones y avisos de inicio y fin en todos los stages.',
+    f4: 'Refactoricé los chequeos de roles dispersos del frontend Angular a permisos declarativos y granulares (ej. canOpenMenu, canFilterByState), centralizando la lógica de autorización.',
+    f6: 'Colaboré en la implementación de locks distribuidos entre pipelines programados para evitar ejecuciones superpuestas.',
+    f7: 'Entregué vistas de reporting con gráficos en Angular y endpoints REST con filtros dinámicos y paginación.',
+  },
+}
+
+const RCI_TECH_STACK = [
+  'Java 17',
+  'Spring Boot 3',
+  'Flowable BPMN',
+  'Tomcat 10',
+  'Angular 17',
+  'TypeScript',
+  'Ionic',
+  'Capacitor',
+  'RabbitMQ',
+  'SQL Server',
+  'Google Cloud Storage',
+]
+
+const FORD_TECH_STACK = [
+  'Java 17/21',
+  'Spring Boot',
+  'BigQuery',
+  'PostgreSQL',
+  'Angular 17',
+  'TypeScript',
+  'GCP (Cloud Run, GCS)',
+  'Tekton',
+  'Fossa',
+  'Cycode',
+  'Power Automate',
+  'Docker',
+]
+
+interface ReusedBullets {
+  /** RCI's 2024–2025 Hub Digital ownership bullet. */
+  hub: string
+  /** RCI's 2024–2025 AngularJS-to-Angular 17 migration bullet. */
+  ngx: string
+  /** RCI's 2024–2025 Google Cloud Storage + Document AI bullet. */
+  docai: string
+  /** Ford's NEW VAT BigQuery-to-refined-dataset migration bullet ("F5"). */
+  vatBullet: string
+}
+
+/** Builds the merged Stefanini job (java/ts variants only), given which final bullets each client uses. */
+function buildRestructuredWork(
+  helpers: RestructureHelpers,
+  lang: Lang,
+  pick: (
+    reused: ReusedBullets,
+    text: (typeof RESTRUCTURE_TEXT)[Lang],
+  ) => { rciBullets: readonly string[]; fordBullets: readonly string[] },
+): Work[] {
+  const upward = helpers.job('upward')
+  const techlead = helpers.job('stefanini-techlead')
+  const rci2024 = helpers.client('stefanini-fullstack', 'rci')
+  const ford = helpers.client('stefanini-techlead', 'ford')
+  const macro = helpers.client('stefanini-techlead', 'banco-macro')
+  const interbanking = helpers.client('stefanini-fullstack', 'interbanking')
+  const aiProducts = helpers.client('stefanini-techlead', 'ai-products')
+
+  const fordInterviewsBullet = ford.bullets[ford.bullets.length - 1]
+  const aiWorkflowBullet = techlead.bullets?.[0]
+  if (!aiWorkflowBullet) {
+    throw new Error('restructureWork: expected the AI-assisted development bullet on "stefanini-techlead"')
+  }
+
+  const reused: ReusedBullets = {
+    hub: rci2024.bullets[0],
+    ngx: rci2024.bullets[2],
+    docai: rci2024.bullets[3],
+    vatBullet: ford.bullets[0],
+  }
+  const text = RESTRUCTURE_TEXT[lang]
+  const { rciBullets, fordBullets } = pick(reused, text)
+
+  const stefanini: Work = {
+    id: 'stefanini',
+    company: 'Stefanini',
+    logo: techlead.logo,
+    title: text.fullStackTitle,
+    start: '2024',
+    end: null,
+    description: '',
+    bullets: [fordInterviewsBullet, aiWorkflowBullet],
+    clients: [
+      {
+        id: 'rci',
+        name: rci2024.name,
+        logo: rci2024.logo,
+        role: text.rciRole,
+        start: '2024',
+        end: null,
+        bullets: rciBullets,
+        techStack: RCI_TECH_STACK,
+      },
+      {
+        id: 'ford',
+        name: ford.name,
+        logo: ford.logo,
+        role: text.fordRole,
+        start: '2026',
+        end: null,
+        bullets: fordBullets,
+        techStack: FORD_TECH_STACK,
+      },
+      aiProducts,
+      {
+        ...macro,
+        role: text.macroRole,
+        start: '2025',
+        end: '2026',
+      },
+      {
+        ...interbanking,
+        start: '2024',
+        end: '2025',
+      },
+    ],
+  }
+
+  return [upward, stefanini]
 }
 
 // --- Variant-specific overrides ---------------------------------------------
@@ -297,16 +492,12 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
             },
           },
         },
-        'stefanini-techlead': {
-          clients: {
-            rci: {
-              appendBullets: [
-                '[[TODO: bullet about Java 8/Spring 4 -> Java 17/Spring Boot 3 migration and Activiti -> Flowable migration — final stages]]',
-              ],
-            },
-          },
-        },
       },
+      restructureWork: (_base, helpers) =>
+        buildRestructuredWork(helpers, 'en', (reused, text) => ({
+          rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
+          fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
+        })),
     },
     es: {
       about: '[[TODO: resumen breve — backend Java/Spring Boot + enfoque Tech Lead]]',
@@ -322,16 +513,12 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
             },
           },
         },
-        'stefanini-techlead': {
-          clients: {
-            rci: {
-              appendBullets: [
-                '[[TODO: bullet sobre la migración final de Java 8/Spring 4 a Java 17/Spring Boot 3 y de Activiti a Flowable]]',
-              ],
-            },
-          },
-        },
       },
+      restructureWork: (_base, helpers) =>
+        buildRestructuredWork(helpers, 'es', (reused, text) => ({
+          rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
+          fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
+        })),
     },
   },
   ts: {
@@ -351,6 +538,11 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           },
         },
       },
+      restructureWork: (_base, helpers) =>
+        buildRestructuredWork(helpers, 'en', (reused, text) => ({
+          rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
+          fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
+        })),
     },
     es: {
       about: '[[TODO: resumen breve — backend Node.js/TypeScript + enfoque Tech Lead]]',
@@ -368,6 +560,11 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
           },
         },
       },
+      restructureWork: (_base, helpers) =>
+        buildRestructuredWork(helpers, 'es', (reused, text) => ({
+          rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
+          fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
+        })),
     },
   },
 }
@@ -378,5 +575,10 @@ export const RESUME_VARIANT_IDS: readonly ResumeVariantId[] = ['java', 'ts']
 export function getVariantResumeData(variantId: ResumeVariantId, lang: Lang): Welcome {
   const base = RESUME_DATA[lang]
   const merged = mergeResumeOverrides(COMMON_OVERRIDE[lang], VARIANT_OVERRIDE[variantId][lang])
-  return applyResumeOverride(base, merged)
+  const overridden = applyResumeOverride(base, merged)
+
+  if (!merged.restructureWork) return overridden
+
+  const helpers = makeRestructureHelpers(overridden.work)
+  return { ...overridden, work: merged.restructureWork(overridden.work, helpers) }
 }

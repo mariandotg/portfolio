@@ -1,84 +1,52 @@
 /**
- * Skill → category map for the CV skills badges (site only, not the PDF).
- *
- * Covers every literal skill string across the base résumé skill list
- * (`resume.datav2.ts`) and both variant skill lists (`JAVA_SKILLS`,
- * `TS_SKILLS` in `resume.variants.ts`). A skill not listed here falls back
- * to the neutral badge — see `getSkillCategoryClassName`.
+ * Web CV skills (site only, not the PDF): one unified list, grouped by
+ * category, with a small core set as the only accented badges. The variant
+ * lists (`JAVA_SKILLS`, `TS_SKILLS` in `resume.variants.ts`) stay PDF-only.
+ * Color criterion: docs/design/palette.md.
  */
 
 export type SkillCategory =
   | 'languages'
   | 'backend'
-  | 'frontend'
-  | 'cloud-devops'
   | 'data-messaging'
+  | 'cloud-devops'
+  | 'frontend'
   | 'ai-tooling'
 
+/** Union of the java and ts variant lists, in render order. */
+export const WEB_SKILL_GROUPS: readonly { category: SkillCategory; skills: readonly string[] }[] = [
+  { category: 'languages', skills: ['Java 17/21', 'TypeScript', 'SQL', 'Python'] },
+  {
+    category: 'backend',
+    skills: ['Spring Boot', 'Quarkus', 'NestJS', 'Node.js', 'Microservices', 'REST APIs'],
+  },
+  {
+    category: 'data-messaging',
+    skills: ['Kafka', 'Event-Driven Architecture', 'PostgreSQL', 'MongoDB'],
+  },
+  {
+    category: 'cloud-devops',
+    skills: ['GCP (BigQuery, Cloud Run, GCS)', 'AWS', 'Docker', 'Tekton'],
+  },
+  { category: 'frontend', skills: ['Angular', 'React', 'Next.js'] },
+  { category: 'ai-tooling', skills: ['Claude Code', 'Codex', 'Cursor', 'Copilot'] },
+]
+
 /**
- * Tailwind classes per category, built on the accent tokens in `global.css`.
- * Text-only accent — the badge keeps the site's standard neutral chrome
- * (`variant="secondary"`, same background/border as every other badge); only
- * the label color shifts per category, low-saturation, so it reads as sober
- * and consistent with the rest of the (mostly grayscale) portfolio.
+ * Positioning core — the only accented skills. Independent of CV variants.
+ * Keep it to ~20% of `WEB_SKILL_GROUPS`, or the accent stops meaning emphasis.
  */
-const CATEGORY_CLASS_NAMES: Record<SkillCategory, string> = {
-  languages: 'text-accent-blue',
-  backend: 'text-accent-teal',
-  frontend: 'text-accent-orange',
-  'cloud-devops': 'text-accent-amber',
-  'data-messaging': 'text-accent-pink',
-  'ai-tooling': 'text-accent-green',
-}
+export const CORE_SKILLS: ReadonlySet<string> = new Set([
+  'Java 17/21',
+  'Spring Boot',
+  'TypeScript',
+  'Kafka',
+  'Event-Driven Architecture',
+])
 
-const SKILL_CATEGORY_MAP: Record<string, SkillCategory> = {
-  // Languages
-  Java: 'languages',
-  'Java 17/21': 'languages',
-  TypeScript: 'languages',
-  Python: 'languages',
-  SQL: 'languages',
-
-  // Backend frameworks
-  'Spring Boot': 'backend',
-  Quarkus: 'backend',
-  NestJS: 'backend',
-  'Node.js': 'backend',
-  Microservices: 'backend',
-  'REST APIs': 'backend',
-
-  // Frontend
-  Angular: 'frontend',
-  React: 'frontend',
-  'Next.js': 'frontend',
-
-  // Cloud & DevOps
-  GCP: 'cloud-devops',
-  'GCP (BigQuery, Cloud Run, GCS)': 'cloud-devops',
-  AWS: 'cloud-devops',
-  Docker: 'cloud-devops',
-  Tekton: 'cloud-devops',
-
-  // Data & Messaging
-  Kafka: 'data-messaging',
-  'Event-Driven Architecture': 'data-messaging',
-  PostgreSQL: 'data-messaging',
-  BigQuery: 'data-messaging',
-  MongoDB: 'data-messaging',
-
-  // AI tooling
-  'Claude Code': 'ai-tooling',
-  Codex: 'ai-tooling',
-  Cursor: 'ai-tooling',
-  Copilot: 'ai-tooling',
-}
-
-export function getSkillCategory(skill: string): SkillCategory | undefined {
-  return SKILL_CATEGORY_MAP[skill]
-}
-
-/** Returns the category's Tailwind classes, or `undefined` for an unknown skill (neutral badge). */
-export function getSkillCategoryClassName(skill: string): string | undefined {
-  const category = getSkillCategory(skill)
-  return category ? CATEGORY_CLASS_NAMES[category] : undefined
+const ALL_WEB_SKILLS = new Set(WEB_SKILL_GROUPS.flatMap((group) => group.skills))
+for (const skill of CORE_SKILLS) {
+  if (!ALL_WEB_SKILLS.has(skill)) {
+    throw new Error(`CORE_SKILLS has "${skill}", which is not in WEB_SKILL_GROUPS`)
+  }
 }

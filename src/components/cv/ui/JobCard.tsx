@@ -2,6 +2,8 @@ import React from 'react'
 import { Card, CardContent, CardHeader } from './Card'
 import { Badge } from './Badge'
 import type { Work } from '@/models/resume.data.models'
+import { CORE_SKILL_BADGE_CLASS, isCoreSkill } from '@/data/skill-categories'
+import { cn } from '@/lib/utils'
 
 interface Props {
   work: Work
@@ -47,7 +49,10 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
               <Badge
                 key={tech}
                 variant="secondary"
-                className="text-xs print:text-[8px] print:leading-tight print:px-1 print:py-0.5"
+                className={cn(
+                  "text-xs print:text-[8px] print:leading-tight print:px-1 print:py-0.5",
+                  isCoreSkill(tech) && CORE_SKILL_BADGE_CLASS,
+                )}
               >
                 {tech}
               </Badge>
@@ -96,7 +101,10 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
                       <Badge
                         key={tech}
                         variant="secondary"
-                        className="text-xs print:text-[8px] print:leading-tight print:px-1 print:py-0.5"
+                        className={cn(
+                          "text-xs print:text-[8px] print:leading-tight print:px-1 print:py-0.5",
+                          isCoreSkill(tech) && CORE_SKILL_BADGE_CLASS,
+                        )}
                       >
                         {tech}
                       </Badge>

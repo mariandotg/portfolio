@@ -66,13 +66,20 @@ const styles = StyleSheet.create({
   },
 })
 
+// A single bullet marker + text. `wrap={false}` keeps the row atomic: react-pdf
+// either renders the whole row on the current page or moves it whole to the
+// next one — it never splits the marker from its text across a page break.
+const Bullet: React.FC<{ text: string }> = ({ text }) => (
+  <View style={commonStyles.bulletItem} wrap={false}>
+    <Text style={commonStyles.bulletDot}>{'•'}</Text>
+    <Text style={commonStyles.bulletText}>{text}</Text>
+  </View>
+)
+
 const BulletList: React.FC<{ bullets: readonly string[] }> = ({ bullets }) => (
   <View>
     {bullets.map((bullet, i) => (
-      <View key={i} style={commonStyles.bulletItem}>
-        <Text style={commonStyles.bulletDot}>{'\u2022'}</Text>
-        <Text style={commonStyles.bulletText}>{bullet}</Text>
-      </View>
+      <Bullet key={i} text={bullet} />
     ))}
   </View>
 )
@@ -86,25 +93,32 @@ const TechStack: React.FC<{ stack: readonly string[] }> = ({ stack }) => (
 
 const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ client, presentLabel }) => {
   const nameLine = (
-    <Text style={styles.clientName} minPresenceAhead={20}>
+    <Text style={styles.clientName}>
       {client.name}
       {client.role && <Text style={styles.clientRole}> — {client.role}</Text>}
     </Text>
   )
+  const [firstBullet, ...restBullets] = client.bullets
 
   return (
     <View style={styles.clientBlock}>
-      {client.start != null ? (
-        <View style={styles.clientHeader}>
-          {nameLine}
-          <Text style={styles.clientDateRange}>
-            {client.start} — {client.end ?? presentLabel}
-          </Text>
-        </View>
-      ) : (
-        nameLine
-      )}
-      <BulletList bullets={client.bullets} />
+      {/* Bundles the header with its first bullet into one atomic block, so a
+          page break never leaves the header alone with its bullet(s) pushed
+          to the next page — the whole bundle moves together instead. */}
+      <View wrap={false}>
+        {client.start != null ? (
+          <View style={styles.clientHeader}>
+            {nameLine}
+            <Text style={styles.clientDateRange}>
+              {client.start} — {client.end ?? presentLabel}
+            </Text>
+          </View>
+        ) : (
+          nameLine
+        )}
+        {firstBullet && <Bullet text={firstBullet} />}
+      </View>
+      {restBullets.length > 0 && <BulletList bullets={restBullets} />}
       {client.techStack && client.techStack.length > 0 && (
         <TechStack stack={client.techStack} />
       )}
@@ -112,32 +126,38 @@ const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ c
   )
 }
 
-const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, presentLabel }) => (
-  <View style={styles.entryContainer}>
-    <View style={styles.entryHeader} wrap={false}>
-      <Text style={styles.company}>{work.company}</Text>
-      <Text style={styles.dateRange}>
-        {work.start} — {work.end ?? presentLabel}
-      </Text>
-    </View>
-    <Text style={styles.jobTitle}>{work.title}</Text>
+const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, presentLabel }) => {
+  const [firstBullet, ...restBullets] = work.bullets ?? []
 
-    {work.bullets && work.bullets.length > 0 && (
-      <BulletList bullets={work.bullets} />
-    )}
-    {work.techStack && work.techStack.length > 0 && (
-      <TechStack stack={work.techStack} />
-    )}
-
-    {work.clients && work.clients.length > 0 && (
-      <View>
-        {work.clients.map((client, i) => (
-          <ClientEntry key={i} client={client} presentLabel={presentLabel} />
-        ))}
+  return (
+    <View style={styles.entryContainer}>
+      {/* Same atomic-bundle strategy as ClientEntry, for the job's own header. */}
+      <View wrap={false}>
+        <View style={styles.entryHeader}>
+          <Text style={styles.company}>{work.company}</Text>
+          <Text style={styles.dateRange}>
+            {work.start} — {work.end ?? presentLabel}
+          </Text>
+        </View>
+        <Text style={styles.jobTitle}>{work.title}</Text>
+        {firstBullet && <Bullet text={firstBullet} />}
       </View>
-    )}
-  </View>
-)
+
+      {restBullets.length > 0 && <BulletList bullets={restBullets} />}
+      {work.techStack && work.techStack.length > 0 && (
+        <TechStack stack={work.techStack} />
+      )}
+
+      {work.clients && work.clients.length > 0 && (
+        <View>
+          {work.clients.map((client, i) => (
+            <ClientEntry key={i} client={client} presentLabel={presentLabel} />
+          ))}
+        </View>
+      )}
+    </View>
+  )
+}
 
 interface WorkExperienceProps {
   work: Work[]

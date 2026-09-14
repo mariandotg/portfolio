@@ -182,7 +182,8 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
     work: {
       'stefanini-techlead': {
         appendBullets: [
-          '[[TODO: bullet about AI-assisted development workflow — Claude Code, Codex, Cursor, Copilot]]',
+          'Act as AI ambassador for Stefanini Argentina, driving internal AI initiatives; taught a Claude Certified Architect preparation course (one session per exam domain) to 10–15 colleagues across roles.',
+          'Apply AI-assisted development in daily client delivery, using GitHub Copilot at Ford and Cursor at Stefanini.',
         ],
         clients: {
           'banco-macro': {
@@ -197,13 +198,17 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
         addClients: [
           {
             id: 'ai-products',
-            name: '[[TODO: name this client entry — keep generic, e.g. "Internal AI Products", no product names]]',
-            role: 'Tech Lead',
+            name: 'Internal AI Products',
+            role: 'Architect & Sole Developer',
+            start: '2026',
+            end: null,
             bullets: [
-              '[[TODO: bullet about an AI coding agent — Python backend on Cloud Run + CLI]]',
-              '[[TODO: bullet about an AI developer platform web app — Next.js 15, React 19, Tailwind v4]]',
+              'Designed and built an AI coding agent for the terminal on Stefanini\'s proprietary LLM platform: a Python CLI plus a FastAPI backend on Cloud Run, distributed as an npm package through GitLab CI.',
+              'Enforced deterministic guards around the LLM: file changes stay blocked until a plan is approved, rules decide step completion instead of model output, verification commands are allowlisted across Python, Node, Java, Go, Rust, and .NET, and every write is checkpointed for rollback.',
+              'Backed the agent and its shared engine with ~1,300 automated tests, and drove its adoption in a client team that delivered an estimated 20–30% more tasks per month.',
+              'Prototyped a QA-facing web app (Next.js, React 19, Tailwind v4) that maps microservice dependencies and explains how a change in one service impacts others.',
             ],
-            techStack: ['Python', 'Cloud Run', 'CLI', 'Next.js 15', 'React 19', 'Tailwind v4'],
+            techStack: ['Python', 'FastAPI', 'Cloud Run', 'GitLab CI', 'pytest', 'Next.js', 'React 19', 'TypeScript', 'Tailwind v4'],
           },
         ],
       },
@@ -213,7 +218,8 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
     work: {
       'stefanini-techlead': {
         appendBullets: [
-          '[[TODO: bullet sobre el workflow de desarrollo asistido por IA — Claude Code, Codex, Cursor, Copilot]]',
+          'Soy embajador de IA de Stefanini Argentina e impulso iniciativas internas de IA; dicté un curso de preparación para la certificación Claude Certified Architect (una clase por dominio) a 10–15 colegas de distintos perfiles.',
+          'Aplico desarrollo asistido por IA en la entrega diaria para clientes, con GitHub Copilot en Ford y Cursor en Stefanini.',
         ],
         clients: {
           'banco-macro': {
@@ -228,13 +234,17 @@ const COMMON_OVERRIDE: Record<Lang, ResumeOverride> = {
         addClients: [
           {
             id: 'ai-products',
-            name: '[[TODO: nombre para este cliente — genérico, ej. "Productos de IA internos", sin nombrar productos]]',
-            role: 'Tech Lead',
+            name: 'Productos internos de IA',
+            role: 'Arquitecto y único desarrollador',
+            start: '2026',
+            end: null,
             bullets: [
-              '[[TODO: bullet sobre un agente de IA para código — backend en Python en Cloud Run + CLI]]',
-              '[[TODO: bullet sobre una web app de plataforma de desarrollo con IA — Next.js 15, React 19, Tailwind v4]]',
+              'Diseñé y construí un agente de IA para programar desde la terminal sobre la plataforma LLM propietaria de Stefanini: un CLI en Python y un backend FastAPI en Cloud Run, distribuido como paquete npm mediante GitLab CI.',
+              'Implementé guardas determinísticas alrededor del LLM: los cambios de archivos quedan bloqueados hasta aprobar un plan, las reglas deciden cuándo termina cada paso en lugar del modelo, los comandos de verificación usan una allowlist para Python, Node, Java, Go, Rust y .NET, y cada escritura genera un checkpoint para rollback.',
+              'Respaldé el agente y su motor compartido con ~1.300 tests automatizados e impulsé su adopción en un equipo de cliente que entregó un estimado de 20–30% más tareas por mes.',
+              'Prototipé una web app para QA (Next.js, React 19, Tailwind v4) que mapea dependencias entre microservicios y explica cómo un cambio en un servicio impacta en otros.',
             ],
-            techStack: ['Python', 'Cloud Run', 'CLI', 'Next.js 15', 'React 19', 'Tailwind v4'],
+            techStack: ['Python', 'FastAPI', 'Cloud Run', 'GitLab CI', 'pytest', 'Next.js', 'React 19', 'TypeScript', 'Tailwind v4'],
           },
         ],
       },
@@ -342,6 +352,14 @@ interface ReusedBullets {
   docai: string
   /** Ford's NEW VAT BigQuery-to-refined-dataset migration bullet ("F5"). */
   vatBullet: string
+  /** Internal AI Products' "AI coding agent" bullet ("A1"). */
+  a1: string
+  /** Internal AI Products' "deterministic guards" bullet ("A2"). */
+  a2: string
+  /** Internal AI Products' "~1,300 tests + adoption" bullet ("A3"). */
+  a3: string
+  /** Internal AI Products' "QA-facing web app prototype" bullet ("A4"). */
+  a4: string
 }
 
 /** Builds the merged Stefanini job (java/ts variants only), given which final bullets each client uses. */
@@ -351,7 +369,7 @@ function buildRestructuredWork(
   pick: (
     reused: ReusedBullets,
     text: (typeof RESTRUCTURE_TEXT)[Lang],
-  ) => { rciBullets: readonly string[]; fordBullets: readonly string[] },
+  ) => { rciBullets: readonly string[]; fordBullets: readonly string[]; aiProductsBullets: readonly string[] },
 ): Work[] {
   const upward = helpers.job('upward')
   const techlead = helpers.job('stefanini-techlead')
@@ -362,9 +380,10 @@ function buildRestructuredWork(
   const aiProducts = helpers.client('stefanini-techlead', 'ai-products')
 
   const fordInterviewsBullet = ford.bullets[ford.bullets.length - 1]
-  const aiWorkflowBullet = techlead.bullets?.[0]
-  if (!aiWorkflowBullet) {
-    throw new Error('restructureWork: expected the AI-assisted development bullet on "stefanini-techlead"')
+  const sAmbassadorBullet = techlead.bullets?.[0]
+  const sAiWorkflowBullet = techlead.bullets?.[1]
+  if (!sAmbassadorBullet || !sAiWorkflowBullet) {
+    throw new Error('restructureWork: expected the AI-ambassador and AI-assisted-development bullets on "stefanini-techlead"')
   }
 
   const reused: ReusedBullets = {
@@ -372,9 +391,13 @@ function buildRestructuredWork(
     ngx: rci2024.bullets[2],
     docai: rci2024.bullets[3],
     vatBullet: ford.bullets[0],
+    a1: aiProducts.bullets[0],
+    a2: aiProducts.bullets[1],
+    a3: aiProducts.bullets[2],
+    a4: aiProducts.bullets[3],
   }
   const text = RESTRUCTURE_TEXT[lang]
-  const { rciBullets, fordBullets } = pick(reused, text)
+  const { rciBullets, fordBullets, aiProductsBullets } = pick(reused, text)
 
   const stefanini: Work = {
     id: 'stefanini',
@@ -384,7 +407,7 @@ function buildRestructuredWork(
     start: '2024',
     end: null,
     description: '',
-    bullets: [fordInterviewsBullet, aiWorkflowBullet],
+    bullets: [sAmbassadorBullet, sAiWorkflowBullet, fordInterviewsBullet],
     clients: [
       {
         id: 'rci',
@@ -406,7 +429,10 @@ function buildRestructuredWork(
         bullets: fordBullets,
         techStack: FORD_TECH_STACK,
       },
-      aiProducts,
+      {
+        ...aiProducts,
+        bullets: aiProductsBullets,
+      },
       {
         ...macro,
         role: text.macroRole,
@@ -476,19 +502,53 @@ const TS_SKILLS = [
   'Copilot',
 ]
 
+const INTERBANKING_TECH_STACK = [
+  'Java 17',
+  'Quarkus',
+  'Microservices',
+  'NestJS',
+  'Node.js',
+  'Kafka',
+  'Kafka Connect',
+  'Oracle Database',
+  'MongoDB',
+]
+
+const INTERBANKING_TEXT: Record<Lang, { i2: string; i3: string; i4: string }> = {
+  en: {
+    i2: 'Built a payment service with idempotency keys persisted in MongoDB and distributed locking, preventing duplicate payments and race conditions under high concurrent load.',
+    i3: 'Implemented Java consumers for change-data-capture events streamed from the legacy monolith\'s Oracle database into Kafka via Kafka Connect, so new microservices could act on VEP records without coupling to the monolith.',
+    i4: 'Built the NestJS backend-for-frontend (BFF) that aggregated data from multiple microservices and shaped it for the web frontend, contributing to its design.',
+  },
+  es: {
+    i2: 'Construí un servicio de pagos con claves de idempotencia persistidas en MongoDB y locks distribuidos, evitando pagos duplicados y race conditions bajo alta carga concurrente.',
+    i3: 'Implementé consumers en Java para eventos de change data capture que Kafka Connect enviaba a Kafka desde la base Oracle del monolito legacy, para que los nuevos microservicios actuaran sobre los VEPs sin acoplarse al monolito.',
+    i4: 'Construí el BFF (backend-for-frontend) en NestJS que agregaba datos de varios microservicios y los adaptaba para el frontend web, participando en su diseño.',
+  },
+}
+
+/** Fetches Interbanking's base "2 of 5 Quarkus microservices" bullet ("I1") from the default résumé, by reference. */
+function interbankingBaseBullet(lang: Lang): string {
+  const job = RESUME_DATA[lang].work.find((w) => w.id === 'stefanini-fullstack')
+  const client = job?.clients?.find((c) => c.id === 'interbanking')
+  if (!client) throw new Error('interbankingBaseBullet: could not find stefanini-fullstack/interbanking in RESUME_DATA')
+  return client.bullets[0]
+}
+
 const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = {
   java: {
     en: {
-      about: '[[TODO: about line — Java/Spring Boot backend + Tech Lead angle]]',
-      summary: '[[TODO: summary — Java/Spring Boot backend + Tech Lead angle]]',
+      about:
+        'Backend Engineer & Technical Lead specializing in Java 17/21 and Spring Boot, with 4+ years building fintech and enterprise systems.',
+      summary:
+        'Backend engineer with 4+ years of remote experience in Java and Spring Boot across fintech, automotive, and enterprise clients. I lead the technical direction of a Java 8/Spring 4 to Java 17/Spring Boot 3 and Flowable modernization, build scheduled data pipelines on GCP for Ford, and helped decompose a Java monolith into Quarkus microservices with Kafka-based change data capture for a platform serving 40,000+ companies. I also designed and built an internal AI coding agent, and I work spec-first with AI agents. Based in Buenos Aires (GMT-3), upper-intermediate English (B2).',
       skills: JAVA_SKILLS,
       work: {
         'stefanini-fullstack': {
           clients: {
             interbanking: {
-              appendBullets: [
-                '[[TODO: bullet about Kafka messaging between microservices — event-driven, async and non-blocking for users]]',
-              ],
+              bullets: [interbankingBaseBullet('en'), INTERBANKING_TEXT.en.i3, INTERBANKING_TEXT.en.i2, INTERBANKING_TEXT.en.i4],
+              techStack: INTERBANKING_TECH_STACK,
             },
           },
         },
@@ -497,19 +557,21 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
         buildRestructuredWork(helpers, 'en', (reused, text) => ({
           rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
           fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
+          aiProductsBullets: [reused.a1, reused.a2, reused.a3, reused.a4],
         })),
     },
     es: {
-      about: '[[TODO: resumen breve — backend Java/Spring Boot + enfoque Tech Lead]]',
-      summary: '[[TODO: resumen extendido — backend Java/Spring Boot + enfoque Tech Lead]]',
+      about:
+        'Ingeniero Backend y Technical Lead especializado en Java 17/21 y Spring Boot, con más de 4 años construyendo sistemas fintech y enterprise.',
+      summary:
+        'Ingeniero backend con más de 4 años de experiencia remota en Java y Spring Boot para clientes fintech, automotrices y enterprise. Lidero la dirección técnica de una modernización de Java 8/Spring 4 a Java 17/Spring Boot 3 y Flowable, construyo pipelines de datos programados en GCP para Ford y participé en la descomposición de un monolito Java en microservicios Quarkus con change data capture sobre Kafka para una plataforma con más de 40.000 empresas. También diseñé y construí un agente interno de IA para programar y trabajo spec-first con agentes de IA. Vivo en Buenos Aires (GMT-3) y tengo inglés intermedio-alto (B2).',
       skills: JAVA_SKILLS,
       work: {
         'stefanini-fullstack': {
           clients: {
             interbanking: {
-              appendBullets: [
-                '[[TODO: bullet sobre mensajería con Kafka entre microservicios — event-driven, asíncrono y no bloqueante para los usuarios]]',
-              ],
+              bullets: [interbankingBaseBullet('es'), INTERBANKING_TEXT.es.i3, INTERBANKING_TEXT.es.i2, INTERBANKING_TEXT.es.i4],
+              techStack: INTERBANKING_TECH_STACK,
             },
           },
         },
@@ -518,22 +580,23 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
         buildRestructuredWork(helpers, 'es', (reused, text) => ({
           rciBullets: [text.r1, text.r2, text.r3, text.r4, reused.hub, reused.docai],
           fordBullets: [text.f1, text.f2, text.f6, reused.vatBullet, text.f3],
+          aiProductsBullets: [reused.a1, reused.a2, reused.a3, reused.a4],
         })),
     },
   },
   ts: {
     en: {
-      about: '[[TODO: about line — Node.js/TypeScript backend + Tech Lead angle]]',
-      summary: '[[TODO: summary — Node.js/TypeScript backend + Tech Lead angle]]',
+      about:
+        'Full Stack Engineer & Technical Lead working with TypeScript, Node.js, NestJS, and Angular, with 4+ years building fintech and enterprise systems.',
+      summary:
+        'Full stack engineer with 4+ years of remote experience across fintech, automotive, and enterprise clients. I built a NestJS backend-for-frontend aggregating microservices for a payment platform serving 40,000+ companies, led an AngularJS to Angular 17 migration and a declarative permissions refactor, and designed and built internal AI products: a Python coding agent with deterministic guards and a Next.js/React prototype for microservice impact analysis. I work spec-first with AI agents (Claude Code, Codex, Cursor, Copilot). Based in Buenos Aires (GMT-3), upper-intermediate English (B2).',
       skills: TS_SKILLS,
       work: {
         'stefanini-fullstack': {
           clients: {
             interbanking: {
-              appendBullets: [
-                '[[TODO: bullet about NestJS BFFs built for Interbanking]]',
-                '[[TODO: bullet about Kafka event-driven messaging between microservices]]',
-              ],
+              bullets: [INTERBANKING_TEXT.en.i4, INTERBANKING_TEXT.en.i3, INTERBANKING_TEXT.en.i2, interbankingBaseBullet('en')],
+              techStack: INTERBANKING_TECH_STACK,
             },
           },
         },
@@ -542,20 +605,21 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
         buildRestructuredWork(helpers, 'en', (reused, text) => ({
           rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
           fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
+          aiProductsBullets: [reused.a4, reused.a1, reused.a2, reused.a3],
         })),
     },
     es: {
-      about: '[[TODO: resumen breve — backend Node.js/TypeScript + enfoque Tech Lead]]',
-      summary: '[[TODO: resumen extendido — backend Node.js/TypeScript + enfoque Tech Lead]]',
+      about:
+        'Ingeniero Full Stack y Technical Lead con TypeScript, Node.js, NestJS y Angular, con más de 4 años construyendo sistemas fintech y enterprise.',
+      summary:
+        'Ingeniero full stack con más de 4 años de experiencia remota para clientes fintech, automotrices y enterprise. Construí un BFF en NestJS que agrega microservicios para una plataforma de pagos con más de 40.000 empresas, lideré una migración de AngularJS a Angular 17 y un refactor de permisos declarativos, y diseñé y construí productos internos de IA: un agente de programación en Python con guardas determinísticas y un prototipo en Next.js/React para análisis de impacto entre microservicios. Trabajo spec-first con agentes de IA (Claude Code, Codex, Cursor, Copilot). Vivo en Buenos Aires (GMT-3) y tengo inglés intermedio-alto (B2).',
       skills: TS_SKILLS,
       work: {
         'stefanini-fullstack': {
           clients: {
             interbanking: {
-              appendBullets: [
-                '[[TODO: bullet sobre BFFs construidos con NestJS para Interbanking]]',
-                '[[TODO: bullet sobre mensajería event-driven con Kafka entre microservicios]]',
-              ],
+              bullets: [INTERBANKING_TEXT.es.i4, INTERBANKING_TEXT.es.i3, INTERBANKING_TEXT.es.i2, interbankingBaseBullet('es')],
+              techStack: INTERBANKING_TECH_STACK,
             },
           },
         },
@@ -564,6 +628,7 @@ const VARIANT_OVERRIDE: Record<ResumeVariantId, Record<Lang, ResumeOverride>> = 
         buildRestructuredWork(helpers, 'es', (reused, text) => ({
           rciBullets: [text.r1, text.r2, reused.ngx, text.r3, text.r4, reused.hub],
           fordBullets: [text.f4, text.f3, text.f7, text.f1, text.f2],
+          aiProductsBullets: [reused.a4, reused.a1, reused.a2, reused.a3],
         })),
     },
   },

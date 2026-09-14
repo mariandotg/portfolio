@@ -39,6 +39,7 @@ const EN_DATA = {
   },
   work: [
     {
+      id: 'upward',
       company: 'Upward Solutions',
       title: 'Backend Developer',
       start: '2022',
@@ -53,6 +54,7 @@ const EN_DATA = {
       ],
     },
     {
+      id: 'stefanini-fullstack',
       company: 'Stefanini',
       logo: '/logos/stefanini.png',
       title: 'SemiSenior Full Stack Developer',
@@ -62,6 +64,7 @@ const EN_DATA = {
         'Worked as a full stack consultant across multiple clients, delivering backend and frontend solutions in production environments.',
       clients: [
         {
+          id: 'rci',
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
           bullets: [
@@ -73,6 +76,7 @@ const EN_DATA = {
           techStack: ['Java', 'Spring Boot', 'Angular 17', 'AngularJS', 'Ionic', 'Capacitor', 'TypeScript', 'SQL Server', 'Activiti BPMN', 'Google Cloud Storage'],
         },
         {
+          id: 'interbanking',
           name: 'Interbanking',
           logo: '/logos/interbanking.ico',
           bullets: [
@@ -84,6 +88,7 @@ const EN_DATA = {
       ],
     },
     {
+      id: 'stefanini-techlead',
       company: 'Stefanini',
       logo: '/logos/stefanini.png',
       title: 'Tech Lead',
@@ -93,6 +98,7 @@ const EN_DATA = {
         'Leading development teams across multiple client accounts, driving technical decisions, conducting code reviews, and supporting HR in engineering recruitment.',
       clients: [
         {
+          id: 'rci',
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
           role: 'Tech Lead',
@@ -105,6 +111,7 @@ const EN_DATA = {
           techStack: ['Java', 'Spring Boot', 'Angular 17', 'Ionic', 'Capacitor', 'TypeScript', 'SQL Server', 'Activiti BPMN', 'Google Cloud Storage', 'RabbitMQ'],
         },
         {
+          id: 'banco-macro',
           name: 'Banco Macro',
           logo: '/logos/banco-macro.png',
           role: 'Tech Lead',
@@ -117,6 +124,7 @@ const EN_DATA = {
           techStack: ['Python', 'FastAPI', 'Microservices', 'AWS', 'GCP', 'Generative AI', 'Machine Learning'],
         },
         {
+          id: 'ford',
           name: 'Ford',
           logo: '/logos/ford.ico',
           role: 'Full Stack Developer',
@@ -202,6 +210,7 @@ const ES_DATA = {
   },
   work: [
     {
+      id: 'upward',
       company: 'Upward Solutions',
       title: 'Desarrollador Backend',
       start: '2022',
@@ -216,6 +225,7 @@ const ES_DATA = {
       ],
     },
     {
+      id: 'stefanini-fullstack',
       company: 'Stefanini',
       logo: '/logos/stefanini.png',
       title: 'Desarrollador Full Stack SemiSenior',
@@ -225,6 +235,7 @@ const ES_DATA = {
         'Trabajé como consultor full stack para múltiples clientes, entregando soluciones backend y frontend en entornos productivos.',
       clients: [
         {
+          id: 'rci',
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
           bullets: [
@@ -236,6 +247,7 @@ const ES_DATA = {
           techStack: ['Java', 'Spring Boot', 'Angular 17', 'AngularJS', 'Ionic', 'Capacitor', 'TypeScript', 'SQL Server', 'Activiti BPMN', 'Google Cloud Storage'],
         },
         {
+          id: 'interbanking',
           name: 'Interbanking',
           logo: '/logos/interbanking.ico',
           bullets: [
@@ -247,6 +259,7 @@ const ES_DATA = {
       ],
     },
     {
+      id: 'stefanini-techlead',
       company: 'Stefanini',
       logo: '/logos/stefanini.png',
       title: 'Tech Lead',
@@ -256,6 +269,7 @@ const ES_DATA = {
         'Liderando equipos de desarrollo para múltiples clientes, tomando decisiones técnicas, realizando code reviews y apoyando a RRHH en procesos de selección técnica.',
       clients: [
         {
+          id: 'rci',
           name: 'RCI (Renault Credit International)',
           logo: '/logos/rci.png',
           role: 'Tech Lead',
@@ -268,6 +282,7 @@ const ES_DATA = {
           techStack: ['Java', 'Spring Boot', 'Angular 17', 'Ionic', 'Capacitor', 'TypeScript', 'SQL Server', 'Activiti BPMN', 'Google Cloud Storage', 'RabbitMQ'],
         },
         {
+          id: 'banco-macro',
           name: 'Banco Macro',
           logo: '/logos/banco-macro.png',
           role: 'Tech Lead',
@@ -280,6 +295,7 @@ const ES_DATA = {
           techStack: ['Python', 'FastAPI', 'Microservicios', 'AWS', 'GCP', 'IA Generativa', 'Machine Learning'],
         },
         {
+          id: 'ford',
           name: 'Ford',
           logo: '/logos/ford.ico',
           role: 'Desarrollador Full Stack',

@@ -54,6 +54,7 @@ export interface Link {
 }
 
 export interface WorkClient {
+  id: string
   name: string
   logo?: string
   role?: string
@@ -62,6 +63,7 @@ export interface WorkClient {
 }
 
 export interface Work {
+  id: string
   company: string
   logo?: string
   title: string

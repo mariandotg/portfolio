@@ -1,6 +1,6 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
-import { RESUME_DATA } from '@/data/resume.datav2'
+import { PUBLIC_RESUME_DATA } from '@/data/resume'
 import { Badge } from '../ui/Badge'
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { lang } = Astro.props
-const DATA = RESUME_DATA[lang]
+const DATA = PUBLIC_RESUME_DATA[lang]
 const DICTIONARY = DICTIONARIES[lang]
 ---
 <section class="flex flex-col gap-y-3">

@@ -1,13 +1,13 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
-import { RESUME_DATA } from '@/data/resume.datav2'
+import { PUBLIC_RESUME_DATA } from '@/data/resume'
 
 interface Props {
   lang: 'en' | 'es'
 }
 
 const { lang } = Astro.props
-const DATA = RESUME_DATA[lang]
+const DATA = PUBLIC_RESUME_DATA[lang]
 const DICTIONARY = DICTIONARIES[lang]
 ---
 <section>

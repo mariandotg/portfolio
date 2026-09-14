@@ -61,19 +61,26 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
                 key={client.name}
                 className="rounded-md border border-border bg-card p-3 print-avoid-break"
               >
-                <div className="flex items-center gap-2">
-                  {client.logo && (
-                    <img
-                      src={client.logo}
-                      alt={`${client.name} logo`}
-                      className="size-5 rounded object-contain bg-white p-0.5"
-                    />
-                  )}
-                  <p className="text-sm font-semibold">{client.name}</p>
-                  {client.role && (
-                    <p className="text-xs text-muted-foreground print:text-[8px]">
-                      {client.role}
-                    </p>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {client.logo && (
+                      <img
+                        src={client.logo}
+                        alt={`${client.name} logo`}
+                        className="size-5 rounded object-contain bg-white p-0.5"
+                      />
+                    )}
+                    <p className="text-sm font-semibold">{client.name}</p>
+                    {client.role && (
+                      <p className="text-xs text-muted-foreground print:text-[8px]">
+                        {client.role}
+                      </p>
+                    )}
+                  </div>
+                  {client.start != null && (
+                    <div className="text-xs tabular-nums text-gray-400 whitespace-nowrap print:text-[8px]">
+                      {client.start} - {client.end ?? 'Present'}
+                    </div>
                   )}
                 </div>
                 <ul className="mt-2 ml-4 list-disc flex flex-col gap-1">

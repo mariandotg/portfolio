@@ -12,6 +12,7 @@ export const es: Translations = {
   footer: {
     rights: "Todos los derechos reservados.",
     madeWith: "Hecho con Astro",
+    madeIn: "Hecho con ❤️ en 🇦🇷",
   },
   home: {
     heroHeadline: "Construyo productos web que hacen crecer tu negocio.",

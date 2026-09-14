@@ -10,6 +10,7 @@ export const en = {
   footer: {
     rights: "All rights reserved.",
     madeWith: "Built with Astro",
+    madeIn: "Made with ❤️ in 🇦🇷",
   },
   home: {
     heroHeadline: "I build web products that grow your business.",

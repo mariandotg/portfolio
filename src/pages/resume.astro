@@ -4,7 +4,9 @@ import CvPage from "../components/cv/CvPage.astro";
 import { PUBLIC_RESUME_DATA } from "../data/resume";
 import { getLangFromUrl } from "../i18n/utils";
 
-// `/cv` keeps working (no redirect), but `/resume` is now the canonical EN URL.
+// `/resume` is the canonical EN URL for the CV (see `/cv`, which canonicalizes
+// here). `/es/cv` is the canonical ES URL — the two are cross-linked via
+// hreflang below since their paths don't mirror by `/es` prefixing.
 const lang = getLangFromUrl(Astro.url);
 const DATA = PUBLIC_RESUME_DATA[lang];
 
@@ -18,14 +20,7 @@ const jsonLd = {
 };
 ---
 
-<PageLayout
-  title={DATA.name}
-  description={DATA.about}
-  revealTitleOnScroll
-  canonicalPath="/resume/"
-  hreflangEnPath="/resume/"
-  hreflangEsPath="/es/cv/"
->
+<PageLayout title={DATA.name} description={DATA.about} revealTitleOnScroll hreflangEsPath="/es/cv/">
   <CvPage />
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </PageLayout>

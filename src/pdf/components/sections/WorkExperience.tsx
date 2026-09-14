@@ -39,9 +39,20 @@ const styles = StyleSheet.create({
     fontFamily: THEME.fonts.heading,
     fontSize: THEME.fontSize.small,
   },
+  // `marginTop` only (no trailing `marginBottom`) is deliberate: react-pdf's
+  // page-break heuristic defers a WHOLE node to the next page — instead of
+  // splitting it — whenever the node's own box plus its trailing margin
+  // overshoots the page boundary, even by a fraction of a point, as long as
+  // something already rendered above it on the page (see react-pdf's
+  // `shouldBreak`: `endOfPresence = child.bottom + marginBottom`, compared
+  // against the page height). A `marginBottom` here previously tipped that
+  // check by a hair for the RCI→Ford boundary, pushing all of Ford's block
+  // (header + 6 bullets + tech stack — comfortably small enough to fit the
+  // remaining page) onto a fresh page and leaving ~20% of the prior page
+  // blank. `marginTop` carries the same visual spacing without ever
+  // contributing to whether the PRECEDING sibling is judged to fit.
   clientBlock: {
-    marginTop: 4,
-    marginBottom: 3,
+    marginTop: 7,
     paddingLeft: 6,
   },
   clientHeader: {
@@ -98,14 +109,22 @@ const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ c
       {client.role && <Text style={styles.clientRole}> — {client.role}</Text>}
     </Text>
   )
-  const [firstBullet, ...restBullets] = client.bullets
 
   return (
     <View style={styles.clientBlock}>
-      {/* Bundles the header with its first bullet into one atomic block, so a
-          page break never leaves the header alone with its bullet(s) pushed
-          to the next page — the whole bundle moves together instead. */}
-      <View wrap={false}>
+      {/* Not the header's literal first child on purpose — see
+          `headerSpacer`'s comment: a `minPresenceAhead` header that IS the
+          first child of its container has that hint silently ignored. */}
+      <View style={commonStyles.headerSpacer} />
+      {/* Atomic (wrap={false}) so the name/role/date line is never split
+          mid-header, and `minPresenceAhead` demands ~2 lines of bullet
+          content stay with it — so the header is never orphaned at the
+          bottom of a page. Bullets are NOT bundled in here (unlike the old
+          header+first-bullet bundle): each `Bullet` below is independently
+          atomic, so react-pdf can fill the page up to whichever bullet is
+          the last one that fits, instead of moving the whole client block
+          when only a bundle didn't fit. */}
+      <View wrap={false} minPresenceAhead={THEME.spacing.headerMinPresenceAhead}>
         {client.start != null ? (
           <View style={styles.clientHeader}>
             {nameLine}
@@ -116,9 +135,8 @@ const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ c
         ) : (
           nameLine
         )}
-        {firstBullet && <Bullet text={firstBullet} />}
       </View>
-      {restBullets.length > 0 && <BulletList bullets={restBullets} />}
+      <BulletList bullets={client.bullets} />
       {client.techStack && client.techStack.length > 0 && (
         <TechStack stack={client.techStack} />
       )}
@@ -127,12 +145,11 @@ const ClientEntry: React.FC<{ client: WorkClient; presentLabel: string }> = ({ c
 }
 
 const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, presentLabel }) => {
-  const [firstBullet, ...restBullets] = work.bullets ?? []
-
   return (
     <View style={styles.entryContainer}>
-      {/* Same atomic-bundle strategy as ClientEntry, for the job's own header. */}
-      <View wrap={false}>
+      {/* Same header-only-atomic strategy as ClientEntry, for the job's own header. */}
+      <View style={commonStyles.headerSpacer} />
+      <View wrap={false} minPresenceAhead={THEME.spacing.headerMinPresenceAhead}>
         <View style={styles.entryHeader}>
           <Text style={styles.company}>{work.company}</Text>
           <Text style={styles.dateRange}>
@@ -140,10 +157,9 @@ const WorkEntry: React.FC<{ work: Work; presentLabel: string }> = ({ work, prese
           </Text>
         </View>
         <Text style={styles.jobTitle}>{work.title}</Text>
-        {firstBullet && <Bullet text={firstBullet} />}
       </View>
 
-      {restBullets.length > 0 && <BulletList bullets={restBullets} />}
+      {work.bullets && work.bullets.length > 0 && <BulletList bullets={work.bullets} />}
       {work.techStack && work.techStack.length > 0 && (
         <TechStack stack={work.techStack} />
       )}

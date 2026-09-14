@@ -49,4 +49,15 @@ export const commonStyles = StyleSheet.create({
     color: THEME.colors.darkGray,
     lineHeight: THEME.spacing.lineHeight,
   },
+  // A near-zero-height node placed before an atomic, `minPresenceAhead`
+  // header so the header is never the literal first child of its container.
+  // react-pdf's orphan-protection (`shouldBreak`'s `breakingImprovesPresence`)
+  // only fires when at least one earlier sibling already exists in the same
+  // split context — on a true first child it's always skipped, silently
+  // ignoring `minPresenceAhead` and letting the header land as the last line
+  // on a page. This spacer is real content-wise (uncounted visually, near
+  // zero height) but does count as "an earlier sibling" for that check.
+  headerSpacer: {
+    height: 0.001,
+  },
 })

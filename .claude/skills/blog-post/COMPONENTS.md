@@ -63,8 +63,8 @@ Todos en `src/components/notes/`. Precedente de uso:
 | `Stepper.astro` + `Step.astro` | `Step`: `title?` | Recorrido paso a paso con prev/next y progreso |
 | `Tabs.astro` + `Tab.astro` | `Tab`: `label` | Variantes paralelas |
 | `RetrySimulatorIsland.astro` | — | Precedente de simulador: toggle + contador + veredicto |
-| `ScenarioQuizIsland.astro` | `scenario`, `question?`, `options: { id, text, label, why, correct? }[]`, `note?` | Escenario tipo examen con revelado. Reutilizable en toda la serie. Precedente: `dont-hire-a-chef-to-follow-a-recipe.mdx` |
-| `ComplexityLadderIsland.astro` | — | Específico de la nota 1 (escalera de complejidad). Precedente de componente héroe |
+| `AgentLoopSimIsland.astro` | `preset`: `loop` \| `caching` \| `editing` \| `compaction` \| `subagents` \| `playground` | Simulador calculado de costo y contexto de un loop agéntico. Una sola isla con vistas por sección. Motor en `src/lib/sim/agent-loop/`. Precedente: `the-quadratic-loop.mdx` |
+| `RequestAnatomy.astro` | — | SVG estático: qué reenvía cada request. Precedente de diagrama estático |
 
 Los `.astro` no necesitan directiva `client:*` (usan `<script>` propio).
 

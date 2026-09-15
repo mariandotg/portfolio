@@ -1,57 +1,47 @@
-# Formato de capas
+# Formato: mecanismo calculado
 
-Una nota de este formato no explica un concepto. Usa el concepto como lente
-sobre algo más grande. Tres capas, en este orden.
+Una nota de este formato no explica un concepto. Construye o simula un
+mecanismo real, lo rompe y muestra con números qué palanca lo arregla y
+cuánto cuesta. Referentes: Discord "How Discord Stores Trillions of
+Messages", samwho "Load Balancing", Anthropic "How we built our multi-agent
+research system". Precedente propio: `the-quadratic-loop.mdx`.
 
-| Capa | Qué aporta | Obligatoria |
-|---|---|---|
-| 1. Apertura: incidente | Atrapa: "¿qué pasó acá?" | No |
-| 2. Centro: analogía → mecanismo → regla | Explica por qué pasó. Es lo que se estudia. | Sí |
-| 3. Tesis | La idea que queda. Es el título y el cierre. | Sí |
+## Qué tiene que tener
 
-## 1. Apertura: incidente
-
-- Un solo incidente real, con fecha. Verificado (ver SKILL.md, paso 2).
-- Contá el hecho, no la moraleja. La moraleja llega en la capa 3.
-- Si no hay un incidente que encaje de verdad, **no lo fuerces**: abrí con la analogía.
-- Nunca un incidente inventado, "hipotético" o compuesto de varios casos.
-
-## 2. Centro: analogía → mecanismo → regla
-
-**Una sola analogía por nota.** Dos analogías compiten y ninguna se fija.
-
-**Mapeo explícito.** Cada pieza de la analogía corresponde a una pieza del
-mecanismo técnico. Si una pieza no mapea, sacala. Ejemplo (post "Tatuajes"):
-
-| Memento | Agente |
+| Rasgo | Regla |
 |---|---|
-| Leonard no forma recuerdos nuevos | El modelo es stateless |
-| Tatuajes y polaroids | Bloque persistente de case facts |
-| Notas que se reescriben y se contradicen | Sumarización progresiva que pierde números |
+| **Un mecanismo real** | Un sistema, una API o un algoritmo con reglas documentadas. No una analogía ni un concepto suelto. |
+| **La falla impulsa cada sección** | Cada sección abre con lo que la anterior no resolvió. |
+| **Números con origen** | Cada número es **medido** (con fuente), **calculado** (fórmula + valor documentado) o **supuesto** (valor del lector). Nunca inventado. |
+| **Un visual del mecanismo** | Una simulación o un diagrama que el lector puede manipular. No una metáfora. |
+| **Honestidad** | Concesiones explícitas, supuestos declarados donde se usan, y un párrafo de límites. |
 
-**Dónde se rompe la analogía.** Toda analogía falla en algún punto. Nombralo
-en la nota. Protege al lector de sacar una conclusión falsa, y es la parte que
-más sirve para estudiar.
+## Arco
 
-**La regla del examen, en una línea.** Cerrá el centro con la regla tal como
-la pide el examen, con su dominio. Usá un `Callout type="takeaway"`.
+1. **Apertura:** el mecanismo y por qué importa, en las primeras oraciones.
+2. **El caso base:** el mecanismo en su forma más simple, con su número.
+3. **La falla:** dónde el caso base se rompe o se encarece, con números.
+4. **Cada palanca, en su propia sección:** qué resuelve, qué rompe, cuánto cuesta. Incluí la trampa si la doc la deja ver.
+5. **Playground:** todas las perillas juntas (opcional).
+6. **Qué me llevo:** 3–5 conclusiones con número, más la regla en un `Callout type="takeaway"`.
+7. **Límites:** qué no modela la nota.
+8. **Cierre:** la implicación, sin CTA.
 
-## 3. Tesis
+## Números
 
-- Una frase afirmativa que se puede discutir. No una pregunta ni un resumen.
-- Es el título (o su base) y vuelve en el cierre.
-- Tiene que estar respaldada por las capas 1 y 2. Si la nota no la sostiene, la tesis es un take y hay que bajarla.
+- Cada número de la prosa sale de la herramienta que usa la nota (motor, script, fuente). Generalos con un script antes de escribir y copialos, no los calcules a mano.
+- Si la prosa y el simulador usan el mismo caso, usan los mismos valores por defecto.
+- Porcentajes: redondeá al entero y verificá el signo.
 
-## Valor de estudio
+## Series
 
-Cada nota de serie incluye, además:
-
-- **Un escenario propio tipo examen** (situación + "¿qué hace el arquitecto?" + la trampa + por qué el distractor es un anti-patrón). Escrito desde cero, nunca copiado del examen.
-- **La regla en una línea** (el takeaway de la capa 2).
+Una serie agrupa notas con el mismo tema de fondo (por ejemplo, el examen
+CCA). Cada nota funciona sola y sigue este formato. Planificá la serie en
+`docs/series/<id>-outline.md` y cada nota compleja en `docs/specs/<slug>.md`.
 
 ## Anti-ejemplos
 
-- Abrir con "¿Qué es un hook?" → es contenido explicativo. Abrí con el incidente o la analogía.
-- Una analogía decorativa que aparece en el primer párrafo y no vuelve.
-- Tres analogías "para que quede claro".
-- Una tesis que la nota no demuestra.
+- Explicar un concepto con una analogía y un quiz, sin mecanismo ni números propios.
+- Curvas de acierto o latencia inventadas para que el gráfico "se vea bien".
+- Un número en la prosa que no coincide con el simulador.
+- Un supuesto sin declarar.

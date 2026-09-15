@@ -1,8 +1,10 @@
 # Serie Claude Certified Architect — overview
 
-Estado: **borrador**. Reemplaza el outline de MDG-39. Ese outline suponía un
-formato de referencia por dominio. Este documento fija ideas de contenido, no
-tono ni redacción.
+Estado: **reemplazado (2026-09-15)**. La serie ya no sigue el formato de
+capas con analogía. La nota 01 es "The Quadratic Loop"
+(`docs/specs/the-quadratic-loop.md`), con el formato "mecanismo calculado"
+(`.claude/skills/blog-post/FORMAT.md`). Los posts de abajo quedan solo como
+banco de temas: su formato ya no aplica.
 
 Id de la serie: `claude-certified-architect` (`rootLevel: true`, vive en
 `/claude-certified-architect`). Los posts se escriben con la skill

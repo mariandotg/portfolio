@@ -1,0 +1,141 @@
+---
+title: "The Quadratic Loop"
+description: "An agent resends its whole history on every request, so its input tokens grow with the square of the loop. I built a simulator from Anthropic's documented API rules to see what caching, context editing, compaction and subagents do to that curve. Two of the default-looking settings cost more than doing nothing."
+pubDate: 2026-09-15
+tags: ["ai-agents", "claude", "prompt-caching", "context-engineering", "claude-certified-architect"]
+draft: true
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 1
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import RequestAnatomy from "../../components/notes/RequestAnatomy.astro";
+import AgentLoopSimIsland from "../../components/notes/AgentLoopSimIsland.astro";
+
+The Claude Messages API doesn't remember anything. Every request carries the whole conversation: the tool definitions, the system prompt, the task, and every tool call and tool result so far. In a chat, that's a detail. In an agent loop, it's the bill.
+
+I'm preparing for Anthropic's Claude Certified Architect exam. Two of its domains, agentic architecture and context management, keep coming back to the same question: what does a long-running agent actually cost, and which lever changes that? I didn't want the answer as a rule to memorize. So I wrote a simulator from the documented rules: prices, cache multipliers, cache lifetimes, and the parameters of context editing and compaction.
+
+It makes no API calls. Every number in this note is calculated from those rules. Every workload size is an assumption you can drag.
+
+Anthropic [reports](https://www.anthropic.com/engineering/multi-agent-research-system) that its agents use about 4× the tokens of a chat, and its multi-agent Research system about 15×. By the end of this note you'll see where multiples like that come from, and why the baseline matters more than the multiple.
+
+<Callout type="note" title="How to read the simulators">
+**Calculated** means a formula applied to documented values. **Documented** values link to their page in Anthropic's docs, as of 2026-09-15. **Assumption** means a workload size you choose, or a behavior the docs don't specify, which I state where it applies. The simulator doesn't model answer quality at all.
+</Callout>
+
+## One request
+
+A request is a stack of blocks in a fixed order: `tools`, then `system`, then `messages`. That order matters twice. It's what the model reads, and it's the order of the [prompt cache prefix](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
+
+<RequestAnatomy />
+
+Request 3 sends seven blocks. Two of them are new.
+
+The default workload in every simulator below is a 5,500-token prompt (3,000 tokens of tool definitions, a 2,000-token system prompt, a 500-token task), 400 tokens of output per request, and a 3,000-token tool result per call. On Claude Sonnet 5, at $2 per million input tokens and $10 per million output tokens, the first request costs $0.015.
+
+That number is the last one in this note that grows in a straight line.
+
+## The loop
+
+Every request except the last ends in a tool call, and the tool result joins the history. So request *t* sends the prompt plus everything the loop produced before it:
+
+```
+input(t) = P + (t − 1) · (A + R)
+```
+
+Add it up over *N* requests and you get the whole story of this note:
+
+```
+total input = N · P + (A + R) · N(N − 1) / 2
+```
+
+The context grows linearly. The bill grows with *N*².
+
+With the default workload, a 30-request loop ends with a context of 104,100 tokens, but it bills 1,644,000 input tokens: 15.8 times the final context. That's $3.41 on Sonnet 5 and $8.52 on Opus 5. Double the loop to 60 requests and the input grows 3.9×, not 2×. At 120 requests it reaches 24,936,000 tokens and $50.35. Claude Haiku 4.5 never gets there: its window is 200K tokens, and request 59 would need 202,700.
+
+<AgentLoopSimIsland preset="loop" />
+
+The tool result is the multiplier. Drag it from 3,000 to 10,000 tokens and watch the cumulative line, not the bars. A tool that returns a whole file when the agent needed ten lines doesn't cost ten lines' worth once. It costs its full size on every request that follows.
+
+## Caching
+
+[Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) changes the price of the history, not its size. With automatic caching, each request reads the prefix the previous request wrote and writes only the new blocks. According to the [pricing page](https://platform.claude.com/docs/en/about-claude/pricing), a cache read costs 0.1× the base input price, and a cache write costs 1.25× with a 5-minute lifetime or 2× with a 1-hour lifetime.
+
+On the 30-request loop, with 20 seconds between requests, 1,539,900 of the 1,644,000 input tokens are cache reads. The cost drops from $3.41 to $0.69, 80% less. At 120 requests it drops from $50.35 to $6.41. The input is still 24.9 million tokens. Caching makes the quadratic cheaper; it doesn't make it linear.
+
+There are two traps, and both are in the docs.
+
+**The lifetime counts from the start of the request.** Not from the end of the response. If the time between two request starts (generation plus the tool call) goes past 5 minutes, the entry is gone, and the next request writes its whole prefix again at 1.25×. At 305 seconds between requests, the same loop costs $4.23: 24% more than no cache at all. The 1-hour cache fixes it for $0.84. It also costs $0.84 when the tools are fast, where the 5-minute cache costs $0.69. The 1-hour cache is insurance, and you pay for it either way.
+
+**Short prefixes aren't cached.** The minimum is 4,096 tokens on Haiku 4.5, 1,024 on Sonnet 5 and 512 on Opus 5. Below that, the API processes the request without caching and returns no error.
+
+<AgentLoopSimIsland preset="caching" />
+
+Drag the time between requests past 5 minutes on the 5-minute cache. The bars turn amber: every request pays to write what it could have read.
+
+## Context editing
+
+Caching made the history cheap. It didn't make it small, and size has its own costs. Run the loop for 60 requests with 4,000-token tool results and the history reaches 265,100 tokens. That is past Haiku 4.5's window, and Chroma's [Context Rot](https://www.trychroma.com/research/context-rot) report found that all 18 models it tested get less reliable as input grows.
+
+[Context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing) attacks the size. The `clear_tool_uses_20250919` strategy activates when the prompt passes a trigger (100,000 tokens by default), replaces older tool results with a placeholder, and keeps the last few (3 by default). The docs also say what it breaks: clearing invalidates the cached prefix.
+
+Here is what that means with the defaults. Without editing, the 60-request loop peaks at 265,100 tokens and costs $2.47 with a 5-minute cache. With editing, it peaks at 97,900 tokens. It also costs $3.45, about 40% more than not clearing anything.
+
+The reason is in the "keep 3". Once the prompt is over the trigger, every new request pushes one more tool result out of the kept window, so every request clears something: 38 of the 60 do. Each cleared block sits deep in the prefix, so the cache is rewritten from that point on. Cache writes go from 265,100 tokens to 1,183,750.
+
+That is what `clear_at_least` is for. Set it to 20,000 tokens and clearing happens in 7 batches instead of 38 small steps. The loop peaks at the same 97,900 tokens and costs $1.79, 27% less than no editing.
+
+<AgentLoopSimIsland preset="editing" />
+
+Two parts of this model are my assumptions, because the docs don't specify them. I assume the cache stays valid up to the first cleared block, and I assume a cleared result leaves a 10-token placeholder. If the real invalidation is wider, the default settings look worse than they do here, not better.
+
+## Compaction
+
+Context editing removes tool results but keeps everything else. For longer horizons there is [compaction](https://platform.claude.com/docs/en/build-with-claude/compaction). With `compact_20260112`, when the prompt reaches the trigger (150,000 tokens by default, 50,000 at minimum), Claude writes a summary, and the API drops every block before it. The compaction pass is billed like any other work. It isn't available on Haiku 4.5.
+
+On an 80-request loop with 5,000-token results and a 5-minute cache, the history without compaction peaks at 432,100 tokens and costs $4.81. Haiku 4.5 can't run it: request 38 overflows its window. With compaction at the default trigger and a 3,500-token summary, the loop compacts twice, peaks at 154,300 tokens and costs $2.68, 44% less. The two compaction passes cost $0.15 of that. With the trigger at 50,000, it compacts 9 times, peaks at 54,100 tokens and costs $2.20.
+
+<AgentLoopSimIsland preset="compaction" />
+
+The docs recommend a cache breakpoint at the end of the system prompt, so the system prompt survives a compaction and only the summary is written again. In this workload the difference is small, $2.68 against $2.71, because the prefix is only 5,500 tokens and there are only two compactions. With a 30,000-token set of tool definitions and a low trigger, try it in the playground.
+
+What the simulator can't show is the real price of compaction: 3,500 tokens replace 150,000, and whatever didn't make it into the summary is gone. I also assume the compaction pass reads the cache like a normal request. The docs show that it's billed, not how it's cached.
+
+## Subagents
+
+Every lever so far fights the history after it piles up. Subagents keep it from piling up in one place. A coordinator delegates through Task calls. Each subagent runs its own loop in its own context and returns a summary.
+
+Take 4 subagents that each make 14 tool calls with 4,000-token results and return a 1,500-token summary. Compare them with one agent that makes the same 56 tool calls in a single context. Both use a 5-minute cache and 20 seconds per request.
+
+The single agent bills 7,335,900 input tokens, costs $2.27, peaks at 251,900 tokens and takes 19 minutes. The team, dispatched in parallel, bills 2,195,400 input tokens (70% less) and costs $1.33. The coordinator never holds more than 11,900 tokens, each subagent peaks at 67,100, and the whole run takes 5 minutes 40 seconds. Dispatched one after another, the team takes 21 minutes 40 seconds, slower than the single agent.
+
+<AgentLoopSimIsland preset="subagents" />
+
+So why does Anthropic report 15× for its multi-agent system? Because the baseline is a chat, and its subagents do far more searching than a single agent would. Anthropic trades tokens for breadth and speed on purpose. In this model, splitting a fixed amount of tool work makes it cheaper, because four short quadratics are smaller than one long one. Against a single 5,500-token call, the same run is 1,334× for the single agent and 399× for the team. The multiple tells you more about the baseline than about the architecture.
+
+The cost of subagents is somewhere this simulator can't see. The coordinator reads 6,000 tokens of summaries instead of 224,000 tokens of tool results. Whether that is enough depends on what the summaries leave out.
+
+## Playground
+
+Every lever at once, on any of the three models.
+
+<AgentLoopSimIsland preset="playground" />
+
+## What I take from this
+
+- **The loop is quadratic, and the tool result is the multiplier.** Trimming a tool's output before it enters the history is the cheapest optimization on this page.
+- **Cache first, then check the lifetime against your slowest tool.** A 5-minute cache on a loop with 6-minute tool calls is more expensive than no cache.
+- **Every lever that shrinks the context also breaks the cache.** Context editing with `clear_at_least` unset cost about 40% more than doing nothing in this workload.
+- **Compaction and subagents move the cost into information loss.** The simulator can price the tokens. It can't price what the summary forgot.
+
+<Callout type="takeaway" title="The rule">
+Price the cache break before you pull a lever that shrinks the context. The lever that shrinks the most is not always the one that costs the least.
+</Callout>
+
+This simulator ignores thinking tokens, tokenization, rate limits, variance between tool calls and everything about answer quality. It models the documented rules, and it states the three places where I had to assume what the docs don't say. Change the sliders to your own workload before you trust any number here.
+
+---
+
+For the exam, this was the difference between remembering "use caching and compaction" and knowing when each one makes the bill worse. The rules are short. The curve they draw is not.

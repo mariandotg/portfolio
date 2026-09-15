@@ -1,0 +1,96 @@
+---
+// Static diagram: the Messages API is stateless, so request N resends everything before it.
+const unit = 44;
+const rows = [
+  { label: "Request 1", blocks: ["tools", "system", "task"] },
+  { label: "Request 2", blocks: ["tools", "system", "task", "call 1", "result 1"] },
+  { label: "Request 3", blocks: ["tools", "system", "task", "call 1", "result 1", "call 2", "result 2"] },
+];
+const isNew = (row: number, i: number) => (row === 0 ? true : i >= rows[row - 1].blocks.length);
+const kind = (name: string) => (name === "tools" || name === "system" || name === "task" ? "prefix" : "history");
+const labelWidth = 92;
+const width = labelWidth + unit * 7 + 8;
+const rowHeight = 44;
+const height = rows.length * rowHeight + 30;
+---
+
+<figure class="anatomy not-prose">
+  <svg
+    viewBox={`0 0 ${width} ${height}`}
+    role="img"
+    aria-label="Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call and tool result. Only the last blocks are new."
+  >
+    {
+      rows.map((row, r) => (
+        <g transform={`translate(0 ${r * rowHeight})`}>
+          <text class="anatomy-row" x="0" y="26">
+            {row.label}
+          </text>
+          {row.blocks.map((b, i) => (
+            <g transform={`translate(${labelWidth + i * unit} 6)`}>
+              <rect
+                class={`anatomy-block ${kind(b)} ${isNew(r, i) ? "new" : "resent"}`}
+                width={unit - 4}
+                height="30"
+                rx="4"
+              />
+              <text class="anatomy-text" x={(unit - 4) / 2} y="19" text-anchor="middle">
+                {b.replace(" ", " ")}
+              </text>
+            </g>
+          ))}
+        </g>
+      ))
+    }
+    <g transform={`translate(${labelWidth} ${rows.length * rowHeight + 6})`}>
+      <rect class="anatomy-block prefix resent" width="12" height="12" rx="2" />
+      <text class="anatomy-row" x="18" y="10">sent again</text>
+      <rect class="anatomy-block history new" x="110" width="12" height="12" rx="2" />
+      <text class="anatomy-row" x="128" y="10">new this request</text>
+    </g>
+  </svg>
+</figure>
+
+<style>
+  .anatomy {
+    margin: 1.6rem 0;
+    padding: 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  .anatomy svg {
+    display: block;
+    width: 100%;
+    min-width: 380px;
+    height: auto;
+  }
+  .anatomy-row {
+    font-family: var(--font-family-mono);
+    font-size: 11px;
+    fill: hsl(var(--muted-foreground));
+  }
+  .anatomy-text {
+    font-family: var(--font-family-mono);
+    font-size: 8.5px;
+    fill: hsl(var(--foreground));
+  }
+  .anatomy-block {
+    stroke-width: 1;
+  }
+  .anatomy-block.prefix {
+    fill: color-mix(in srgb, hsl(var(--muted-foreground)) 22%, transparent);
+    stroke: hsl(var(--border));
+  }
+  .anatomy-block.history {
+    fill: color-mix(in srgb, hsl(var(--primary)) 18%, transparent);
+    stroke: color-mix(in srgb, hsl(var(--primary)) 40%, transparent);
+  }
+  .anatomy-block.resent {
+    opacity: 0.55;
+  }
+  .anatomy-block.new {
+    stroke: hsl(var(--primary));
+    stroke-width: 1.5;
+  }
+</style>

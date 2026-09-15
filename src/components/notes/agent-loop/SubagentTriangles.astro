@@ -1,0 +1,116 @@
+---
+// Static diagram: each request's bar height is the context it sends, so one loop draws a
+// triangle and the triangle's area is the input you pay. Splitting the tool work into four
+// short loops draws four small triangles whose combined area is far smaller.
+import AlcFigure from "./AlcFigure.astro";
+import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
+import { fmtTokens, fmtUsd, fmtChange, fmtSeconds } from "./format";
+
+const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
+  count: SUBAGENTS.count,
+  parallel: SUBAGENTS.parallel,
+  subagent: { ...SUBAGENT_WORKLOAD, turns: SUBAGENTS.turnsEach },
+  resultTokens: SUBAGENTS.resultTokens,
+});
+
+const W = 480;
+const H = 240;
+const plotX0 = 14;
+const plotX1 = 468;
+const plotWidth = plotX1 - plotX0;
+
+const row1LabelY = 14;
+const row1Base = 120;
+const row2LabelY = 150;
+const row2Base = 210;
+const coordinatorLabelY = 224;
+
+const singlePeak = r.single.totals.peakContextTokens;
+const pixelsPerToken = (row1Base - (row1LabelY + 14)) / (singlePeak * 1.08);
+const barHeight = (v: number) => v * pixelsPerToken;
+
+// Shared x scale: row 2 (2 coordinator + 4×15 subagent bars, with gaps between groups) sets the
+// pitch; row 1's 57 bars use the same pitch and simply end before the row fills up.
+const GAP_AFTER_COORDINATOR = 10;
+const GAP_BETWEEN_SUBAGENTS = 8;
+const totalBarUnits = r.coordinator.requests.length + r.subagents.reduce((n, s) => n + s.requests.length, 0);
+const totalGapPx = GAP_AFTER_COORDINATOR + GAP_BETWEEN_SUBAGENTS * (SUBAGENTS.count - 1);
+const pitch = (plotWidth - totalGapPx) / totalBarUnits;
+const barWidth = pitch * 0.75;
+
+const row1Bars = r.single.requests.map((req, i) => ({ x: plotX0 + i * pitch, v: req.contextTokens }));
+
+const coordinatorBars = r.coordinator.requests.map((req, i) => ({ x: plotX0 + i * pitch, v: req.contextTokens }));
+let cursor = plotX0 + r.coordinator.requests.length * pitch + GAP_AFTER_COORDINATOR;
+const subagentGroups = r.subagents.map((s, g) => {
+  const bars = s.requests.map((req, j) => ({ x: cursor + j * pitch, v: req.contextTokens }));
+  cursor += s.requests.length * pitch + (g < r.subagents.length - 1 ? GAP_BETWEEN_SUBAGENTS : 0);
+  return bars;
+});
+const coordinatorLabelX = coordinatorBars[0]?.x ?? plotX0;
+
+const teamTokens = r.totals.inputTokens;
+const singleTokens = r.single.totals.inputTokens;
+const toolCalls = SUBAGENTS.count * (SUBAGENTS.turnsEach - 1);
+const toolResultsTotal = toolCalls * SUBAGENT_WORKLOAD.toolResultTokens;
+const summariesTotal = SUBAGENTS.count * SUBAGENTS.resultTokens;
+
+const ariaLabel = `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and bills ${fmtTokens(singleTokens)}. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team bills ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
+---
+
+<AlcFigure question="Why are four short loops cheaper than one long one?">
+  <div class="alc-headline">
+    <span class="alc-big">{fmtTokens(teamTokens)}</span>
+    <span class="alc-delta good">{fmtChange(teamTokens, singleTokens)} input tokens</span>
+  </div>
+  <p class="alc-sub">
+    Same tool work. Dispatched in parallel, the team finishes in <strong>{fmtSeconds(r.totals.durationSeconds)}</strong>{" "}
+    instead of <strong>{fmtSeconds(r.single.totals.durationSeconds)}</strong>. The coordinator reads{" "}
+    <strong>{fmtTokens(summariesTotal)}</strong> of summaries, not <strong>{fmtTokens(toolResultsTotal)}</strong> of
+    tool results.
+  </p>
+
+  <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
+    <text class="alc-text-strong" x={plotX0} y={row1LabelY}>One agent · {toolCalls} tool calls</text>
+    <text class="alc-text" x={plotX1} y={row1LabelY} text-anchor="end">
+      {fmtTokens(singleTokens)} tokens · {fmtUsd(r.single.totals.costUsd)}
+    </text>
+    <line class="alc-axis" x1={plotX0} y1={row1Base} x2={plotX1} y2={row1Base} />
+    {
+      row1Bars.map((b) => (
+        <rect class="alc-fill-resent" x={b.x} y={row1Base - barHeight(b.v)} width={barWidth} height={barHeight(b.v)} />
+      ))
+    }
+    <polyline
+      class="alc-line neutral"
+      points={row1Bars.map((b) => `${(b.x + barWidth / 2).toFixed(1)},${(row1Base - barHeight(b.v)).toFixed(1)}`).join(" ")}
+    />
+
+    <text class="alc-text-strong" x={plotX0} y={row2LabelY}>Coordinator + 4 subagents</text>
+    <text class="alc-text" x={plotX1} y={row2LabelY} text-anchor="end">
+      {fmtTokens(teamTokens)} tokens · {fmtUsd(r.totals.costUsd)}
+    </text>
+    <line class="alc-axis" x1={plotX0} y1={row2Base} x2={plotX1} y2={row2Base} />
+    {
+      coordinatorBars.map((b) => (
+        <rect class="alc-fill-read" x={b.x} y={row2Base - barHeight(b.v)} width={barWidth} height={barHeight(b.v)} />
+      ))
+    }
+    {
+      subagentGroups.map((bars) =>
+        bars.map((b) => (
+          <rect class="alc-fill-new" x={b.x} y={row2Base - barHeight(b.v)} width={barWidth} height={barHeight(b.v)} />
+        )),
+      )
+    }
+    <text class="alc-text" x={coordinatorLabelX} y={coordinatorLabelY}>coordinator</text>
+  </svg>
+
+  <Fragment slot="caption">
+    Anthropic reports that its multi-agent Research system uses about 15× the tokens of a chat, because its
+    subagents search far more (cited, not simulated). Source:{" "}
+    <a href={SOURCES.multiAgent} target="_blank" rel="noreferrer">multi-agent research system</a>, as of{" "}
+    {FACTS_AS_OF}. Assumption: each subagent has the same tools and system prompt as the coordinator.
+  </Fragment>
+</AlcFigure>

@@ -63,8 +63,13 @@ Todos en `src/components/notes/`. Precedente de uso:
 | `Stepper.astro` + `Step.astro` | `Step`: `title?` | Recorrido paso a paso con prev/next y progreso |
 | `Tabs.astro` + `Tab.astro` | `Tab`: `label` | Variantes paralelas |
 | `RetrySimulatorIsland.astro` | — | Precedente de simulador: toggle + contador + veredicto |
-| `AgentLoopSimIsland.astro` | `preset`: `loop` \| `caching` \| `editing` \| `compaction` \| `subagents` \| `playground` | Simulador calculado de costo y contexto de un loop agéntico. Una sola isla con vistas por sección. Motor en `src/lib/sim/agent-loop/`. Precedente: `the-quadratic-loop.mdx` |
 | `RequestAnatomy.astro` | — | SVG estático: qué reenvía cada request. Precedente de diagrama estático |
+| `agent-loop/AlcFigure.astro` | `question`, `options?`, `initial?`; slot `caption` | Marco de visual calculado: pregunta, toggle de 2–3 estados (paneles `data-alc-panel` renderizados en el servidor, sin React) y línea de fuentes. Estilos en `agent-loop/agent-loop.css` |
+| `agent-loop/LoopTriangleIsland.astro` | — | Héroe con un slider: el loop dibuja un triángulo y el área es lo que se factura. Ejes fijos |
+| `agent-loop/CacheCost.astro`, `ClearingCost.astro` | — | Toggle de dos estados calculado con el motor al renderizar |
+| `agent-loop/CompactionSawtooth.astro`, `SubagentTriangles.astro` | — | Diagramas estáticos calculados con el motor |
+
+Precedente de visuales calculados: `the-quadratic-loop.mdx` (motor en `src/lib/sim/agent-loop/`, galería en `/dev/agent-loop`). Lección del rediseño (2026-09-15): la primera versión, una isla con 6 presets y un playground, quedó sobrecargada. **Interactivo solo cuando la variable es el concepto.** Un visual, una pregunta, un número, escala fija entre estados, y la unidad de la pregunta (dólares para costo).
 
 Los `.astro` no necesitan directiva `client:*` (usan `<script>` propio).
 

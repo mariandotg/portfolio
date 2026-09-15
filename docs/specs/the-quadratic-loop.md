@@ -157,21 +157,27 @@ Cada sección abre con la falla de la anterior.
 
 | § | Sección | Pregunta | Componente |
 |---|---|---|---|
-| 1 | One call | ¿Qué se paga en un request? | SVG estático: anatomía `tools` / `system` / `messages` |
-| 2 | The loop | ¿Por qué crece la cuenta? | `AgentLoopSim` preset `loop`: sliders `N` y `R`, curva acumulada contra un chat |
-| 3 | Caching | ¿Cuánto aplana el cache y cuándo falla? | preset `caching`: toggle de cache y slider `g` (el salto al pasar el TTL) |
-| 4 | Context editing | ¿Qué cuesta limpiar? | preset `editing`: serrucho de contexto y picos de escritura |
-| 5 | Compaction | ¿Y resumir? | preset `compaction`: serrucho y costo de la iteración |
-| 6 | Subagents | ¿Por qué 15× puede valer la pena? | preset `subagents`: tokens totales contra pico de contexto del coordinador, y tiempo |
-| 7 | Playground | — | preset `playground`: todos los controles |
+| 1 | One call | ¿Qué se paga en un request? | `RequestAnatomy` (SVG estático) |
+| 2 | The loop | ¿Por qué 2× requests cuesta ~4×? | `LoopTriangleIsland` (héroe, un slider `N`) |
+| 3 | Caching | ¿Qué pasa si una tool tarda más que el cache? | `CacheCost` (toggle 20 s / 5 min 5 s) |
+| 4 | Context editing | ¿Por qué limpiar puede costar más? | `ClearingCost` (toggle `clear_at_least` 0 / 20k) |
+| 5 | Compaction | ¿Qué hace la compaction con el contexto? | `CompactionSawtooth` (estático) |
+| 6 | Subagents | ¿Por qué cuatro loops cortos cuestan menos que uno largo? | `SubagentTriangles` (estático) |
 
-### 7.2 Componentes
+### 7.2 Componentes (rediseño, 2026-09-15)
 
-- **Una sola isla configurable:** `AgentLoopSim.tsx` + `AgentLoopSimIsland.astro`, con prop `preset`. Cumple la regla de una isla pesada por nota (`COMPONENTS.md`): es un componente con varias vistas, no varias islas distintas.
-- Gráficos en SVG propio, sin librerías nuevas.
-- Cada gráfico muestra el desglose: sin cache, escritura, lectura, compaction, salida.
-- Cada número lleva su marca: **calculado** (fórmula + parámetro documentado) o **supuesto** (valor del lector).
-- Precios con fecha visible: "precios al 2026-09-15".
+La primera versión (una isla `AgentLoopSim` con 6 presets y un playground) quedó sobrecargada: muchos controles, ejes que se reescalan solos y gráficos en tokens para preguntas de costo. El lector no entendía qué mirar.
+
+Reglas del rediseño:
+
+- **Un concepto por visual.** Una pregunta como título, un número principal, un gráfico.
+- **Interactivo solo cuando la variable es el concepto.** Un slider en el héroe, un toggle de dos estados en caching y editing. Compaction y subagents son diagramas estáticos.
+- **Sin playground.** La nota explica conceptos, no es un laboratorio.
+- **Escala fija.** Entre estados del mismo visual, el eje no cambia, así el cambio se ve.
+- **La unidad es la de la pregunta.** Dólares para costo, tokens para tamaño.
+- **Render en el servidor.** Los estáticos y los toggles son `.astro` que calculan con el motor al renderizar. Solo el héroe es una isla React.
+- Archivos en `src/components/notes/agent-loop/`: `AlcFigure.astro` (marco + toggle), `agent-loop.css`, `format.ts`, `workloads.ts` (los workloads que citan la prosa y los visuales). Galería de desarrollo en `/dev/agent-loop`.
+- Fuentes y supuestos en una línea al pie de cada visual. Precios con fecha visible.
 
 ### 7.3 Largo y tono
 

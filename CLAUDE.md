@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm generate:pdf` — regenerate `public/mariano-guillaume-cv-{en,es}.pdf` from résumé data (`tsx src/pdf/generate-pdfs.tsx`). The PDFs are gitignored.
 - `pnpm preview` — serve the built output locally.
 - `npx shadcn@latest add <component>` — add a shadcn/ui component into `src/components/ui/` (the design system, see Styling).
-- No test runner is configured (`pnpm test` is a placeholder). Verify UI changes by running `pnpm dev` and driving the flow.
+- `pnpm test` — unit tests with `node:test` through `tsx` (`src/**/*.test.ts`, no test framework dependency). Today only the agent-loop simulator (`src/lib/sim/agent-loop/`) has tests. Verify UI changes by running `pnpm dev` and driving the flow.
 
 Package manager is **pnpm** (`packageManager: pnpm@10.29.3`), Node >=22.
 

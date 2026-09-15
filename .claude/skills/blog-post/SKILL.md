@@ -59,7 +59,7 @@ Plan de componentes (héroe + soporte, con la pregunta que responde cada uno):
 
 ### 7. Verificar
 
-1. `pnpm dev` (en background) y abrir `http://localhost:4321/notes/<slug>`.
+1. `pnpm dev` (en background). Leé el puerto en el log: si está ocupado, Astro usa otro. Una nota con `draft: true` da 404: poné `draft: false` para verificar y volvé a `true` antes de commitear (confirmalo con grep).
 2. `node .claude/skills/blog-post/scripts/screenshot.mjs http://localhost:4321/notes/<slug> [outDir]` → capturas 1280/390px × light/dark. El script avisa (`WARN`) si hay overflow horizontal o si el tema no coincide.
 3. **Mirá cada captura** con Read. Buscá labels desbordados, líneas cruzadas, texto ilegible en dark. Todo `WARN` de overflow se corrige.
 4. Recorré cada estado interactivo (toggles, pasos, tabs). Un screenshot estático no prueba la interacción.

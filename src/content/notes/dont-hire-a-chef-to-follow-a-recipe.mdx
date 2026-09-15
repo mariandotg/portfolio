@@ -1,0 +1,121 @@
+---
+title: "Don't Hire a Chef to Follow a Recipe"
+description: "Most tasks teams hand to AI agents have a path you can write down before the input arrives. That is a workflow: cheaper, faster and harder to break. It is also the first rule of Anthropic's architect exam."
+pubDate: 2026-09-14
+tags: ["ai-agents", "claude", "architecture", "claude-certified-architect"]
+draft: true
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 2
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import ComplexityLadderIsland from "../../components/notes/ComplexityLadderIsland.astro";
+import ScenarioQuizIsland from "../../components/notes/ScenarioQuizIsland.astro";
+
+In the 1890s, Auguste Escoffier reorganized the kitchen of the Savoy in London the way an army organizes a brigade. The chef de cuisine decides the menu. Each station has a chef de partie who runs its own preparations. Under them, the commis do the prep.
+
+It was built for grand hotel kitchens that fed hundreds of guests a night. That scale only works because almost every plate follows a recipe.
+
+Nobody in that kitchen asks the chef to peel potatoes. Nobody asks the chef to improvise 500 plates for a banquet either.
+
+I'm studying for Anthropic's Claude Certified Architect exam, and this is the picture I use for its first question. The first question isn't which framework or which model. It's this: does the task need a chef, or a recipe?
+
+## Recipe or chef
+
+Anthropic draws the line in [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents). Workflows are "systems where LLMs and tools are orchestrated through predefined code paths." Agents are "systems where LLMs dynamically direct their own processes and tool usage."
+
+A workflow is a recipe. The steps exist before the ingredients arrive, and your code follows them. An agent is a chef. It looks at what came in, decides what to cook, and decides when the dish is done.
+
+The test fits in one question: **can you write the path down before the input arrives?**
+
+- Extract five fields from 10,000 invoices with the same layout. The path is identical for every invoice. That's a recipe.
+- Research a topic when you don't know how many searches it will take. The next step depends on what the last one found. That's a chef.
+
+Most tasks I see handed to agents are the first kind.
+
+## The ladder
+
+Between one prompt and an agent there are rungs. Each rung adds capability. Each rung also adds cost, latency and places to fail.
+
+1. A single prompt.
+2. A prompt with context: criteria, examples, retrieved documents.
+3. A prompt with tools on a fixed path. This is a workflow.
+4. A loop where the model picks the tools and decides when to stop. This is an agent.
+
+Anthropic's advice is "finding the simplest solution possible, and only increasing complexity when needed," because agentic systems "trade latency and cost for better task performance." You climb a rung only when the one below didn't work.
+
+Pick a task and see where it lands:
+
+<ComplexityLadderIsland />
+
+This is the full mapping I keep in my head:
+
+| Kitchen | System |
+|---|---|
+| The recipe | A workflow: predefined code paths |
+| The chef deciding the dish | An agent: the model directs its own process |
+| The pass sends each ticket to a station, and stations cook at once | Routing and parallelization |
+| The commis peels the potatoes | A small model on a simple, high-volume task |
+| Mise en place, finished before service | The Batch API, for work nobody is waiting on |
+| A chef improvising every plate of a banquet | An agent on a path you could have written down |
+
+## Who peels the potatoes
+
+The same logic picks the model. Start with Sonnet. Go down to Haiku when the task is simple and high-volume, like classification or extraction. Go up to Opus when the reasoning is deep or a mistake is expensive.
+
+The gap is not a feeling. On [Anthropic's pricing page](https://platform.claude.com/docs/en/about-claude/pricing) today, Opus 5 costs $5 per million input tokens and $25 per million output tokens. Haiku 4.5 costs $1 and $5. Sending Opus to peel potatoes is paying five times the wage for the same potato.
+
+Then there's mise en place: the prep a kitchen finishes before service starts. The [Message Batches API](https://platform.claude.com/docs/en/build-with-claude/batch-processing) is that. It costs 50% less, most batches finish in under an hour, and a batch expires if it doesn't complete within 24 hours. It fits a nightly report or an audit. It doesn't fit a check that blocks a merge. It doesn't fit a tool loop either: each request in a batch runs on its own, with no round trip back to your code.
+
+## Where the analogy breaks
+
+Every analogy is wrong somewhere. This one is wrong in three places.
+
+**In a kitchen, the chef is also the best cook.** An agent is not a better executor of a fixed task. Every decision you hand to the model is a place where it can decide wrong, and Anthropic names the cost: "the potential for compounding errors." An unnecessary agent isn't only slower and more expensive. It can be worse.
+
+**A chef remembers yesterday's service.** The model remembers nothing between calls. Everything it knows, you put in the prompt. That gets its own note in this series.
+
+**A kitchen pays by the hour. A model bills by the token.** The cost of the wrong rung isn't a vague sense of overhead. You can compute it before you ship.
+
+<Callout type="takeaway" title="The rule">
+If you can write the path down before the input arrives, build a workflow. Reach for an agent only when the path depends on what the model finds. Match the model to the task, and batch the work nobody is waiting on.
+</Callout>
+
+## Try it
+
+<ScenarioQuizIsland
+  scenario="A support team needs 40,000 archived tickets sorted into 8 categories for a report due Monday. The tickets are short, and each category has a clear definition."
+  options={[
+    {
+      id: "a",
+      text: "Build an agent with search tools that decides how to classify each ticket.",
+      label: "Unnecessary complexity",
+      why: "The path is the same for every ticket. An agent adds decisions nobody needs, plus cost, latency and compounding errors.",
+    },
+    {
+      id: "b",
+      text: "Send every ticket to Opus in real time, with retries.",
+      label: "Biggest model, just in case",
+      why: "Sorting into defined categories doesn't need deep reasoning. Nobody waits on a single ticket, so real time buys nothing.",
+    },
+    {
+      id: "c",
+      text: "One prompt with explicit category criteria and a few labeled examples, run on Haiku through the Batch API.",
+      label: "The simplest thing that works",
+      why: "Fixed path, simple task, high volume, nobody waiting. Each choice matches one property of the task.",
+      correct: true,
+    },
+    {
+      id: "d",
+      text: "Run Sonnet synchronously across parallel workers.",
+      label: "Works, and overpays",
+      why: "It gets the job done. It also pays for speed and capability the task never uses.",
+    },
+  ]}
+  note="An original scenario written for this series. It is not an exam question."
+/>
+
+---
+
+The expensive mistake here isn't a wrong API parameter. It's climbing a rung you didn't need. When a task does need the top rung, a new question shows up: how does the loop know it's done? That's the next note.

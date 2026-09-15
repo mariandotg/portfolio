@@ -1,0 +1,97 @@
+---
+// "Does firing 8 parallel requests cache 8 times?" Toggle: fire them all at once, or wait for the
+// first response to begin before firing the rest. The docs say a cache entry becomes available only
+// after the first response begins — firing in parallel means none of the 8 can read what another
+// is still writing.
+import { CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { fmtTokens, fmtUsd, fmtChange } from "./format";
+import AlcFigure from "./AlcFigure.astro";
+
+type StateKey = "together" | "staggered";
+
+const COUNT = 8;
+const PREFIX_TOKENS = 40_000; // tools + system + a shared document, an assumed workload
+const ASSUMED_WAIT_SECONDS = 8; // not documented: an assumed time for the first response to begin
+
+const sonnet = MODELS["sonnet-5"];
+const perIn = sonnet.inputPerMTok / 1_000_000;
+
+const tokenEquivalent = (writes: number, reads: number) =>
+  writes * PREFIX_TOKENS * CACHE.write5mMultiplier + reads * PREFIX_TOKENS * CACHE.readMultiplier;
+
+const together = { writes: COUNT, reads: 0 };
+const staggered = { writes: 1, reads: COUNT - 1 };
+
+function costOf(s: { writes: number; reads: number }) {
+  const tokEq = tokenEquivalent(s.writes, s.reads);
+  return { tokEq, usd: tokEq * perIn };
+}
+
+const COST: Record<StateKey, ReturnType<typeof costOf>> = {
+  together: costOf(together),
+  staggered: costOf(staggered),
+};
+
+const SLOTS: Record<StateKey, { mode: "write" | "read" }[]> = {
+  together: Array.from({ length: COUNT }, () => ({ mode: "write" })),
+  staggered: Array.from({ length: COUNT }, (_, i) => ({ mode: i === 0 ? "write" : "read" })),
+};
+
+const SUB: Record<StateKey, string> = {
+  together: `All ${COUNT} requests start before any response begins, so none can read a cache entry another is still writing. Every request writes the full ${fmtTokens(PREFIX_TOKENS)}-token prefix at 1.25×.`,
+  staggered: `The first request writes the prefix. Once its response begins, the entry is available, and the other ${COUNT - 1} read it at 0.1×. Assumed wait: ${ASSUMED_WAIT_SECONDS}s before the first response begins.`,
+};
+
+const OPTIONS = [
+  { value: "together", label: "all subagents start at once" },
+  { value: "staggered", label: "first one, then the rest" },
+];
+
+const VB_W = 480;
+const SLOT_W = 50;
+const SLOT_H = 34;
+const SLOT_GAP = 4;
+const ROW_X0 = 8;
+const ROW_Y = 46;
+const slotX = (i: number) => ROW_X0 + i * (SLOT_W + SLOT_GAP);
+---
+
+<AlcFigure question="Does firing 8 parallel requests cache 8 times?" options={OPTIONS} initial="together">
+  {
+    (["together", "staggered"] as StateKey[]).map((key) => {
+      const c = COST[key];
+      const deltaClass = key === "staggered" ? "good" : "bad";
+      const compareTo = key === "staggered" ? COST.together.usd : COST.staggered.usd;
+      const ariaLabel = `${COUNT} parallel requests sharing a ${fmtTokens(PREFIX_TOKENS)}-token prefix, ${key === "together" ? "all firing at once" : "staggered after the first response begins"}. Token-equivalent cost ${fmtTokens(c.tokEq)}, ${fmtUsd(c.usd)} on Claude Sonnet 5, ${fmtChange(c.usd, compareTo)} vs the other mode.`;
+      return (
+        <div data-alc-panel={key} hidden={key !== "together"}>
+          <div class="alc-headline">
+            <span class="alc-big">{fmtUsd(c.usd)}</span>
+            <span class={`alc-delta ${deltaClass}`}>{fmtChange(c.usd, compareTo)} vs the other mode</span>
+          </div>
+          <p class="alc-sub">{SUB[key]}</p>
+          <svg viewBox={`0 0 ${VB_W} 120`} class="alc-svg" role="img" aria-label={ariaLabel}>
+            {SLOTS[key].map((slot, i) => (
+              <>
+                <rect x={slotX(i)} y={ROW_Y} width={SLOT_W} height={SLOT_H} class={slot.mode === "write" ? "alc-fill-write" : "alc-fill-read"} />
+                <text x={slotX(i) + SLOT_W / 2} y={ROW_Y + SLOT_H / 2 + 4} text-anchor="middle" class="alc-text-strong">
+                  {slot.mode === "write" ? "1.25×" : "0.1×"}
+                </text>
+              </>
+            ))}
+            <text x={ROW_X0} y={ROW_Y - 8} class="alc-text">{COUNT} parallel requests, {fmtTokens(PREFIX_TOKENS)}-token shared prefix</text>
+            <text x={ROW_X0} y={ROW_Y + SLOT_H + 20} class="alc-text">
+              {fmtTokens(c.tokEq)} token-equivalent
+            </text>
+          </svg>
+        </div>
+      );
+    })
+  }
+  <Fragment slot="caption">
+    Assumption: 8 requests sharing a 40,000-token prefix (tools, system, and a shared document); the
+    8-second wait for the first response to begin is illustrative, not documented. Rule: a cache
+    entry becomes available only after the first response begins. Source:{" "}
+    <a href={SOURCES.caching}>prompt caching</a>, <a href={SOURCES.pricing}>pricing</a>, as of {FACTS_AS_OF}.
+  </Fragment>
+</AlcFigure>

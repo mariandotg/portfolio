@@ -1,10 +1,17 @@
 ---
 // Static diagram: compaction resets the context each time it crosses the trigger, so the
 // history draws a sawtooth instead of a straight climb. Two compactions on this workload.
+// variant="cost" (default): dollar headline, unchanged — used by note 1. variant="context":
+// tokens only, no dollars, no compact_20260112 parameter detail — used by note 3.
 import AlcFigure from "./AlcFigure.astro";
 import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
 import { fmtTokens, fmtUsd, fmtChange, scale, points } from "./format";
+
+interface Props {
+  variant?: "cost" | "context";
+}
+const { variant = "cost" } = Astro.props;
 
 const without = simulate(COMPACTION_WORKLOAD);
 const withC = simulate(compactionWith());
@@ -42,18 +49,39 @@ const peakWith = withC.totals.peakContextTokens;
 const costWithout = without.totals.costUsd;
 const costWith = withC.totals.costUsd;
 
-const ariaLabel = `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)} and costs ${fmtUsd(costWithout)}. With compaction the context resets twice at the 150k trigger and peaks at ${fmtTokens(peakWith)}, costing ${fmtUsd(costWith)}.`;
+const ariaLabel =
+  variant === "cost"
+    ? `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)} and costs ${fmtUsd(costWithout)}. With compaction the context resets twice at the 150k trigger and peaks at ${fmtTokens(peakWith)}, costing ${fmtUsd(costWith)}.`
+    : `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)}. With compaction the context is replaced by a summary once it reaches the 150k trigger, resetting twice, and peaks at ${fmtTokens(peakWith)}.`;
 ---
 
 <AlcFigure question="What does compaction do to the context?">
-  <div class="alc-headline">
-    <span class="alc-big">{fmtUsd(costWith)}</span>
-    <span class="alc-delta good">{fmtChange(costWith, costWithout)} vs no compaction</span>
-  </div>
-  <p class="alc-sub">
-    Peak context <strong>{fmtTokens(peakWith)}</strong> instead of <strong>{fmtTokens(peakWithout)}</strong>. Each
-    compaction pass reads the whole context once, and that pass is billed.
-  </p>
+  {
+    variant === "cost" ? (
+      <div class="alc-headline">
+        <span class="alc-big">{fmtUsd(costWith)}</span>
+        <span class="alc-delta good">{fmtChange(costWith, costWithout)} vs no compaction</span>
+      </div>
+    ) : (
+      <div class="alc-headline">
+        <span class="alc-big">{fmtTokens(peakWith)} peak context</span>
+        <span class="alc-delta good">{fmtChange(peakWith, peakWithout)} vs no compaction</span>
+      </div>
+    )
+  }
+  {
+    variant === "cost" ? (
+      <p class="alc-sub">
+        Peak context <strong>{fmtTokens(peakWith)}</strong> instead of <strong>{fmtTokens(peakWithout)}</strong>. Each
+        compaction pass reads the whole context once, and that pass is billed.
+      </p>
+    ) : (
+      <p class="alc-sub">
+        Without compaction the context climbs to <strong>{fmtTokens(peakWithout)}</strong>. With it, the context is
+        replaced by a summary once it reaches the trigger, and it never passes <strong>{fmtTokens(peakWith)}</strong>.
+      </p>
+    )
+  }
 
   <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
     <line class="alc-axis" x1={plotX0} y1={plotY1} x2={plotX1} y2={plotY1} />
@@ -82,8 +110,19 @@ const ariaLabel = `Context tokens across 80 requests. Without compaction the con
   </svg>
 
   <Fragment slot="caption">
-    <code>compact_20260112</code> triggers at 150k tokens (minimum 50k) and bills the summarization pass. Not
-    available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request. Source:{" "}
-    <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
+    {
+      variant === "cost" ? (
+        <>
+          <code>compact_20260112</code> triggers at 150k tokens (minimum 50k) and bills the summarization pass. Not
+          available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request. Source:{" "}
+          <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
+        </>
+      ) : (
+        <>
+          The context is replaced by a summary once it reaches the trigger (150k tokens, minimum 50k). Source:{" "}
+          <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
+        </>
+      )
+    }
   </Fragment>
 </AlcFigure>

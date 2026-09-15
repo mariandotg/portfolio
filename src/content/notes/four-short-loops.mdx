@@ -1,0 +1,104 @@
+---
+title: "Four Short Loops"
+description: "Splitting one agent's tool calls across four short-lived subagents cuts input tokens 70% and each context's peak to a fraction of the original. A subagent starts every request from zero, and what it returns is bounded by the coordinator's own budget."
+pubDate: 2026-09-15
+tags: ["ai-agents", "claude", "subagents", "context-engineering", "claude-certified-architect"]
+draft: true
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 2
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import SideBySide from "../../components/notes/SideBySide.astro";
+import SubagentTriangles from "../../components/notes/agent-loop/SubagentTriangles.astro";
+import ContextIsolation from "../../components/notes/agent-loop/ContextIsolation.astro";
+import TeamTimeline from "../../components/notes/agent-loop/TeamTimeline.astro";
+
+[Note 1 of this series](/notes/the-quadratic-loop) showed why a single agent's context grows the way it does: every request resends the whole history, so the tool result is the multiplier. Trimming that result slows the growth. It doesn't stop it. Split the same tool work across several short-lived agents, and no single context has to grow that far in the first place.
+
+A coordinator delegates through the `Task` tool. Each subagent runs its own loop in its own context, and only the coordinator talks to more than one of them. Subagents don't talk to each other, and none of them inherits the coordinator's conversation. Hub-and-spoke, with the coordinator as the hub: the only agent that sees the whole picture.
+
+<Callout type="note" title="On the exam">
+This note covers three task statements. **1.2**: a coordinator manages every inter-subagent communication, error and routing decision; subagents run with isolated context and don't inherit the coordinator's history; decompose too narrowly and coverage has gaps, partition too loosely and subagents duplicate the same ground. **1.3**: the `Task` tool spawns a subagent, so the coordinator's `allowedTools` must include it; a subagent's context is only what its prompt states, nothing carries over automatically; several `Task` calls in one coordinator turn run in parallel. **5.1**: when the next reader has a limited context budget, ask a subagent for structured findings — key facts, citations, relevance — instead of prose.
+</Callout>
+
+## Split the work
+
+Take the workload from note 1: a 3,000-token toolset, a 2,000-token system prompt, a 500-token task, and 4,000-token tool results. One agent making 56 tool calls in a single loop peaks at 251,900 tokens of context and sends 7,335,900 input tokens over the whole run.
+
+Split the same 56 tool calls across 4 subagents, 14 each, running in parallel, and the team sends 2,195,400 input tokens: 70% less. Each subagent's context peaks at 67,100 tokens instead of 251,900, and the coordinator's own peaks at 11,900.
+
+<SubagentTriangles />
+
+Four short triangles have far less combined area than one long one, and each one is shorter besides. The *N*² term from note 1 hasn't gone away — it still applies inside every subagent's own loop. It just applies to *N* = 15 requests, four separate times, instead of once to *N* = 57.
+
+## A subagent starts with nothing
+
+Splitting the work only pays off if each subagent's own context stays small, and it does — but only because a subagent starts its run from zero. It doesn't inherit the coordinator's history, the coordinator's earlier `Task` calls, or what any other subagent found. Its first request carries its own tools, its own system prompt, and whatever the coordinator's prompt for that `Task` call states. Nothing else.
+
+<ContextIsolation />
+
+A subagent's first request is 5,500 tokens: the same tools-plus-system-plus-task shape as any other request, because there's no shortcut past sending them. What's missing is everything a chat between two turns would normally carry: there's no history to resend, because from the subagent's side, none exists yet.
+
+The coordinator's own context, once every subagent has answered, is 11,900 tokens: its 5,500-token prompt, the 400-token turn that made four `Task` calls, and the 6,000 tokens of summaries that came back. The exam guide is specific about what makes this possible: `Task` has to be in the coordinator's `allowedTools`, and each subagent type is configured with an AgentDefinition: a description, a system prompt and its tool restrictions. The brief is the whole handoff. If it's missing something a subagent needs, the subagent has no other way to get it.
+
+## What comes back
+
+A structured brief solves what goes into a subagent's context. What comes back is a separate problem, and this time it's the coordinator's context budget, not the subagent's. The coordinator reads 6,000 tokens of summaries in this run, not the 224,000 tokens of tool results that produced them. That's the point of delegating — but only if the coordinator can act on 6,000 tokens as well as it could have acted on 224,000.
+
+The exam guide's answer is to change what a subagent returns, not only how much of it. A prose summary buries the parts a coordinator needs to check or cite. A structured result surfaces them: key facts, a source, a date, a relevance score, and — if the subagent knows it's incomplete — what it didn't get to.
+
+<SideBySide leftLabel="Prose summary" rightLabel="Structured data" variant="diff">
+<Fragment slot="left">
+"I looked into the vendor's rate limit. It looks like they cap requests at 100 per minute per API key — I found this on a community forum post from a few months back, and a couple of users mentioned hitting it under load. Might be worth confirming with their support team before we commit to this, since I couldn't find it in the official docs."
+</Fragment>
+<Fragment slot="right">
+```json
+{
+  "claim": "Rate limit is 100 req/min per API key",
+  "source": "https://community.vendor.com/t/rate-limits/482",
+  "date": "2026-06-02",
+  "relevance": "high",
+  "coverage_gap": "not confirmed by vendor's official docs or support, only a user forum post"
+}
+```
+</Fragment>
+</SideBySide>
+
+I made this example up — it's illustrative, not a run I measured. What's real is the shape of the ask: a coordinator with a limited context budget gets more use out of a citation, a date and a relevance score than out of the reasoning that produced them. Metadata isn't overhead here. It's the only part of the response the coordinator can act on without re-deriving it.
+
+## Parallel or in sequence
+
+Splitting also changes when things finish, and that depends on a choice the exam guide makes explicit: how many `Task` calls the coordinator issues in one turn. Several calls in the same turn run in parallel. One call per turn, waiting for each result before starting the next, runs in sequence.
+
+<TeamTimeline />
+
+Dispatched in parallel, the coordinator and its 4 subagents finish in 5 minutes 40 seconds: 70% less than the 19 minutes the single agent needs for the same 56 tool calls. Dispatched in sequence, one subagent at a time, the same team takes 21 minutes 40 seconds — 14% *more* than doing it alone, because every subagent's run now stacks on top of the coordinator's own overhead instead of overlapping it.
+
+Splitting the work saves tokens either way. It only saves time if the coordinator actually issues its `Task` calls together.
+
+## Where splitting goes wrong
+
+None of this is free, and the exam guide names where it breaks.
+
+Decompose too narrowly, and each subagent answers its own slice correctly while missing what only shows up at the boundary between slices. The gap isn't in any one subagent's brief — it's in how the coordinator drew the lines. Partition too loosely in the other direction, and two subagents research the same ground: tokens spent twice for one answer, and nobody notices unless someone reads both summaries closely.
+
+The coordinator is also the only router. Every fact that crosses from one subagent to another goes through it, because subagents don't talk to each other. If the coordinator's synthesis step doesn't check the returned summaries for gaps before answering, iterative refinement — noticing what's missing and re-delegating to cover it — never happens, and the first, incomplete pass stands.
+
+## What I take from this
+
+- **Splitting works because a subagent starts at zero.** The saving isn't a trick; it comes from never letting one context reach the length the single agent's context reached.
+- **The brief is the whole handoff, in both directions.** What the coordinator doesn't put in the prompt, the subagent doesn't have. What the subagent doesn't put in its summary, the coordinator doesn't get back.
+- **Parallel `Task` calls buy time, not just tokens.** The same split run sequentially cost more wall-clock time than one agent, not less.
+- **The coordinator's context budget is the new bottleneck.** Splitting moves the *N*² problem out of one context. It doesn't remove the coordinator's own limit on how many summaries it can use well.
+
+<Callout type="takeaway" title="The rule">
+A subagent stays small because it starts from nothing. That's also why its brief and its return format are the only two things standing between "small" and "small and useless."
+</Callout>
+
+This model counts tokens and wall-clock seconds, not answer quality. Whether 6,000 tokens of summaries hold what the coordinator needs depends on what its brief asked for and what each subagent decided to leave out — the handoff example above is illustrative, not measured. It also assumes every subagent runs the same shape of loop. A subagent that needs more turns than the others will peak higher than the 67,100 tokens shown here.
+
+---
+
+Splitting the work is one answer to a context that's grown too large. The other, from note 1, is replacing the history with a summary once it can't be split any further — and deciding what that summary is allowed to lose. That's [note 3](/notes/what-the-summary-forgot).

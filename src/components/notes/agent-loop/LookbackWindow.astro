@@ -1,0 +1,102 @@
+---
+// "Why does a 20-block lookback miss a cache entry that's still alive?" Static, two rows on the
+// same 35-block growth. Row 1: sequential tool calls, one block each — the docs' own example, and
+// it misses by exactly one position. Row 2: the same growth as parallel tool calls, where a run of
+// consecutive tool_use (or tool_result) blocks counts as one position, so the entry stays in reach.
+import { SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import AlcFigure from "./AlcFigure.astro";
+
+const TOTAL_BLOCKS = 35;
+const ENTRY_BLOCK = 15; // cache entry written here (1-based)
+const LOOKBACK = 20; // positions checked, breakpoint counts as the first
+
+const S = 10; // square size
+const GAP = 2;
+const X0 = 8;
+const rowX = (blockIndex: number) => X0 + blockIndex * (S + GAP); // blockIndex 0-based
+
+// Row 1: sequential — every block is its own position. The window covers positions 35→16.
+const windowStartBlock = TOTAL_BLOCKS - LOOKBACK + 1; // 16
+const row1Y = 56;
+
+// Row 2: parallel — blocks 16-35 (20 raw blocks) come from 2 turns of 5 parallel tool calls each:
+// tool_use run (5 blocks) + tool_result run (5 blocks) per turn = 2 positions per turn, 4 total.
+// Counting back from block 35: position 1 = blocks 31-35, position 2 = 26-30, position 3 = 21-25,
+// position 4 = 16-20. The entry at block 15 is position 5 — five positions back, not twenty.
+const row2Groups = [
+  { fromBlock: 31, toBlock: 35, position: 1, kind: "tool_result run" },
+  { fromBlock: 26, toBlock: 30, position: 2, kind: "tool_use run" },
+  { fromBlock: 21, toBlock: 25, position: 3, kind: "tool_result run" },
+  { fromBlock: 16, toBlock: 20, position: 4, kind: "tool_use run" },
+];
+const row2Y = 168;
+
+const VB_W = 480;
+const VB_H = 240;
+
+const blockCenter = (block: number) => rowX(block - 1) + S / 2;
+---
+
+<AlcFigure question="Why does a 20-block lookback miss a cache entry that's still alive?">
+  <p class="alc-sub">
+    The lookback checks at most 20 positions per breakpoint, counting the breakpoint itself as
+    the first. A run of consecutive <code>tool_use</code> blocks counts as one position — so does
+    a run of consecutive <code>tool_result</code> blocks.
+  </p>
+
+  <svg
+    viewBox={`0 0 ${VB_W} ${VB_H}`}
+    class="alc-svg"
+    role="img"
+    aria-label={`Two rows of 35 blocks with a cache entry written at block 15. Sequential: the 20-position window checks blocks 35 down to 16, and the entry at block 15 falls one position outside — a miss. Parallel: the same growth made of parallel tool calls collapses blocks 16 to 35 into 4 positions, so the entry at block 15 is only 5 positions back — a hit.`}
+  >
+    <text x={X0} y={24} class="alc-text-strong">sequential tool calls — miss</text>
+    {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
+      const block = i + 1;
+      const inWindow = block >= windowStartBlock;
+      const isEntry = block === ENTRY_BLOCK;
+      const cls = isEntry ? "alc-fill-bad" : inWindow ? "alc-fill-read" : "alc-fill-uncached";
+      return <rect x={rowX(i)} y={row1Y} width={S} height={S} class={cls} opacity={isEntry || inWindow ? 1 : 0.35} />;
+    })}
+    <line x1={rowX(windowStartBlock - 1) - 1} y1={row1Y - 4} x2={rowX(TOTAL_BLOCKS - 1) + S + 1} y2={row1Y - 4} class="alc-marker" />
+    <text x={(rowX(windowStartBlock - 1) + rowX(TOTAL_BLOCKS - 1) + S) / 2} y={row1Y - 8} class="alc-text" text-anchor="middle">
+      20-position window (35 → 16)
+    </text>
+    <line x1={blockCenter(ENTRY_BLOCK)} y1={row1Y + S + 2} x2={blockCenter(ENTRY_BLOCK)} y2={row1Y + S + 16} class="alc-marker" />
+    <text x={blockCenter(ENTRY_BLOCK)} y={row1Y + S + 28} class="alc-text-strong" text-anchor="middle">
+      <tspan x={blockCenter(ENTRY_BLOCK)}>block 15</tspan>
+      <tspan x={blockCenter(ENTRY_BLOCK)} dy="13">1 position short</tspan>
+    </text>
+
+    <text x={X0} y={row2Y - 32} class="alc-text-strong">same growth, parallel tool calls — hit</text>
+    {Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
+      const block = i + 1;
+      const isEntry = block === ENTRY_BLOCK;
+      const group = row2Groups.find((g) => block >= g.fromBlock && block < g.toBlock + 1);
+      const cls = isEntry ? "alc-fill-good" : group ? (group.position % 2 === 0 ? "alc-fill-read" : "alc-fill-write") : "alc-fill-uncached";
+      return <rect x={rowX(i)} y={row2Y} width={S} height={S} class={cls} opacity={isEntry || group ? 1 : 0.35} />;
+    })}
+    {row2Groups.map((g) => (
+      <>
+        <line x1={rowX(g.fromBlock - 1) - 1} y1={row2Y - 4} x2={rowX(g.toBlock - 1) + S + 1} y2={row2Y - 4} class="alc-marker" />
+        <text x={(rowX(g.fromBlock - 1) + rowX(g.toBlock - 1) + S) / 2} y={row2Y - 8} class="alc-text" text-anchor="middle">
+          pos {g.position}
+        </text>
+      </>
+    ))}
+    <line x1={blockCenter(ENTRY_BLOCK)} y1={row2Y + S + 2} x2={blockCenter(ENTRY_BLOCK)} y2={row2Y + S + 16} class="alc-marker" />
+    <text x={blockCenter(ENTRY_BLOCK)} y={row2Y + S + 28} class="alc-text-strong" text-anchor="middle">
+      <tspan x={blockCenter(ENTRY_BLOCK)}>block 15</tspan>
+      <tspan x={blockCenter(ENTRY_BLOCK)} dy="13">position 5 of 20</tspan>
+    </text>
+  </svg>
+
+  <Fragment slot="caption">
+    Row 1 is the docs' own turn-3 example: 35 blocks, an entry written at block 15, the window
+    checks positions 35→16 and misses by one. Row 2 is an illustrative reconstruction of the same
+    35-block growth as 2 turns of 5 parallel tool calls each, to show how the run-counts-as-one-position
+    rule changes the count — the docs don't publish this second example. The fix for a real miss is an
+    explicit breakpoint placed often enough that no gap exceeds 20 positions — up to 4 explicit
+    breakpoints per request. Source: <a href={SOURCES.caching}>prompt caching</a>, as of {FACTS_AS_OF}.
+  </Fragment>
+</AlcFigure>

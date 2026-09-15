@@ -223,3 +223,18 @@ Un commit por paso.
 [editing]: https://platform.claude.com/docs/en/build-with-claude/context-editing
 [compaction]: https://platform.claude.com/docs/en/build-with-claude/compaction
 [multiagent]: https://www.anthropic.com/engineering/multi-agent-research-system
+
+## 11. División en 4 notas (2026-09-15)
+
+La guía oficial CCA-F v1.0 (julio 2026) excluye del examen "Prompt caching implementation details (beyond knowing it exists)", "API pricing calculations" y "Token counting algorithms". Context editing y la API de compaction no aparecen. Por eso esta nota se divide por concepto del examen.
+
+**Regla de alcance:** las notas de la serie hablan de tokens como presupuesto de contexto. No hablan de dólares ni de caching. Lo que no entra al examen va en una nota de ingeniería fuera de la serie.
+
+| Nota | Serie | Consignas del examen | Visuales |
+|---|---|---|---|
+| `the-quadratic-loop` | 1 | 1.1 (loop, `stop_reason`, historial), 5.1 (historial completo, acumulación, recortar outputs) | `RequestAnatomy`, `LoopTriangleIsland`, `TrimCost` |
+| `four-short-loops` | 2 | 1.2 (hub-and-spoke), 1.3 (Task, contexto explícito), 5.1 (datos estructurados de subagentes) | `SubagentTriangles`, `ContextIsolation`, `TeamTimeline`, `SideBySide` |
+| `what-the-summary-forgot` | 3 | 5.1 (resumen progresivo, case facts, lost in the middle, scratchpad, `/compact`) | `CompactionSawtooth variant="context"`, `FactsSurvival`, `PositionLayout` |
+| `the-cache-break` | — (ingeniería) | Fuera del examen | `CacheCost`, `CacheBreakEven`, `InvalidationLadder`, `LookbackWindow`, `FanOutCache`, `ClearingCost`, `CompactionSawtooth` |
+
+Spec de la nota de ingeniería: `docs/specs/the-cache-break.md`. Las notas 2 y 3 reemplazan los posts 4 ("El cambio de guardia") y 10 ("Tatuajes") del banco de temas.

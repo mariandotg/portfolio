@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD, MAX_TURNS } from "./workloads";
-import { fmtTokens, fmtUsd, scale } from "./format";
+import { fmtTokens, scale } from "./format";
 
 const W = 480;
 const H = 240;
@@ -67,11 +67,10 @@ export default function LoopTriangle() {
     <div data-alc-shots="15,30,60,120">
       <div className="alc-headline">
         <span className="alc-big">{fmtTokens(t.inputTokens)} input tokens</span>
-        <span className="alc-delta bad">{fmtUsd(t.costUsd)}</span>
+        <span className="alc-delta bad">{(t.inputTokens / last.contextTokens).toFixed(1)}× the final context</span>
       </div>
       <p className="alc-sub">
-        The last request sends <strong>{fmtTokens(last.contextTokens)}</strong>, but the loop bills{" "}
-        <strong>{(t.inputTokens / last.contextTokens).toFixed(1)}×</strong> that.
+        The last request sends <strong>{fmtTokens(last.contextTokens)}</strong>.
         {turns >= 4 && (
           <>
             {" "}
@@ -85,7 +84,7 @@ export default function LoopTriangle() {
         className="alc-svg"
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label={`${turns} requests. Each bar is the context one request sends; the last one sends ${fmtTokens(last.contextTokens)} tokens. The total area, ${fmtTokens(t.inputTokens)} input tokens, is what the loop bills.`}
+        aria-label={`${turns} requests. Each bar is the context one request sends; the last one sends ${fmtTokens(last.contextTokens)} tokens. The total area, ${fmtTokens(t.inputTokens)} input tokens, is what the loop sends in total.`}
       >
         <polygon className="alc-ghost" points={ghost} />
         {turns < MAX_TURNS * 0.8 && (

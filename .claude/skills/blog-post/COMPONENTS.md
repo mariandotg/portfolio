@@ -66,8 +66,13 @@ Todos en `src/components/notes/`. Precedente de uso:
 | `RequestAnatomy.astro` | — | SVG estático: qué reenvía cada request. Precedente de diagrama estático |
 | `agent-loop/AlcFigure.astro` | `question`, `options?`, `initial?`; slot `caption` | Marco de visual calculado: pregunta, toggle de 2–3 estados (paneles `data-alc-panel` renderizados en el servidor, sin React) y línea de fuentes. Estilos en `agent-loop/agent-loop.css` |
 | `agent-loop/LoopTriangleIsland.astro` | — | Héroe con un slider: el loop dibuja un triángulo y el área es lo que se factura. Ejes fijos |
-| `agent-loop/CacheCost.astro`, `ClearingCost.astro` | — | Toggle de dos estados calculado con el motor al renderizar |
-| `agent-loop/CompactionSawtooth.astro`, `SubagentTriangles.astro` | — | Diagramas estáticos calculados con el motor |
+| `agent-loop/TrimCost.astro` | — | Toggle 40 / 5 campos: el tamaño del tool result multiplica el total. Nota 1 de la serie |
+| `agent-loop/SubagentTriangles.astro`, `ContextIsolation.astro`, `TeamTimeline.astro` | — | Subagentes: triángulos a la misma escala, qué sabe un subagente al empezar, paralelo vs secuencial. Nota 2 de la serie |
+| `agent-loop/CompactionSawtooth.astro` | `variant?`: `cost` \| `context` | Serrucho de compaction. `context` (solo tokens) para la serie, `cost` para la nota de ingeniería |
+| `agent-loop/FactsSurvival.astro` | — | Qué hechos siguen literales después de cada compaction, con y sin bloque de case facts. Nota 3 de la serie (la posición de los hallazgos va con `SideBySide`) |
+| `agent-loop/CacheCost.astro`, `CacheBreakEven.astro`, `InvalidationLadder.astro`, `LookbackWindow.astro`, `FanOutCache.astro`, `ClearingCost.astro` | — | Caching, invalidación, lookback, fan-out y context editing. Nota de ingeniería `the-cache-break` (fuera de la serie) |
+
+**Regla de alcance de la serie CCA:** la guía del examen excluye caching, cálculo de precios y conteo de tokens. Los visuales de la serie muestran tokens, nunca dólares.
 
 Precedente de visuales calculados: `the-quadratic-loop.mdx` (motor en `src/lib/sim/agent-loop/`, galería en `/dev/agent-loop`). Lección del rediseño (2026-09-15): la primera versión, una isla con 6 presets y un playground, quedó sobrecargada. **Interactivo solo cuando la variable es el concepto.** Un visual, una pregunta, un número, escala fija entre estados, y la unidad de la pregunta (dólares para costo).
 

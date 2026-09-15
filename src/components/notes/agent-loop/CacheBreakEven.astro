@@ -1,0 +1,117 @@
+---
+// "How slow can a tool be before the cache stops paying?" Static. Because every request in the
+// loop waits the same number of seconds, each cache mode either hits on every request or misses
+// on every request — the curve is a step, not a slope. It steps once, at the 5-minute TTL.
+import { simulate, CACHE, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import type { CacheMode } from "@/lib/sim/agent-loop";
+import { BASE_WORKLOAD } from "./workloads";
+import { fmtUsd, fmtSeconds, scale, points } from "./format";
+import AlcFigure from "./AlcFigure.astro";
+
+const GAP_MIN = 0;
+const GAP_MAX = 900; // 15 minutes
+const GAP_STEP = 15;
+const TTL = CACHE.ttl5mSeconds;
+
+const gaps: number[] = [];
+for (let g = GAP_MIN; g <= GAP_MAX; g += GAP_STEP) gaps.push(g);
+if (!gaps.includes(TTL)) gaps.push(TTL);
+gaps.push(TTL + 1);
+gaps.sort((a, b) => a - b);
+
+const costAt = (gap: number, cache: CacheMode) =>
+  simulate({ ...BASE_WORKLOAD, secondsBetweenRequests: gap, cache }).totals.costUsd;
+
+const noCache = gaps.map((g) => costAt(g, "off"));
+const oneHour = gaps.map((g) => costAt(g, "1h"));
+const fiveMin = gaps.map((g) => costAt(g, "5m"));
+
+const breakIdx = gaps.findIndex((g) => g > TTL);
+const beforeGaps = gaps.slice(0, breakIdx);
+const beforeVals = fiveMin.slice(0, breakIdx);
+const afterGaps = gaps.slice(breakIdx);
+const afterVals = fiveMin.slice(breakIdx);
+
+const noCacheCost = noCache[0];
+const oneHourCost = oneHour[0];
+const fiveMinHit = beforeVals[0];
+const fiveMinMiss = afterVals[0];
+
+const yMax = Math.max(...noCache, ...oneHour, ...fiveMin) * 1.08;
+
+const VB_W = 480;
+const VB_H = 240;
+const PLOT_LEFT = 6;
+const PLOT_RIGHT = 372;
+const PLOT_TOP = 30;
+const PLOT_BOTTOM = 196;
+
+const xAt = scale(GAP_MIN, GAP_MAX, PLOT_LEFT, PLOT_RIGHT);
+const yAt = scale(0, yMax, PLOT_BOTTOM, PLOT_TOP);
+
+const noCachePts = points(noCache, (i) => xAt(gaps[i]), yAt);
+const oneHourPts = points(oneHour, (i) => xAt(gaps[i]), yAt);
+const beforePts = points(beforeVals, (i) => xAt(beforeGaps[i]), yAt);
+const afterPts = points(afterVals, (i) => xAt(afterGaps[i]), yAt);
+
+const ttlX = xAt(TTL);
+
+function nudgeLabels<T extends { y: number }>(entries: T[], minGap = 14): T[] {
+  const sorted = [...entries].sort((a, b) => a.y - b.y);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
+  }
+  return sorted;
+}
+
+const lineLabels = nudgeLabels([
+  { text: "no cache", y: yAt(noCacheCost) },
+  { text: "5-min (miss)", y: yAt(fiveMinMiss) },
+  { text: "1-hour", y: yAt(oneHourCost) },
+  { text: "5-min (hit)", y: yAt(fiveMinHit) },
+]);
+
+const ariaLabel = `Total cost of the 30-request loop as a function of seconds between requests, 0 to 15 minutes. No cache stays flat at ${fmtUsd(noCacheCost)}. The 1-hour cache stays flat at ${fmtUsd(oneHourCost)}. The 5-minute cache stays at ${fmtUsd(fiveMinHit)} up to 5 minutes, then jumps to ${fmtUsd(fiveMinMiss)} past 5 minutes, becoming more expensive than no cache.`;
+---
+
+<AlcFigure question="How slow can a tool be before the cache stops paying?">
+  <div class="alc-headline">
+    <span class="alc-big">{fmtSeconds(TTL)}</span>
+    <span class="alc-delta bad">5-min cache turns worse past this gap</span>
+  </div>
+  <p class="alc-sub">
+    Past {fmtSeconds(TTL)} between request starts, the 5-minute cache never gets a hit: every
+    request writes the whole prefix again at 1.25×, and the loop costs <strong>{fmtUsd(fiveMinMiss)}</strong>
+    instead of <strong>{fmtUsd(fiveMinHit)}</strong>. The 1-hour cache costs <strong>{fmtUsd(oneHourCost)}</strong> at any gap in this range.
+  </p>
+
+  <svg viewBox={`0 0 ${VB_W} ${VB_H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
+    <text x={PLOT_LEFT} y={PLOT_TOP - 10} class="alc-text">{fmtUsd(yMax)} total cost</text>
+    <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="alc-axis" />
+    <text x={PLOT_LEFT} y={PLOT_BOTTOM + 16} class="alc-text">0</text>
+    <text x={PLOT_RIGHT} y={PLOT_BOTTOM + 16} class="alc-text" text-anchor="end">15 min</text>
+    <text x={(PLOT_LEFT + PLOT_RIGHT) / 2} y={PLOT_BOTTOM + 28} class="alc-text" text-anchor="middle">seconds between request starts →</text>
+
+    <line x1={ttlX} y1={PLOT_TOP} x2={ttlX} y2={PLOT_BOTTOM} class="alc-marker" />
+    <text x={ttlX + 4} y={PLOT_TOP + 10} class="alc-text">{fmtSeconds(TTL)}</text>
+
+    <polyline points={noCachePts} class="alc-line neutral" />
+    <polyline points={oneHourPts} class="alc-line good" />
+    <polyline points={beforePts} class="alc-line new" />
+    <polyline points={afterPts} class="alc-line bad" />
+    <line x1={ttlX} y1={yAt(fiveMinHit)} x2={ttlX} y2={yAt(fiveMinMiss)} class="alc-ghost" />
+
+    {lineLabels.map((l) => (
+      <text x={PLOT_RIGHT + 6} y={l.y + 4} class={l.text.startsWith("5-min") ? "alc-text-strong" : "alc-text"}>
+        {l.text}
+      </text>
+    ))}
+  </svg>
+
+  <Fragment slot="caption">
+    Every request in this loop waits the same number of seconds, so a cache mode either hits on
+    every request or misses on every request — the line steps once, at the TTL, instead of
+    sloping. Claude Sonnet 5, 30-request loop. Source: <a href={SOURCES.caching}>prompt caching</a>,
+    <a href={SOURCES.pricing}>pricing</a>, as of {FACTS_AS_OF}.
+  </Fragment>
+</AlcFigure>

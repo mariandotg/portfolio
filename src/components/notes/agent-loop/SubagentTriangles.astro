@@ -5,7 +5,7 @@
 import AlcFigure from "./AlcFigure.astro";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
-import { fmtTokens, fmtUsd, fmtChange, fmtSeconds } from "./format";
+import { fmtTokens, fmtChange, fmtSeconds } from "./format";
 
 const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
   count: SUBAGENTS.count,
@@ -56,10 +56,10 @@ const toolCalls = SUBAGENTS.count * (SUBAGENTS.turnsEach - 1);
 const toolResultsTotal = toolCalls * SUBAGENT_WORKLOAD.toolResultTokens;
 const summariesTotal = SUBAGENTS.count * SUBAGENTS.resultTokens;
 
-const ariaLabel = `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and bills ${fmtTokens(singleTokens)}. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team bills ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
+const ariaLabel = `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and sends ${fmtTokens(singleTokens)} input tokens in total. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team sends ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
 ---
 
-<AlcFigure question="Why are four short loops cheaper than one long one?">
+<AlcFigure question="Why do four short loops send fewer tokens than one long one?">
   <div class="alc-headline">
     <span class="alc-big">{fmtTokens(teamTokens)}</span>
     <span class="alc-delta good">{fmtChange(teamTokens, singleTokens)} input tokens</span>
@@ -74,7 +74,7 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
   <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
     <text class="alc-text-strong" x={plotX0} y={row1LabelY}>One agent · {toolCalls} tool calls</text>
     <text class="alc-text" x={plotX1} y={row1LabelY} text-anchor="end">
-      {fmtTokens(singleTokens)} tokens · {fmtUsd(r.single.totals.costUsd)}
+      {fmtTokens(singleTokens)} input tokens
     </text>
     <line class="alc-axis" x1={plotX0} y1={row1Base} x2={plotX1} y2={row1Base} />
     {
@@ -89,7 +89,7 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
 
     <text class="alc-text-strong" x={plotX0} y={row2LabelY}>Coordinator + 4 subagents</text>
     <text class="alc-text" x={plotX1} y={row2LabelY} text-anchor="end">
-      {fmtTokens(teamTokens)} tokens · {fmtUsd(r.totals.costUsd)}
+      {fmtTokens(teamTokens)} input tokens
     </text>
     <line class="alc-axis" x1={plotX0} y1={row2Base} x2={plotX1} y2={row2Base} />
     {

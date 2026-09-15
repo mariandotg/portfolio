@@ -1,0 +1,152 @@
+---
+// "Does splitting the work also make it faster?" Same coordinator + 4 subagents as the triangles
+// above, laid out on a wall-clock axis instead of a token axis. Toggle dispatches them in parallel
+// (one Task-call turn, all four run at once) or in sequence (one subagent at a time).
+import AlcFigure from "./AlcFigure.astro";
+import { simulateMultiAgent } from "@/lib/sim/agent-loop";
+import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
+import { fmtSeconds, fmtChange, scale } from "./format";
+
+type Key = "parallel" | "sequential";
+
+function run(parallel: boolean) {
+  return simulateMultiAgent(SUBAGENT_WORKLOAD, {
+    count: SUBAGENTS.count,
+    parallel,
+    subagent: { ...SUBAGENT_WORKLOAD, turns: SUBAGENTS.turnsEach },
+    resultTokens: SUBAGENTS.resultTokens,
+  });
+}
+
+const runs: Record<Key, ReturnType<typeof run>> = { parallel: run(true), sequential: run(false) };
+const reqDur = SUBAGENT_WORKLOAD.secondsBetweenRequests;
+const subDur = runs.parallel.subagents[0].totals.durationSeconds;
+const count = SUBAGENTS.count;
+const singleDuration = runs.parallel.single.totals.durationSeconds;
+
+/**
+ * Every coordinator request costs `reqDur`, and every subagent runs for `subDur`. Parallel: one
+ * dispatch turn, all subagents run at once, one aggregate turn. Sequential: dispatch, wait, repeat.
+ * Both schedules are read straight off the engine's own request counts and subagent duration, and
+ * their totals equal `runs[key].totals.durationSeconds` — the assertions below are the proof.
+ */
+function schedule(key: Key) {
+  const coordinator: [number, number][] = [];
+  const subagents: [number, number][] = [];
+  let cursor = 0;
+  if (key === "parallel") {
+    coordinator.push([cursor, cursor + reqDur]);
+    cursor += reqDur;
+    for (let i = 0; i < count; i++) subagents.push([cursor, cursor + subDur]);
+    cursor += subDur;
+    coordinator.push([cursor, cursor + reqDur]);
+    cursor += reqDur;
+  } else {
+    for (let i = 0; i < count; i++) {
+      coordinator.push([cursor, cursor + reqDur]);
+      cursor += reqDur;
+      subagents.push([cursor, cursor + subDur]);
+      cursor += subDur;
+    }
+    coordinator.push([cursor, cursor + reqDur]);
+    cursor += reqDur;
+  }
+  return { coordinator, subagents, total: cursor };
+}
+
+const SCHEDULES: Record<Key, ReturnType<typeof schedule>> = { parallel: schedule("parallel"), sequential: schedule("sequential") };
+
+// Each schedule's total must match the engine's own duration for that run — the layout adds no time of its own.
+if (
+  SCHEDULES.parallel.total !== runs.parallel.totals.durationSeconds ||
+  SCHEDULES.sequential.total !== runs.sequential.totals.durationSeconds
+) {
+  throw new Error("TeamTimeline: schedule total doesn't match the engine's own duration");
+}
+
+const scaleMax = Math.max(SCHEDULES.sequential.total, singleDuration) * 1.04;
+
+const W = 480;
+const labelW = 82;
+const trackX0 = labelW;
+const trackX1 = 474;
+const x = scale(0, scaleMax, trackX0, trackX1);
+const laneH = 22;
+const laneGap = 8;
+const lanes: { key: string; label: string }[] = [
+  { key: "single", label: "One agent" },
+  { key: "coordinator", label: "Coordinator" },
+  { key: "sub0", label: "Subagent 1" },
+  { key: "sub1", label: "Subagent 2" },
+  { key: "sub2", label: "Subagent 3" },
+  { key: "sub3", label: "Subagent 4" },
+];
+const laneY = (i: number) => 16 + i * (laneH + laneGap);
+const H = laneY(lanes.length - 1) + laneH + 16;
+
+function panel(key: Key) {
+  const s = SCHEDULES[key];
+  const r = runs[key];
+  const team = r.totals.durationSeconds;
+  const deltaClass = team <= singleDuration ? "good" : "bad";
+  return { key, s, team, change: fmtChange(team, singleDuration), deltaClass };
+}
+const PANELS: Record<Key, ReturnType<typeof panel>> = { parallel: panel("parallel"), sequential: panel("sequential") };
+
+const OPTIONS = [
+  { value: "parallel", label: "parallel" },
+  { value: "sequential", label: "sequential" },
+];
+---
+
+<AlcFigure question="Does splitting the work also make it faster?" options={OPTIONS} initial="parallel">
+  {
+    (["parallel", "sequential"] as Key[]).map((key) => {
+      const p = PANELS[key];
+      const ariaLabel = `${key === "parallel" ? "Dispatched in parallel" : "Dispatched in sequence"}, the coordinator and its ${count} subagents finish in ${fmtSeconds(p.team)}, ${p.change} versus ${fmtSeconds(singleDuration)} for one agent doing the same tool work alone.`;
+      return (
+        <div data-alc-panel={key} hidden={key !== "parallel"}>
+          <div class="alc-headline">
+            <span class="alc-big">{fmtSeconds(p.team)}</span>
+            <span class={`alc-delta ${p.deltaClass}`}>{p.change} vs one agent</span>
+          </div>
+          <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
+            {lanes.map((lane, i) => (
+              <text class="alc-text" x="0" y={laneY(i) + laneH / 2 + 4}>{lane.label}</text>
+            ))}
+
+            <rect
+              class="alc-ghost"
+              x={x(0)}
+              y={laneY(0)}
+              width={x(singleDuration) - x(0)}
+              height={laneH}
+            />
+            <text class="alc-text" x={x(singleDuration) + 4} y={laneY(0) + laneH / 2 + 4}>{fmtSeconds(singleDuration)}</text>
+
+            {p.s.coordinator.map(([a, b]) => (
+              <rect class="alc-fill-read" x={x(a)} y={laneY(1)} width={Math.max(x(b) - x(a), 1.5)} height={laneH} />
+            ))}
+
+            {p.s.subagents.map(([a, b], i) => (
+              <rect class="alc-fill-new" x={x(a)} y={laneY(2 + i)} width={Math.max(x(b) - x(a), 1.5)} height={laneH} />
+            ))}
+
+            <line class="alc-axis" x1={trackX0} y1={H - 6} x2={trackX1} y2={H - 6} />
+            <text class="alc-text" x={trackX0} y={H - 6} dy="12">0</text>
+            <text class="alc-text" x={x(p.team)} y={H - 6} dy="12" text-anchor="end">{fmtSeconds(p.team)}</text>
+          </svg>
+        </div>
+      );
+    })
+  }
+  <ul class="alc-legend">
+    <li><span class="alc-swatch" style="background: var(--alc-read)"></span> coordinator request</li>
+    <li><span class="alc-swatch" style="background: var(--alc-new)"></span> subagent run</li>
+  </ul>
+  <Fragment slot="caption">
+    Same coordinator and {SUBAGENTS.count} subagents as above. Assumption: every coordinator request takes{" "}
+    {reqDur} seconds and subagents run back-to-back with no gap between dispatches. Fixed scale in both states, up
+    to the sequential total, {fmtSeconds(SCHEDULES.sequential.total)}.
+  </Fragment>
+</AlcFigure>

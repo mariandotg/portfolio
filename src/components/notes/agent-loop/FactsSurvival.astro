@@ -1,0 +1,159 @@
+---
+// Hero: how many of a support case's transactional facts are still verbatim in context at the
+// last request — raw history vs a case facts block. Compaction drops every block before the
+// summary, so a fact survives raw only until the next compaction after it was introduced, unless
+// it lives in the case facts block (sent in every prompt, immune to compaction).
+import AlcFigure from "./AlcFigure.astro";
+import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
+import { fmtTokens } from "./format";
+
+const run = simulate(compactionWith(COMPACTION_LIMITS.minTrigger));
+const N = COMPACTION_WORKLOAD.turns;
+const compactionIndices = run.requests.filter((r) => r.compaction).map((r) => r.index);
+
+// Segments: the requests between one compaction and the next. Column i is segment i.
+const segStarts = [1, ...compactionIndices];
+const segEnds = [...compactionIndices.map((c) => c - 1), N];
+const segments = segStarts.map((start, i) => ({ start, end: segEnds[i] }));
+const lastSeg = segments.length - 1;
+
+// Illustrative support-case facts. Each is introduced by the tool result of one request.
+// Assumption: the case, the requests, and which fact each one carries are illustrative, not from
+// a real transcript. Their survival is computed from the compaction indices above.
+const FACTS = [
+  { key: "order", label: "order number", introducedAt: 2 },
+  { key: "amount", label: "amount charged", introducedAt: 15 },
+  { key: "date", label: "purchase date", introducedAt: 30 },
+  { key: "status", label: "case status", introducedAt: 45 },
+  { key: "refund", label: "refund promised", introducedAt: 63 },
+  { key: "deadline", label: "refund deadline", introducedAt: 76 },
+] as const;
+
+const segmentOf = (requestIndex: number) => segments.findIndex((s) => requestIndex >= s.start && requestIndex <= s.end);
+const facts = FACTS.map((f) => ({ ...f, introSeg: segmentOf(f.introducedAt) }));
+
+type CellState = "unknown" | "verbatim" | "maybe" | "kept";
+type Panel = "history" | "casefacts";
+const cellState = (panel: Panel, introSeg: number, seg: number): CellState => {
+  if (seg < introSeg) return "unknown";
+  if (panel === "casefacts") return "kept";
+  return seg === introSeg ? "verbatim" : "maybe";
+};
+
+const verbatimAtLast = (panel: Panel) => facts.filter((f) => cellState(panel, f.introSeg, lastSeg) !== "unknown" && cellState(panel, f.introSeg, lastSeg) !== "maybe").length;
+const historyCount = verbatimAtLast("history");
+const casefactsCount = verbatimAtLast("casefacts");
+
+// Assumption: a six-fact case facts block is short — about 30 tokens per fact including its label.
+const CASE_FACTS_BLOCK_TOKENS = 30 * FACTS.length;
+
+// Layout: viewBox 480 wide. Row labels on the left, one column per segment.
+const W = 480;
+const labelW = 112;
+const plotX0 = labelW + 6;
+const plotX1 = 472;
+const plotWidth = plotX1 - plotX0;
+const colGap = 3;
+const colW = plotWidth / segments.length;
+const cellW = colW - colGap;
+const rowH = 26;
+const rowGap = 5;
+const headerH = 22;
+const rowY = (i: number) => headerH + i * (rowH + rowGap);
+const colX = (i: number) => plotX0 + i * colW;
+const H = headerH + facts.length * (rowH + rowGap) + 20;
+
+const panels: { key: Panel; label: string }[] = [
+  { key: "history", label: "facts only in the history" },
+  { key: "casefacts", label: "case facts block" },
+];
+
+const ariaFor = (panel: Panel) => {
+  const count = panel === "history" ? historyCount : casefactsCount;
+  const grid = facts
+    .map((f) => `${f.label}: ${cellState(panel, f.introSeg, lastSeg) === "unknown" ? "never introduced" : cellState(panel, f.introSeg, lastSeg) === "verbatim" || cellState(panel, f.introSeg, lastSeg) === "kept" ? "verbatim" : "only in the summary, not guaranteed"}`)
+    .join("; ");
+  return `${count} of ${facts.length} facts verbatim in context at request ${N}, ${panel === "history" ? "with facts only in the conversation history" : "with a case facts block in every prompt"}. ${grid}.`;
+};
+---
+
+<AlcFigure
+  question="How many of a support case's facts survive to the last request?"
+  options={panels.map((p) => ({ value: p.key, label: p.label }))}
+  initial="history"
+>
+  {
+    panels.map((p) => (
+      <div data-alc-panel={p.key} hidden={p.key !== "history"}>
+        <div class="alc-headline">
+          <span class="alc-big">{p.key === "history" ? historyCount : casefactsCount} of {facts.length} facts</span>
+          <span class={`alc-delta ${p.key === "history" ? "bad" : "good"}`}>verbatim at request {N}</span>
+        </div>
+        <p class="alc-sub">
+          {p.key === "history" ? (
+            <>
+              Only <strong>{facts.find((f) => f.introSeg === lastSeg)?.label}</strong>, introduced at request{" "}
+              {facts.find((f) => f.introSeg === lastSeg)?.introducedAt} after the last compaction, is still raw. The
+              other {facts.length - historyCount} are only in the summary, if the summary kept them.
+            </>
+          ) : (
+            <>
+              A case facts block carries every extracted fact in every prompt, outside the summarized history.
+              Assumption: about <strong>{fmtTokens(CASE_FACTS_BLOCK_TOKENS)}</strong> tokens for {facts.length} short
+              facts.
+            </>
+          )}
+        </p>
+
+        <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaFor(p.key)}>
+          <text class="alc-text" x={plotX0} y={14}>request 1</text>
+          <text class="alc-text" x={plotX1} y={14} text-anchor="end">request {N}</text>
+
+          {
+            segments.slice(1).map((s, i) => (
+              <line class="alc-marker" x1={colX(i + 1)} y1={headerH - 2} x2={colX(i + 1)} y2={rowY(facts.length - 1) + rowH} />
+            ))
+          }
+
+          {
+            facts.map((f, ri) => (
+              <g>
+                <text class="alc-text" x={0} y={rowY(ri) + rowH * 0.65}>{f.label}</text>
+                {
+                  segments.map((_, ci) => {
+                    const state = cellState(p.key, f.introSeg, ci);
+                    const x = colX(ci);
+                    const y = rowY(ri);
+                    if (state === "unknown") {
+                      return <rect class="alc-ghost" x={x} y={y} width={cellW} height={rowH} rx="3" />;
+                    }
+                    const cls = state === "maybe" ? "alc-fill-resent" : "alc-fill-new";
+                    return <rect class={cls} x={x} y={y} width={cellW} height={rowH} rx="3" />;
+                  })
+                }
+              </g>
+            ))
+          }
+
+          <text class="alc-text" x={plotX0} y={H - 4}>compacted every ~8 requests</text>
+          <text class="alc-text" x={plotX1} y={H - 4} text-anchor="end">{compactionIndices.length} compactions</text>
+        </svg>
+      </div>
+    ))
+  }
+
+  <ul class="alc-legend">
+    <li><span class="alc-swatch" style="background: var(--alc-new)"></span> verbatim in context</li>
+    <li><span class="alc-swatch" style="background: var(--alc-resent)"></span> only in the summary, not guaranteed</li>
+    <li><span class="alc-swatch" style="border: 1px dashed hsl(var(--muted-foreground)); background: transparent"></span> not yet known</li>
+  </ul>
+
+  <Fragment slot="caption">
+    {facts.length} illustrative facts of one support case, placed at the request that introduces them. Compaction
+    trigger lowered to the documented minimum ({fmtTokens(COMPACTION_LIMITS.minTrigger)}) so the {N}-request loop
+    compacts {compactionIndices.length} times instead of 2. The grid tracks what compaction drops, never a
+    probability that the summary kept a fact. Source:{" "}
+    <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
+  </Fragment>
+</AlcFigure>

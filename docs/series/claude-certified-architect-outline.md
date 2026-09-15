@@ -1,10 +1,21 @@
 # Serie Claude Certified Architect — overview
 
 Estado: **reemplazado (2026-09-15)**. La serie ya no sigue el formato de
-capas con analogía. La nota 01 es "The Quadratic Loop"
-(`docs/specs/the-quadratic-loop.md`), con el formato "mecanismo calculado"
+capas con analogía. Usa el formato "mecanismo calculado"
 (`.claude/skills/blog-post/FORMAT.md`). Los posts de abajo quedan solo como
 banco de temas: su formato ya no aplica.
+
+**Notas escritas** (división en `docs/specs/the-quadratic-loop.md` §11):
+
+| # | Nota | Consignas del examen |
+|---|---|---|
+| 1 | The Quadratic Loop | 1.1, 5.1 |
+| 2 | Four Short Loops (reemplaza el post 4) | 1.2, 1.3, 5.1 |
+| 3 | What the Summary Forgot (reemplaza el post 10) | 5.1 |
+
+**Regla de alcance:** la guía CCA-F v1.0 excluye caching, cálculo de
+precios y conteo de tokens. Las notas de la serie no los enseñan. Ese
+material vive en "The Cache Break", una nota de ingeniería fuera de la serie.
 
 Id de la serie: `claude-certified-architect` (`rootLevel: true`, vive en
 `/claude-certified-architect`). Los posts se escriben con la skill

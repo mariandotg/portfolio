@@ -1,8 +1,8 @@
 ---
 title: "The Quadratic Loop"
-description: "An agent resends its whole history on every request, so its input tokens grow with the square of the loop. I computed what caching, context editing, compaction and subagents do to that curve from Anthropic's documented API rules. Two of the default-looking settings cost more than doing nothing."
+description: "An agent resends its whole history on every request, so the tokens it sends grow with the square of the loop. A 30-request loop with a 104K-token final context sends 1.64 million input tokens, and the tool result is the multiplier."
 pubDate: 2026-09-15
-tags: ["ai-agents", "claude", "prompt-caching", "context-engineering", "claude-certified-architect"]
+tags: ["ai-agents", "claude", "agentic-loop", "context-engineering", "claude-certified-architect"]
 draft: true
 collection: "engineering-notes"
 series: "claude-certified-architect"
@@ -12,32 +12,25 @@ seriesOrder: 1
 import Callout from "../../components/notes/Callout.astro";
 import RequestAnatomy from "../../components/notes/RequestAnatomy.astro";
 import LoopTriangleIsland from "../../components/notes/agent-loop/LoopTriangleIsland.astro";
-import CacheCost from "../../components/notes/agent-loop/CacheCost.astro";
-import ClearingCost from "../../components/notes/agent-loop/ClearingCost.astro";
-import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
-import SubagentTriangles from "../../components/notes/agent-loop/SubagentTriangles.astro";
+import TrimCost from "../../components/notes/agent-loop/TrimCost.astro";
 
-The Claude Messages API doesn't remember anything. Every request carries the whole conversation: the tool definitions, the system prompt, the task, and every tool call and tool result so far. In a chat, that's a detail. In an agent loop, it's the bill.
+The Claude Messages API doesn't remember anything. Every request carries the whole conversation: the tool definitions, the system prompt, the task, and every tool call and tool result so far. In a chat, that's a detail. In an agent loop, it's the shape of everything the agent sends.
 
-I'm preparing for Anthropic's Claude Certified Architect exam. Two of its domains, agentic architecture and context management, keep coming back to the same question: what does a long-running agent actually cost, and which lever changes that? I didn't want the answer as a rule to memorize. So I built a small engine from the documented rules: prices, cache multipliers, cache lifetimes, and the parameters of context editing and compaction.
+I'm preparing for Anthropic's Claude Certified Architect exam. Two of its domains, agentic architecture and context management, start from this one fact. I didn't want it as a rule to memorize, so I built a small engine that counts what each request sends. It makes no API calls. Every number in this note is calculated, and every workload size is an assumption stated under the visual that uses it.
 
-It makes no API calls. Every number in this note is calculated from those rules.
-
-Anthropic [reports](https://www.anthropic.com/engineering/multi-agent-research-system) that its agents use about 4× the tokens of a chat, and its multi-agent Research system about 15×. By the end of this note you'll see where multiples like that come from, and why the baseline matters more than the multiple.
-
-<Callout type="note" title="How to read the numbers">
-**Calculated** means a formula applied to documented values. **Documented** values link to their page in Anthropic's docs, as of 2026-09-15. **Assumption** means a workload size I chose, or a behavior the docs don't specify. Each visual states its assumptions under it. Nothing here models answer quality.
+<Callout type="note" title="On the exam">
+This note covers two task statements. **1.1**: the agentic loop continues while `stop_reason` is `"tool_use"`, stops at `"end_turn"`, and appends each tool result to the conversation history. **5.1**: every request passes the complete history, tool results accumulate in context and consume tokens out of proportion to their relevance, and you trim verbose tool outputs before they pile up.
 </Callout>
 
 ## One request
 
-A request is a stack of blocks in a fixed order: `tools`, then `system`, then `messages`. That order matters twice. It's what the model reads, and it's the order of the [prompt cache prefix](https://platform.claude.com/docs/en/build-with-claude/prompt-caching).
+A request is a stack of blocks in a fixed order: `tools`, then `system`, then `messages`. The model reads it top to bottom, and it answers with a `stop_reason`. If the reason is `"tool_use"`, your code runs the tool, appends the result, and sends the whole stack again. If it's `"end_turn"`, the loop is over.
 
 <RequestAnatomy />
 
-Request 3 sends seven blocks. Two of them are new.
+Request 3 sends seven blocks. Two of them are new. The other five were already sent, and they go again anyway.
 
-The workload in this note is a 5,500-token prompt (3,000 tokens of tool definitions, a 2,000-token system prompt, a 500-token task), 400 tokens of output per request, and a 3,000-token tool result per call. On Claude Sonnet 5, at $2 per million input tokens and $10 per million output tokens, the first request costs $0.015.
+The workload in this note is a 5,500-token prompt (3,000 tokens of tool definitions, a 2,000-token system prompt, a 500-token task), 400 tokens of output per request, and a 3,000-token tool result per call. The first request sends 5,500 tokens.
 
 That number is the last one in this note that grows in a straight line.
 
@@ -55,87 +48,47 @@ Add it up over *N* requests:
 total input = N · P + (A + R) · N(N − 1) / 2
 ```
 
-The context grows in a straight line. The bill grows with *N*².
+The context grows in a straight line. The total grows with *N*².
 
-Draw one bar per request, as tall as the context it sends. The bars form a triangle, and you pay for its area. Make the loop twice as long and the triangle gets twice as wide *and* twice as tall.
+Draw one bar per request, as tall as the context it sends. The bars form a triangle, and the total is its area. Make the loop twice as long and the triangle gets twice as wide *and* twice as tall.
 
 <LoopTriangleIsland />
 
-A 30-request loop ends with a 104,100-token context, but bills 1,644,000 input tokens: $3.41 on Sonnet 5. At 60 requests the input is 3.9× larger. At 120 requests it's $50.35, and Claude Haiku 4.5 can't get there at all: request 59 needs 202,700 tokens, and its window is 200K.
+A 30-request loop ends with a 104,100-token context, but sends 1,644,000 input tokens: 15.8 times the final context. At 60 requests the total is 3.9× larger, not 2×. At 120 requests it reaches 24,936,000 tokens.
 
-The tool result is the multiplier. A tool that returns a whole file when the agent needed ten lines doesn't cost ten lines' worth once. It costs its full size on every request that follows.
+The window is a hard wall on the same curve. Claude Haiku 4.5 has a 200K-token window. With this workload, request 59 would need 202,700 tokens, so the loop can't reach 60 requests on that model at all.
 
-## Caching
+## The multiplier
 
-[Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) changes the price of the history, not its size. With automatic caching, each request reads the prefix the previous request wrote and writes only the new blocks. According to the [pricing page](https://platform.claude.com/docs/en/about-claude/pricing), a cache read costs 0.1× the base input price, and a cache write costs 1.25× with a 5-minute lifetime or 2× with a 1-hour lifetime.
+Two terms control the triangle: *N*, the number of requests, and *A + R*, what each request adds. You don't always control *N*. The agent decides when it's done. You do control *R*, because you write the tool.
 
-On the 30-request loop, 1,539,900 of the 1,644,000 input tokens become cache reads, and the cost drops 80%, to $0.69. The input is still 1.64 million tokens. Caching makes the quadratic cheaper; it doesn't make it linear.
+The exam guide has its own example of the problem: an order lookup that returns 40 fields when the agent needs 5. The extra 35 fields don't cost their size once. They cost their size on every request that follows.
 
-There are two traps, and both are in the docs.
+<TrimCost />
 
-**The lifetime counts from the start of the request.** Not from the end of the response. If the time between two request starts, generation plus the tool call, goes past 5 minutes, the entry is gone. The next request writes its whole prefix again at 1.25×.
+Trimming the lookup to the 5 relevant fields cuts the loop from 1.64 million input tokens to 502,125, 69% less, and the last request sends 27,975 tokens instead of 104,100. Nothing else changed: same prompt, same number of requests, same agent.
 
-<CacheCost />
+Where you trim matters. If the tool returns 40 fields and a later step ignores 35 of them, those 35 fields are already in the history. Trim in the tool, or between the tool and the history, before the result is appended.
 
-At 5 minutes 5 seconds per request, the 5-minute cache costs 24% more than no cache at all. The 1-hour cache costs $0.84 whether the tools are fast or slow. It's insurance, and you pay for it either way.
+## Why size matters beyond the count
 
-**Short prefixes aren't cached.** The minimum is 4,096 tokens on Haiku 4.5, 1,024 on Sonnet 5 and 512 on Opus 5. Below that, the API processes the request without caching and returns no error.
+A long context isn't only a big number. Chroma's [Context Rot](https://www.trychroma.com/research/context-rot) report found that all 18 models it tested get less reliable as input grows. A bigger window doesn't fix that: it only moves the wall.
 
-## Context editing
-
-Caching made the history cheap. It didn't make it small, and size has its own costs. Run the loop for 60 requests with 4,000-token tool results and the history reaches 265,100 tokens. That's past Haiku 4.5's window, and Chroma's [Context Rot](https://www.trychroma.com/research/context-rot) report found that all 18 models it tested get less reliable as input grows.
-
-[Context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing) attacks the size. The `clear_tool_uses_20250919` strategy activates when the prompt passes a trigger (100,000 tokens by default), replaces older tool results with a placeholder, and keeps the last few (3 by default). The docs also say what it breaks: clearing invalidates the cached prefix.
-
-With the defaults, the context never goes past 97,900 tokens. The bill goes up 40%, from $2.47 to $3.45.
-
-<ClearingCost />
-
-The reason is in the "keep 3". Once the prompt is over the trigger, every new request pushes one more tool result out of the kept window, so 38 of the 60 requests clear something. A request can only read the cache up to an entry that an earlier request wrote, and every earlier entry still holds that result uncleared. So each clearing request reads only the 5,500-token prompt from the cache and writes everything after it again: between 21,000 and 36,000 tokens, every time.
-
-That's what `clear_at_least` is for. At 20,000 tokens, clearing happens in 7 batches instead of 38 small steps. Between batches, requests read the cache again, and the loop costs $1.79: 27% less than no editing.
-
-Two parts of this are my assumptions, because the docs don't specify them. I assume a cleared result leaves a 10-token placeholder, and I assume clearing changes only the cleared blocks, so the prefix before them stays valid. If the real invalidation is wider, the default settings look worse than they do here, not better.
-
-## Compaction
-
-Context editing removes tool results but keeps everything else. For longer horizons there is [compaction](https://platform.claude.com/docs/en/build-with-claude/compaction). With `compact_20260112`, when the prompt reaches the trigger (150,000 tokens by default, 50,000 at minimum), Claude writes a summary, and the API drops every block before it. The compaction pass is billed like any other work. It isn't available on Haiku 4.5.
-
-Take an 80-request loop with 5,000-token results and a 5-minute cache. Without compaction, the history reaches 432,100 tokens and the loop costs $4.81. With a 3,500-token summary at the default trigger, it compacts twice and never goes past 154,300 tokens.
-
-<CompactionSawtooth />
-
-The docs recommend a cache breakpoint at the end of the system prompt, so the system prompt survives a compaction and only the summary is written again. Here it barely matters, $2.68 against $2.71, because the prefix is only 5,500 tokens and the loop compacts twice.
-
-What the numbers can't show is the real price of compaction: 3,500 tokens replace 150,000, and whatever didn't make it into the summary is gone. I also assume the compaction pass reads the cache like a normal request. The docs show that it's billed, not how it's cached.
-
-## Subagents
-
-Every lever so far fights the history after it piles up. Subagents keep it from piling up in one place. A coordinator delegates through Task calls. Each subagent runs its own loop in its own context and returns a summary.
-
-Take 4 subagents that each make 14 tool calls with 4,000-token results and return a 1,500-token summary. Compare them with one agent that makes the same 56 tool calls in a single context.
-
-<SubagentTriangles />
-
-Four short triangles have far less area than one long one. The single agent bills 7.34 million input tokens and costs $2.27. The team bills 2.20 million, 70% less, and costs $1.33. Dispatched in parallel, it finishes in 5 minutes 40 seconds instead of 19 minutes.
-
-So why does Anthropic report 15× for its multi-agent system? Because the baseline is a chat, and its subagents do far more searching than a single agent would. Anthropic trades tokens for breadth and speed on purpose. Splitting a *fixed* amount of tool work makes it cheaper. The multiple tells you more about the baseline than about the architecture.
-
-The cost of subagents is somewhere these numbers can't see. The coordinator reads 6,000 tokens of summaries instead of 224,000 tokens of tool results. Whether that's enough depends on what the summaries leave out.
+So there are two ways to fight the triangle once trimming isn't enough. You can split the work so no single context grows that far, which is [note 2](/notes/four-short-loops). Or you can replace the history with a summary when it gets too long, and decide what the summary must not lose, which is [note 3](/notes/what-the-summary-forgot).
 
 ## What I take from this
 
-- **The loop is quadratic, and the tool result is the multiplier.** Trimming a tool's output before it enters the history is the cheapest optimization on this page.
-- **Cache first, then check the lifetime against your slowest tool.** A 5-minute cache on a loop with 6-minute tool calls is more expensive than no cache.
-- **Every lever that shrinks the context also breaks the cache.** Context editing with `clear_at_least` unset cost 40% more than doing nothing in this workload.
-- **Compaction and subagents move the cost into information loss.** The engine can price the tokens. It can't price what the summary forgot.
+- **The API is stateless, so the history is the input.** Every request sends everything before it.
+- **The loop is quadratic.** Twice the requests send about four times the tokens.
+- **The tool result is the multiplier.** A field the agent doesn't need is sent on every request that follows.
+- **Trim before the result enters the history.** Once it's appended, every later request carries it.
 
 <Callout type="takeaway" title="The rule">
-Price the cache break before you pull a lever that shrinks the context. The lever that shrinks the most is not always the one that costs the least.
+Every token a tool returns is sent again on every request after it. Decide what the agent needs before the result joins the history.
 </Callout>
 
-This model ignores thinking tokens, tokenization, rate limits, variance between tool calls and everything about answer quality. It models the documented rules, and it states the three places where I had to assume what the docs don't say. Run the numbers for your own workload before you trust any of them.
+This model counts tokens. It doesn't model answer quality, tokenization, or variance between tool calls, and it treats every field as the same size. It also leaves out price: caching, cache lifetimes and the API levers that shrink the context aren't on the exam, so they have their own engineering note, [The Cache Break](/notes/the-cache-break).
 
 ---
 
-For the exam, this was the difference between remembering "use caching and compaction" and knowing when each one makes the bill worse. The rules are short. The curve they draw is not.
+For the exam, this is the fact under half of the context-management questions. The rule is one sentence. The curve it draws is not.

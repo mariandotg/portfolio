@@ -1,228 +1,190 @@
+# Serie Claude Certified Architect — overview
 
-# Claude Certified Architect Notes — Series Outline
+Estado: **borrador**. Reemplaza el outline de MDG-39. Ese outline suponía un
+formato de referencia por dominio. Este documento fija ideas de contenido, no
+tono ni redacción.
 
-Status: **draft for review**. No notes are written yet. This document proposes
-the arc; nothing here is committed to `src/content/notes/` or
-`src/content/series/*.json`.
-
-Series id in code: `claude-certified-architect` (per MDG-38's rename of
-`cloud-certified-architect.json`). `rootLevel: true`, so the series will live
-at `/claude-certified-architect`, not `/notes/series/claude-certified-architect`.
-
----
-
-## 1. Fuentes
-
-All claims about the exam blueprint below trace to Anthropic's own exam guide,
-found through the official certification landing pages. Consulted 2026-08-21.
-
-| # | URL | What it is | What I pulled from it |
-|---|-----|-----------|------------------------|
-| S1 | `https://anthropic.skilljar.com/claude-certified-architect-foundations-access-request` (redirects to S2) | Anthropic's certification enrollment entry point | Confirms the exam name (CCAR-F), links to the exam guide PDF |
-| S2 | `https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification` | Anthropic Partner Academy certification page | Fee ($125), the three linked PDFs (exam guide, terms, exam policy) |
-| S3 | `https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf` | **The official Exam Guide PDF, v1.0, effective July 2026** — the authoritative reference per Anthropic's own text | Everything in §3 below: domain weights, task statements, in/out-of-scope topics, scenarios, sample questions, scoring, policies |
-| S4 | `https://www.pearsonvue.com/us/en/anthropic.html` | Pearson VUE's Anthropic certification hub | Confirms delivery via Pearson VUE, lists the four certifications (CCAR-F, CCAR-P, CCAO-F, CCDV-F) |
-
-S3 is the source for essentially every technical claim in this outline — it is
-Anthropic's own exam blueprint, not a third-party summary. I found it by
-following the "Exam Guide (PDF)" link on S2, not by trusting search-result
-snippets. Everything under "Outline de la serie" and its bullet points below
-is grounded in S3's domain weights (§4), task statements (§6), and appendix
-scope lists (§17) unless flagged otherwise in §2.
-
-I also ran web searches that surfaced third-party study guides (freeCodeCamp,
-Udemy, dev.to, tutorialsdojo, claudecertificationguide.com, and others). I did
-not use any of them as a source for this outline — once S3 was found, it
-superseded them as the authoritative reference. They're mentioned here only
-for transparency about the research path, not as citations.
+Id de la serie: `claude-certified-architect` (`rootLevel: true`, vive en
+`/claude-certified-architect`). Los posts se escriben con la skill
+`blog-post` (`.claude/skills/blog-post/`).
 
 ---
 
-## 2. Huecos
+## Premisa
 
-Things I could **not** verify from S1–S4, or that are my inference rather than
-sourced fact:
+Mariano va a rendir el examen CCA-F. La serie es su forma de estudiar en
+público. No se publica ningún puntaje.
 
-- **Whether Mariano has registered for, scheduled, or sat the exam.** Not
-  determinable from public sources — this is personal status only Mariano
-  knows. Note 8 (the closing post) assumes he takes the exam during the
-  series; if that doesn't happen, Note 8's premise needs to change before
-  it's written.
-- **The CCAR-P (Professional) tier's content.** S3 covers only CCAR-F
-  (Foundations). The Professional exam is named in S4 but I found no public
-  blueprint for it. I did not build any note around it.
-- **Whether Claude Code CLI details in S3 (flag names, `/memory`, `/compact`,
-  `--resume`, `fork_session`) still match the live CLI at the time each note
-  is actually written.** S3 states the guide is "subject to change without
-  notice" and that Anthropic may require recertification if exam content
-  changes significantly — implying the underlying tooling moves faster than
-  the exam guide's revision cadence. This is a **known drift risk**, not a
-  verified fact: whoever writes Notes 2–6 should spot-check current Claude
-  Code docs against the specific CLI/config claims before publishing, rather
-  than copying S3 verbatim.
-- **Anthropic Partner Network membership as a prerequisite.** S2's page text
-  (as fetched) says training is "available to members of the Claude Partner
-  Network," but the exam registration flow in S3 §11 does not gate
-  registration on partner membership — it only affects the fee tier. I did
-  not resolve this ambiguity; if it matters for Note 1 (who can actually sit
-  this exam), verify directly at registration time rather than inferring
-  from this outline.
-- **Practical study-time estimate.** S3 recommends hands-on exercises (§8)
-  but states no expected prep hours. Any claim in a future note like "budget
-  N weeks for this" would be my invention, not Anthropic's — flagged here so
-  it isn't slipped into a note as if sourced.
+Cada post toma **una regla del examen** y la lee a través de **una lección
+vieja de personas u organizaciones**. Diseñar agentes es diseñar
+organizaciones: casi todas las reglas ya existían en aviación, medicina,
+periodismo o contabilidad.
+
+## Formato de cada post
+
+Tres capas. La definición completa está en
+`.claude/skills/blog-post/FORMAT.md`.
+
+| Capa | Fuente | Obligatoria |
+|---|---|---|
+| Apertura: un incidente real y verificado | Dirección B | No |
+| Centro: analogía → mecanismo → regla del examen | Dirección A | Sí |
+| Título y cierre: una tesis | Dirección C | Sí |
+
+Cada post tiene además un **componente héroe**: el mecanismo del post, hecho
+visual o interactivo. El estándar está en
+`.claude/skills/blog-post/COMPONENTS.md`.
 
 ---
 
-## 3. Outline de la serie
+## Posts
 
-Eight notes. The first and last are `building-in-public` (personal framing —
-deciding to sit the exam, then reporting the outcome); the five domain notes
-and one bridging note in between are `engineering-notes` (durable technical
-reference, matching the series' own stated purpose).
+### 0 — La apuesta
+- **Tesis:** "Claude no es una app. Es un empleado brillante con amnesia."
+- **Analogía:** el empleado capaz que olvida todo entre conversaciones (la analogía base del curso).
+- **Incidente:** —
+- **Regla del examen:** modelo mental (modelo, contexto, herramientas); mapa de los 5 dominios. Transversal.
+- **Idea:** voy a rendir el CCA-F. Antes di un curso de preparación a 10 personas en 6 encuentros. Esta serie cuenta cada regla del examen con algo que ya sabíamos de las personas.
+- **Componente héroe:** mapa de la serie: los 5 dominios con su peso, conectados a cada post.
 
-### 1 — Why I'm Taking Anthropic's Architect Exam
+### 1 — La receta y el chef
+- **Tesis:** "El examen de Anthropic premia no usar agentes."
+- **Analogía:** en una cocina, el cocinero de línea sigue la receta y el chef improvisa. No ponés un chef a pelar papas. Tampoco contratás un cirujano para poner curitas (selección de modelo).
+- **Incidente:** —
+- **Regla del examen:** workflow vs agente; la progresión de complejidad (prompt → contexto → herramientas → loop); el modelo según la tarea; Batch API para cargas no bloqueantes. Base + D4.
+- **Idea:** el error más caro es subir un escalón de complejidad que no hacía falta.
+- **Componente héroe:** escalera de complejidad interactiva. El lector elige una tarea y ve qué escalón alcanza, con costo y latencia relativos.
 
-- **Title:** "Why I'm Taking Anthropic's Claude Certified Architect Exam"
-- **Description:** Anthropic shipped a certification for people building production Claude systems — what it actually tests, and why I'm sitting it.
-- **Slug:** `why-im-taking-claude-certified-architect`
-- **Covers:**
-  - What CCAR-F is and who it's for: a solution architect with 6+ months building with the Agent SDK, Claude Code, MCP, and the API (per S3 §2)
-  - The five content domains and their exact weights: Agentic Architecture & Orchestration 27%, Tool Design & MCP Integration 18%, Claude Code Configuration & Workflows 20%, Prompt Engineering & Structured Output 20%, Context Management & Reliability 15% (S3 §4)
-  - The exam's shape: 60 items, 4 of 6 possible scenarios, 120 minutes, scaled score cut at 720/1000 (S3 §3, §10)
-  - Why I'm writing up each domain as I study instead of just sitting the exam cold
-  - What this series will and won't do — no verbatim exam content (I signed the same NDA every candidate signs, S3 §14), just my own notes on the underlying material
-- **Collection:** `building-in-public`
+### 2 — Cambio y fuera
+- **Tesis:** "Si parseás el texto del modelo, estás adivinando."
+- **Analogía:** en la radio aeronáutica nadie deduce por el tono si el piloto terminó. El protocolo tiene señales explícitas de fin y de colación.
+- **Incidente:** —
+- **Regla del examen:** el loop agéntico termina con `stop_reason` (`tool_use` sigue, `end_turn` corta); nunca parsear texto ni cortar por un límite arbitrario de iteraciones. D1, anti-patrón 5.
+- **Idea:** un sistema confiable usa señales estructuradas, no interpretación.
+- **Componente héroe:** loop reproducible: enviar → `tool_use` → ejecutar → devolver resultado → `end_turn`, paso a paso.
 
-### 2 — The Agentic Loop, Without the Framework Ceremony
+### 3 — El prompt es un pedido, el hook es una ley
+- **Tesis:** "El prompt es un pedido. El hook es una ley."
+- **Analogía:** los aviones no confían en que el piloto se acuerde: usan interlocks y checklists. Toyota usa poka-yoke: la pieza no entra si está mal puesta.
+- **Incidente:** Replit, julio 2025: el agente borró la base de producción durante un code freeze, con instrucciones explícitas de no tocar nada. Alternativa: el chatbot de Chevrolet de Watsonville (diciembre 2023), que "aceptó" vender una Tahoe por $1 después de una instrucción inyectada.
+- **Regla del examen:** si es una garantía, va en un hook o una precondición programática, no en el prompt. Ejemplo canónico: bloquear `process_refund` hasta que `get_customer` devuelva un ID verificado. D1, anti-patrón 1.
+- **Idea:** la pregunta del arquitecto es "¿sugerencia o garantía?".
+- **Componente héroe:** simulador con toggle "regla en el prompt / regla en un hook". Muestra corridas y violaciones (patrón `RetrySimulator`).
 
-- **Title:** "stop_reason Is the Whole Interface: Building an Agentic Loop That Doesn't Cheat"
-- **Description:** The agentic loop lifecycle, task decomposition, and session management — the mechanics every Agent SDK build depends on.
-- **Slug:** `agentic-loop-fundamentals`
-- **Covers:**
-  - The loop lifecycle: send, inspect `stop_reason` (`tool_use` vs `end_turn`), execute, return results for the next turn (S3 Task 1.1)
-  - Why parsing assistant text, or capping iterations, as the primary termination signal is an anti-pattern (S3 Task 1.1)
-  - Prompt chaining (fixed sequential steps) vs dynamic decomposition (adaptive, discovery-driven) — and when each fits (S3 Task 1.6)
-  - Splitting large reviews into per-file passes plus a separate cross-file integration pass, to avoid attention dilution (S3 Task 1.6)
-  - Session management: named `--resume`, `fork_session` for divergent branches, and why a fresh session with an injected summary beats resuming with stale tool results (S3 Task 1.7)
-- **Collection:** `engineering-notes`
+### 4 — El cambio de guardia
+- **Tesis:** "Tu subagente empieza el turno sin saber nada."
+- **Analogía:** el pase de guardia en un hospital: la enfermera que entra solo sabe lo que le entregan. El control aéreo: los aviones no coordinan entre sí, todo pasa por la torre.
+- **Incidente:** Deloitte Australia, 2025: un informe para el gobierno con citas inventadas y una cita judicial fabricada. Deloitte devolvió parte del pago. Sin un mapeo afirmación → fuente, nadie detectó el problema a tiempo.
+- **Regla del examen:** hub-and-spoke; el coordinador es dueño de la comunicación; los subagentes no heredan contexto; el contexto se inyecta explícito; varias llamadas `Task` en un turno corren en paralelo; la síntesis conserva la procedencia. D1, anti-patrón 6.
+- **Idea:** la calidad de un sistema multiagente depende de la calidad del pase.
+- **Componente héroe:** diagrama de secuencia animado hub-and-spoke, con toggle "contexto inyectado / sin contexto".
 
-### 3 — Coordinators, Subagents, and Hooks That Don't Ask Nicely
+### 5 — Tres luces verdes
+- **Tesis:** "Un error silencioso es peor que un error."
+- **Analogía:** antes de aterrizar, el piloto confirma "tres verdes": el tren está abajo y trabado. No supone que bajó porque movió la palanca. El corresponsal de guerra publica lo que confirmó y marca lo que no.
+- **Incidente:** Gemini CLI, julio 2025: un `mkdir` falló, el agente no lo verificó y movió archivos a una carpeta que no existía. Los archivos se perdieron. En el caso Replit, el agente también leyó un resultado vacío como un problema a arreglar.
+- **Regla del examen:** distinguir un fallo de acceso (reintentable) de un resultado vacío válido; contexto de error estructurado; resolver en el nivel más bajo capaz; ni abortar todo ni suprimir en silencio. D1/D5, anti-patrón 3.
+- **Idea:** degradación elegante: completar lo posible y marcar la incertidumbre.
+- **Componente héroe:** flujo de decisión reproducible: timeout / vacío válido / error de permisos → qué hace el agente en cada caso.
 
-- **Title:** "Coordinators, Subagents, and the Hooks That Make Compliance Non-Negotiable"
-- **Description:** Hub-and-spoke multi-agent patterns, explicit context passing via the Task tool, and why some rules belong in hooks, not prompts.
-- **Slug:** `coordinator-subagent-hooks`
-- **Covers:**
-  - Hub-and-spoke architecture: the coordinator owns all inter-subagent communication, error handling, and routing (S3 Task 1.2)
-  - Subagents don't inherit context automatically — what has to be passed explicitly, and the `AgentDefinition` config that scopes each subagent (S3 Task 1.3)
-  - Parallel subagent execution (multiple `Task` calls in one response) vs sequential turns, and why `allowedTools` must include `"Task"` for a coordinator to delegate at all (S3 Task 1.3)
-  - Programmatic prerequisites vs prompt-based guidance — blocking `process_refund` until `get_customer` returns a verified ID, because prompt instructions alone have a non-zero failure rate (S3 Task 1.4)
-  - `PostToolUse` hooks for normalizing heterogeneous tool output, and tool-call interception hooks for enforcing hard limits (e.g., blocking refunds over a threshold) (S3 Task 1.5)
-- **Collection:** `engineering-notes`
+### 6 — Mayúsculas de farmacia
+- **Tesis:** "Tu descripción de tool es la API."
+- **Analogía:** los hospitales escriben nombres de medicamentos parecidos con mayúsculas parciales (Tall Man lettering, por ejemplo "hydrOXYzine" y "hydrALAZINE") para evitar confusiones. El nombre es la interfaz.
+- **Incidente:** —
+- **Regla del examen:** la descripción es el mecanismo principal de selección; renombrar para eliminar superposiciones; 4–5 herramientas por agente; errores MCP con `isError`, `errorCategory` e `isRetryable`, nunca "Operation failed"; `.mcp.json` versionado vs `~/.claude.json` personal. D2, anti-patrón 7.
+- **Idea:** el cambio más chico (mejorar nombres y descripciones) suele arreglar más que un cambio de arquitectura.
+- **Componente héroe:** quiz "¿qué tool elige el modelo?", con descripciones antes y después en `SideBySide`.
 
-### 4 — Your Tool Descriptions Are the API
+### 7 — Partida doble
+- **Tesis:** "Un JSON válido también puede mentir."
+- **Analogía:** la contabilidad de partida doble: cada movimiento se registra dos veces para que los totales se controlen entre sí. Un formulario bien completado puede tener datos falsos.
+- **Incidente:** —
+- **Regla del examen:** `tool_use` + JSON Schema garantizan sintaxis, no semántica; `calculated_total` vs `stated_total`; campos nullable y enums con `"unclear"` para no fabricar valores; reintento con errores concretos, inútil si el dato no está en la fuente; criterios explícitos y few-shot. D4.
+- **Idea:** la validación estructural es el piso, no el techo.
+- **Componente héroe:** validador en vivo: el schema pasa en verde y el control de totales falla en rojo.
 
-- **Title:** "Your Tool Descriptions Are the API — Most Are Underwritten"
-- **Description:** Designing MCP tools Claude can actually reason about: descriptions, structured errors, tool_choice, and scoped access per agent.
-- **Slug:** `mcp-tool-design`
-- **Covers:**
-  - Tool descriptions as the primary signal for tool selection — how minimal or overlapping descriptions cause misrouting between similar tools (S3 Task 2.1)
-  - Structured error responses: `errorCategory` (transient/validation/permission), `isRetryable`, and why a generic "operation failed" blocks the agent from making a sound recovery decision (S3 Task 2.2)
-  - `tool_choice`: `"auto"` vs `"any"` vs forcing a specific tool, and when forcing order actually matters (S3 Task 2.3)
-  - Why an agent with 18 tools selects worse than one scoped to 4–5, and how to give narrow cross-role tools instead of blanket access (S3 Task 2.3)
-  - MCP server scoping — project `.mcp.json` (shared, env-var credentials) vs user `~/.claude.json` (personal) — and MCP resources as content catalogs vs tools as actions (S3 Task 2.4)
-- **Collection:** `engineering-notes`
+### 8 — El conocimiento tribal
+- **Tesis:** "Si la regla vive en tu máquina, no es una regla del equipo."
+- **Analogía:** el conocimiento tribal: lo que sabe el senior y no está escrito en ningún lado. El dev nuevo no lo ve.
+- **Incidente:** —
+- **Regla del examen:** jerarquía de `CLAUDE.md` (usuario, proyecto, directorio); `@path`; `.claude/rules/` con globs; skills bajo demanda vs `CLAUDE.md` siempre cargado; plan mode vs ejecución directa. D3.
+- **Idea:** configurar Claude Code es onboarding: decidir qué sabe cada persona y cuándo.
+- **Componente héroe:** árbol de archivos interactivo: el lector elige un archivo del repo y ve qué reglas se cargan.
 
-### 5 — CLAUDE.md Has a Hierarchy Most Teams Don't Use
+### 9 — Nadie corrige su propio texto
+- **Tesis:** "La sesión que escribió el código no debería revisarlo."
+- **Analogía:** un escritor no corrige su propio texto: lee lo que quiso escribir. En la cabina, un piloto vuela y el otro monitorea.
+- **Incidente:** Mata v. Avianca, 2023: un abogado presentó casos inventados por ChatGPT. Antes le preguntó a ChatGPT si los casos eran reales, y ChatGPT dijo que sí. El tribunal lo sancionó.
+- **Regla del examen:** la auto-revisión es limitada porque retiene su razonamiento; una instancia independiente revisa mejor; revisión multipasada (por archivo + pasada de integración); `-p` y `--output-format json` en CI. D3/D4.
+- **Idea:** verificar con el mismo contexto que generó el error no es verificar.
+- **Componente héroe:** `Stepper` de la revisión multipasada, más `SideBySide` auto-revisión vs instancia independiente.
 
-- **Title:** "CLAUDE.md Has a Hierarchy, and Most Teams Only Use One Layer of It"
-- **Description:** Configuring Claude Code for a team: CLAUDE.md scoping, path-specific rules, skills, plan mode, and shipping it inside CI.
-- **Slug:** `claude-code-configuration-workflows`
-- **Covers:**
-  - User vs project vs directory-level `CLAUDE.md`, why user-level settings never reach teammates, and the `@import` pattern for modular config (S3 Task 3.1)
-  - `.claude/rules/` with YAML-frontmatter glob paths, for conventions that span directories (e.g. all `*.test.tsx` files) rather than living in one subdirectory (S3 Task 3.3)
-  - Slash commands and skills: project-scoped (`.claude/commands/`, version-controlled) vs personal, plus skill frontmatter (`context: fork`, `allowed-tools`, `argument-hint`) (S3 Task 3.2)
-  - Plan mode vs direct execution — the actual decision criteria (architectural scope, multi-file blast radius) rather than a gut call (S3 Task 3.4)
-  - Running Claude Code in CI with `-p`, `--output-format json`, and feeding prior review findings back in to avoid duplicate PR comments (S3 Task 3.6)
-- **Collection:** `engineering-notes`
+### 10 — Tatuajes
+- **Tesis:** "Tu agente no tiene memoria. Tiene tatuajes."
+- **Analogía:** en *Memento*, Leonard no forma recuerdos nuevos. Vive de tatuajes y polaroids: hechos fijos fuera de su memoria. El teléfono descompuesto: cada resumen pierde detalle.
+- **Incidente:** —
+- **Regla del examen:** la sumarización progresiva degrada números, porcentajes y fechas; bloque persistente de *case facts*; lost in the middle (lo clave al inicio, con encabezados); recortar resultados de herramientas; `/compact`. D5, anti-patrón 4.
+- **Idea:** más contexto no arregla un mal contexto.
+- **Componente héroe:** slider "resumir N veces": los números del texto se degradan; al lado, el bloque de hechos queda fijo.
 
-### 6 — tool_use Kills the Syntax Bugs, Not the Semantic Ones
+### 11 — El triage no pregunta cómo te sentís
+- **Tesis:** "Un agente seguro de sí mismo es un agente peligroso."
+- **Analogía:** en la guardia, la enfermera de triage sigue un protocolo con criterios explícitos. No decide por su nivel de confianza ni por el tono del paciente.
+- **Incidente:** Air Canada, 2024: el chatbot inventó una política de reembolso y un tribunal obligó a la aerolínea a pagar. Cursor, abril 2025: el bot de soporte "Sam" inventó una política de un dispositivo por suscripción, con total seguridad.
+- **Regla del examen:** escalar por disparadores explícitos (pedido humano, vacío de política, imposibilidad de avanzar); la autoconfianza y el sentimiento son proxies poco fiables; ante varias coincidencias, pedir identificadores; un 97% agregado esconde fallos por tipo de documento; muestreo estratificado. D5/D4, anti-patrón 2.
+- **Idea:** la confianza del modelo no es una métrica.
+- **Componente héroe:** gráfico de calibración (confianza declarada vs acierto), con toggle "agregado / por tipo de documento".
 
-- **Title:** "tool_use Kills the JSON Parsing Bugs. It Doesn't Kill the Semantic Ones."
-- **Description:** Structured output that survives production: explicit criteria, few-shot examples, schema design, validation-retry loops, and batch tradeoffs.
-- **Slug:** `prompt-engineering-structured-output`
-- **Covers:**
-  - Explicit categorical criteria beats vague instructions like "be conservative" for cutting false positives (S3 Task 4.1)
-  - Few-shot examples for ambiguous cases — why 2–4 targeted examples generalize better than more prose instructions (S3 Task 4.2)
-  - `tool_use` + JSON schema eliminates syntax errors but not semantic ones — line items that don't sum, values in the wrong field (S3 Task 4.3)
-  - Retry-with-error-feedback loops, and knowing when a retry can't succeed because the information simply isn't in the source document (S3 Task 4.4)
-  - The Message Batches API: 50% cheaper, up to 24h processing, no multi-turn tool calling — right for overnight audits, wrong for anything blocking a merge (S3 Task 4.5)
-- **Collection:** `engineering-notes`
-
-### 7 — Context Doesn't Run Out Quietly
-
-- **Title:** "Context Doesn't Run Out Quietly — It Degrades First"
-- **Description:** Keeping long-running agents reliable: context extraction, escalation triggers, error propagation, and confidence calibration for human review.
-- **Slug:** `context-management-reliability`
-- **Covers:**
-  - Progressive summarization risk: numeric values, dates, and stated expectations are the first casualties of condensing history (S3 Task 5.1)
-  - The "lost in the middle" effect, and why key findings belong at the start of an aggregated input, not buried in it (S3 Task 5.1)
-  - Escalation triggers that actually track complexity — explicit customer requests and policy gaps, not sentiment or self-reported confidence (S3 Task 5.2)
-  - Structured error propagation across agents: distinguishing an access failure that needs a retry decision from a valid empty result (S3 Task 5.3)
-  - Confidence calibration and stratified sampling for routing extractions to human review, because aggregate accuracy can hide poor performance on one document type (S3 Task 5.5)
-- **Collection:** `engineering-notes`
-
-### 8 — Exam Day and the Verdict
-
-- **Title:** "I Sat the Claude Certified Architect Exam. Here's What Actually Mattered."
-- **Description:** Five domains of notes later, the actual exam experience — what the scenario format rewards, and what I'd study differently.
-- **Slug:** `claude-certified-architect-exam-result`
-- **Covers:**
-  - The scenario format in practice: which of the 6 possible scenarios came up, and how much scenario framing mattered vs raw domain recall (S3 §5)
-  - Where the scaled score landed against the 720 cut, and what the per-domain percent-correct breakdown showed (S3 §10)
-  - Which domain I under-prepared for relative to its exam weight
-  - What I'd tell someone starting this series today, before they open the exam guide
-  - The renewal path: a free non-proctored assessment within 12 months, vs a full retake at full fee if the credential lapses (S3 §15)
-- **Collection:** `building-in-public`
+### 12 — Simulador y vuelo real
+- **Tesis:** "Qué analogías me sirvieron en el examen, y cuáles no."
+- **Analogía:** horas de simulador vs el primer vuelo real.
+- **Incidente:** —
+- **Regla del examen:** transversal; formato por escenarios.
+- **Idea:** qué funcionó al estudiar así, qué dominio preparé mal, qué cambiaría. Sin puntaje y sin contenido real del examen (NDA).
+- **Componente héroe:** el mapa del post 0, con cada regla marcada según cuánto sirvió.
 
 ---
 
-## 4. Por qué ese orden
+## Cobertura
 
-- **Note 1 before anything technical.** It sets the frame — the five domains
-  and their weights — that every later note refers back to. Without it, a
-  reader landing on Note 4 has no reason to know why MCP tool design is 18%
-  of the exam rather than an aside.
-- **Notes 2 and 3 split Domain 1 instead of merging it.** Domain 1 is the
-  heaviest domain (27%) and its seven task statements split cleanly into two
-  concerns: single-agent loop mechanics (1.1, 1.6, 1.7 — how one agent
-  decides when to stop and how it carries state across turns) and
-  multi-agent coordination (1.2, 1.3, 1.4, 1.5 — how several agents split
-  work and where enforcement has to be deterministic). Cramming both into
-  one note would either run long or shortchange the domain worth more than
-  a quarter of the exam.
-- **Note 4 (tool design) follows the agent notes, not the reverse.** Tool
-  descriptions and MCP scoping only matter once there's a loop and a
-  coordinator deciding *when* to call a tool — Note 4 assumes the reader
-  already has Notes 2–3's mental model of the loop and subagent boundaries.
-- **Note 5 (Claude Code config) comes after tool design, not before.**
-  `.mcp.json` scoping (Note 4) and CLAUDE.md/skills scoping (Note 5) are
-  siblings — both are "where does this live and who does it apply to"
-  questions — but MCP is the more foundational integration point (it's how
-  an agent reaches anything outside itself), so it's addressed first.
-- **Note 6 (structured output) sits after the Claude Code note.** It reuses
-  concepts introduced there — CI integration (`-p`, `--output-format json`)
-  from Note 5 is the delivery mechanism for the structured output Note 6
-  actually designs.
-- **Note 7 (context & reliability) is last of the technical domains on
-  purpose.** Every failure mode it covers — summarization loss, escalation
-  miscalibration, error propagation — is a cross-cutting concern that only
-  makes sense once the reader has seen the agent loop (Note 2), the
-  multi-agent handoffs (Note 3), and the tool boundaries (Note 4) that
-  generate the context being managed. It's the domain about *everything
-  going wrong across the other four*, so it has to come after them.
-- **Note 8 depends on all five domain notes existing.** It's the only note
-  that can't be written independently — it reports against a blueprint the
-  reader has already seen argued out in Notes 2–7, and its "what I'd study
-  differently" section only has content once those study notes exist to be
-  second-guessed.
+| Dominio | Peso | Posts |
+|---|---|---|
+| D1 Arquitectura agéntica y orquestación | 27% | 2, 3, 4, 5 |
+| D3 Configuración y flujos de Claude Code | 20% | 8, 9 |
+| D4 Prompts y salida estructurada | 20% | 1, 7, 9, 11 |
+| D2 Herramientas e integración MCP | 18% | 6 |
+| D5 Gestión de contexto y fiabilidad | 15% | 5, 10, 11 |
+
+| Anti-patrón oficial | Post |
+|---|---|
+| 1. Confiar en el prompt cuando hace falta una garantía | 3 |
+| 2. Escalar demasiado pronto / por autoconfianza | 11 |
+| 3. Abortar o suprimir ante datos parciales | 5 |
+| 4. Agrandar la ventana en vez de gestionar el contexto | 10 |
+| 5. Parsear texto del modelo | 2 |
+| 6. Perder procedencia al sintetizar | 4 |
+| 7. Complejidad innecesaria | 1, 6 |
+
+## Fuentes
+
+**Examen.** Guía oficial CCA-F v1.0 (julio 2026):
+`https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542750%2FClaude+Certified+Architect+%E2%80%93+Foundations+Exam+Guide.pdf`.
+Material propio del curso en `~/Documents/Cursos/CCA/` (temario v2, plan de
+la clase base, slides de las clases 1–4).
+
+**Incidentes** (verificados el 2026-09-14):
+- Replit: https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/
+- Chevrolet de Watsonville: https://incidentdatabase.ai/cite/622/
+- Deloitte Australia: https://fortune.com/2025/10/07/deloitte-ai-australia-government-report-hallucinations-technology-290000-refund
+- Gemini CLI: https://incidentdatabase.ai/cite/1178/
+- Mata v. Avianca: https://www.documentcloud.org/documents/23826751-mata-v-avianca-airlines-affidavit-in-opposition-to-motion/ y https://en.wikipedia.org/wiki/Mata_v._Avianca,_Inc.
+- Air Canada: https://www.americanbar.org/groups/business_law/resources/business-law-today/2024-february/bc-tribunal-confirms-companies-remain-liable-information-provided-ai-chatbot/
+- Cursor "Sam": https://incidentdatabase.ai/cite/1039/
+
+## Pendientes
+
+- **Analogías:** los hechos del mundo real (Tall Man lettering, pase de guardia, "tres verdes", poka-yoke, partida doble) se verifican con fuente al escribir cada post.
+- **Guía del examen:** confirmar que la versión vigente sigue siendo la v1.0 antes de cada post.
+- **Corte de aprobación:** el plan de la clase base dice que 720/1000 no es oficial; el outline anterior lo atribuía a la guía. No se usa hasta verificarlo.
+- **`claude-certified-architect.json`:** la `description` actual ("Field notes from Anthropic's AI training…") no refleja la premisa nueva. Decisión de Mariano.
+- **Idioma de publicación:** sin definir.

@@ -27,9 +27,15 @@ re-wire it.
 > **Read first:** `docs/design/design-system.md` in full, then `.cursor/rules/`.
 > The spec is the contract; the tickets are slices of it.
 >
-> **The tickets** are MDG-123 through MDG-137 in the Linear project `portfolio`.
-> Each one carries a `Dispatch contract` block naming the directories it may
-> touch. Read a ticket before dispatching it — do not work from its title.
+> **The tickets** are MDG-123 through MDG-137 in the Linear project `portfolio`,
+> team `Personal`. Read each one through the `linear` MCP server before
+> dispatching it — the full body, not the title. Each carries a
+> `Dispatch contract` block naming the directories it may touch.
+>
+> Use Linear for state, not a scratchpad: move a ticket to In Progress when you
+> dispatch it, and to Done when it merges, with the merge commit in a comment.
+> If a ticket turns out to be wrong, comment what you found and leave it open —
+> do not silently reinterpret it.
 >
 > **The integration branch is `cursor-dispatch-setup`.** Every ticket branches
 > from it and merges back into it. `main` stays untouched until the whole batch
@@ -136,6 +142,27 @@ series components. Disjoint files, overlapping declared scope.
 | **MDG-135** | Four product decisions about the series model. No dispatch contract on purpose. |
 
 ---
+
+## Linear MCP
+
+`.cursor/mcp.json` registers Linear at `https://mcp.linear.app/mcp`. It is
+project-scoped and committed, which is what makes the orchestrator able to read
+ticket bodies and close them without you pasting anything.
+
+**It needs one OAuth login.** Open Settings → MCP in Cursor and authorise the
+`linear` server once. Until you do, it shows as unauthenticated and every
+ticket lookup fails.
+
+**Watch the tool ceiling.** Cursor caps out around 40 active tools across all
+MCP servers at once, and past that it silently drops tools rather than warning
+loudly. The Linear server alone publishes well over a hundred. While the batch
+runs, turn off every other MCP server — Playwright and `sainapse` are both on
+globally in `~/.cursor/mcp.json`.
+
+Playwright is the tempting one to keep, since these tickets are screenshot-heavy.
+Don't. The repo already has `screenshot.mjs`, which drives Chrome through the
+DevTools Protocol, captures both widths and both themes in one run, and warns on
+horizontal overflow. It costs zero MCP tools.
 
 ## Models
 

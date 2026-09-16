@@ -38,6 +38,10 @@
      para no quedar tapados al saltar a un heading. */
   --nav-height: 3.5rem;
 
+  --measure: 66ch;
+  --width-bleed: 880px;
+  --width-shell: 800px;
+
   /* Core skill accent — the only colored skill badges (docs/design/palette.md).
      Same value as `--primary`; used as text over an 8% tint of itself. */
   --skill-core: 247 76% 61%;
@@ -298,6 +302,36 @@ blockquote {
 
 .prose a:hover {
   color: hsl(var(--primary));
+}
+
+/* Note body — prose measure + figure bleed (docs/design/design-system.md §4) */
+.note {
+  display: grid;
+  grid-template-columns:
+    [bleed-start] minmax(0, 1fr)
+    [text-start] min(var(--measure), 100%) [text-end]
+    minmax(0, 1fr) [bleed-end];
+  text-align: left;
+}
+
+.note.prose {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  max-width: none;
+}
+
+.note > * {
+  grid-column: text-start / text-end;
+  min-width: 0;
+}
+
+.note > [data-bleed],
+.note > figure.not-prose,
+.note > div.not-prose:has(.rsim) {
+  grid-column: bleed-start / bleed-end;
+  width: 100%;
+  max-width: var(--width-bleed);
+  margin-inline: auto;
 }
 
 /* Shiki code blocks — targets both class names Astro may produce */

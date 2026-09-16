@@ -1,0 +1,16 @@
+---
+// The drawing surface. It carries the quantitative aria-label, because a figure's shapes are the
+// one thing a screen reader cannot infer. Children draw with the frame built in the frontmatter.
+import type { PlotFrame } from "./plot";
+
+interface Props {
+  frame: PlotFrame;
+  /** States the quantities, not the shape. */
+  label: string;
+}
+const { frame, label } = Astro.props;
+---
+
+<svg viewBox={`0 0 ${frame.w} ${frame.h}`} class="alc-svg" role="img" aria-label={label}>
+  <slot />
+</svg>

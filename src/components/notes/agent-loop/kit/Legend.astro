@@ -1,0 +1,14 @@
+---
+// What each tone means, in the figure's own words.
+import Swatch from "./Swatch.astro";
+import type { SwatchTone } from "./tones";
+
+interface Props {
+  items: { tone: SwatchTone; label: string }[];
+}
+const { items } = Astro.props;
+---
+
+<ul class="alc-legend">
+  {items.map((i) => (<li><Swatch tone={i.tone} />{i.label}</li>))}
+</ul>

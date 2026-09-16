@@ -1,0 +1,25 @@
+---
+// The figure's series, for readers who get the SVG as a single aria-label. A complex plot cannot
+// carry a series in one sentence, so every figure ships the numbers as a table as well.
+interface Props {
+  /** Names the figure and, for a toggled figure, which state this table is.  */
+  caption: string;
+  columns: string[];
+  rows: (string | number)[][];
+}
+const { caption, columns, rows } = Astro.props;
+---
+
+<table class="sr-only">
+  <caption>{caption}</caption>
+  <thead>
+    <tr>{columns.map((c) => <th scope="col">{c}</th>)}</tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr>{row.map((cell, i) => (i === 0 ? <th scope="row">{cell}</th> : <td>{cell}</td>))}</tr>
+      ))
+    }
+  </tbody>
+</table>

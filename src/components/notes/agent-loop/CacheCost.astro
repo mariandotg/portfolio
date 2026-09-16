@@ -5,7 +5,7 @@
 import { simulate, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import type { CacheMode } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD, FAST_TOOL_SECONDS, SLOW_TOOL_SECONDS } from "./workloads";
-import { fmtUsd, fmtChange, cumulative, scale, points } from "./format";
+import { fmtUsd, fmtChange, cumulative, scale, points, nudgeLabels } from "./format";
 import AlcFigure from "./AlcFigure.astro";
 
 type StateKey = "fast" | "slow";
@@ -41,25 +41,20 @@ const PLOT_BOTTOM = 188;
 const xAt = scale(0, N - 1, PLOT_LEFT, PLOT_RIGHT);
 const yAt = scale(0, yMax, PLOT_BOTTOM, PLOT_TOP);
 
-function nudgeLabels<T extends { y: number }>(entries: T[], minGap = 15): T[] {
-  const sorted = [...entries].sort((a, b) => a.y - b.y);
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
-  }
-  return sorted;
-}
-
 function panelData(key: StateKey) {
   const s = STATES[key];
   const noCacheTotal = total(s.noCache);
   const fiveMinTotal = total(s.fiveMin);
   const oneHourTotal = total(s.oneHour);
   const fiveMinCheaper = fiveMinTotal < noCacheTotal;
-  const labels = nudgeLabels([
-    { key: "no cache", y: yAt(noCacheTotal), value: noCacheTotal },
-    { key: "5-min cache", y: yAt(fiveMinTotal), value: fiveMinTotal },
-    { key: "1-hour cache", y: yAt(oneHourTotal), value: oneHourTotal },
-  ]);
+  const labels = nudgeLabels(
+    [
+      { key: "no cache", y: yAt(noCacheTotal), value: noCacheTotal },
+      { key: "5-min cache", y: yAt(fiveMinTotal), value: fiveMinTotal },
+      { key: "1-hour cache", y: yAt(oneHourTotal), value: oneHourTotal },
+    ],
+    15,
+  );
   return { s, noCacheTotal, fiveMinTotal, oneHourTotal, fiveMinCheaper, labels };
 }
 

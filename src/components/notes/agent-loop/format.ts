@@ -27,3 +27,12 @@ export const cumulative = (values: number[]) => {
 /** SVG polyline points from values, with x spread over the index. */
 export const points = (values: number[], x: (i: number) => number, y: (v: number) => number) =>
   values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+
+/** Sort labels top-down and push apart any that sit closer than `minGap` units. */
+export const nudgeLabels = <T extends { y: number }>(entries: T[], minGap: number): T[] => {
+  const sorted = entries.map((e) => ({ ...e })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
+  }
+  return sorted;
+};

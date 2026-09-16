@@ -1,0 +1,50 @@
+---
+// The baseline and its labels. Six figures carried a copy of this block with the offsets retyped
+// each time; they live here now, in SVG user units against the frame.
+import type { PlotFrame } from "./plot";
+
+interface Props {
+  frame: PlotFrame;
+  /** Labels pinned to each end of the baseline. */
+  x?: [string, string];
+  /** Centred caption under the baseline — "request →". */
+  title?: string;
+  /** What the top of the y range measures, set above the plot. */
+  y?: string;
+  /** Off for figures whose bars already read as a baseline. */
+  rule?: boolean;
+}
+const { frame, x, title, y, rule = true } = Astro.props;
+
+const Y_LABEL_ABOVE = 10;
+const X_LABEL_BELOW = 16;
+const TITLE_BELOW = 28;
+---
+
+{rule && <line class="alc-axis" x1={frame.left} y1={frame.bottom} x2={frame.right} y2={frame.bottom} />}
+{
+  y && (
+    <text class="alc-text" x={frame.left} y={frame.top - Y_LABEL_ABOVE}>
+      {y}
+    </text>
+  )
+}
+{
+  x && (
+    <>
+      <text class="alc-text" x={frame.left} y={frame.bottom + X_LABEL_BELOW}>
+        {x[0]}
+      </text>
+      <text class="alc-text" x={frame.right} y={frame.bottom + X_LABEL_BELOW} text-anchor="end">
+        {x[1]}
+      </text>
+    </>
+  )
+}
+{
+  title && (
+    <text class="alc-text" x={(frame.left + frame.right) / 2} y={frame.bottom + TITLE_BELOW} text-anchor="middle">
+      {title}
+    </text>
+  )
+}

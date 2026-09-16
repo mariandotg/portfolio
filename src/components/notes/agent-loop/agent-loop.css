@@ -195,7 +195,18 @@
   border-radius: var(--radius-sm);
 }
 
-/* Sources and assumptions, one short line */
+/* Basis, sources and assumptions, one short line */
+.alc-basis {
+  font-family: var(--font-family-mono);
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.alc-caption-text::before {
+  content: "·";
+  margin: 0 6px;
+}
 .alc-caption {
   margin-top: 12px;
   padding-top: 8px;

@@ -84,7 +84,7 @@ const ariaLabel = (key: StateKey) => {
 };
 ---
 
-<Figure question="Why can clearing old tool results cost more than keeping them?" basis="calculated" options={OPTIONS} initial={INITIAL}>
+<Figure question="Why can clearing old tool results cost more than keeping them?" basis="assumed" options={OPTIONS} initial={INITIAL}>
   {
     (["each", "batched"] as StateKey[]).map((key) => {
       const p = PANELS[key];

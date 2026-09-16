@@ -32,7 +32,7 @@ const meta = META[type];
     --accent: hsl(var(--muted-foreground));
     margin: 1.6rem 0;
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));
     border-left: 3px solid var(--accent);
     background: color-mix(in srgb, var(--accent) 7%, transparent);
@@ -59,20 +59,21 @@ const meta = META[type];
     gap: 8px;
     margin-bottom: 6px;
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--accent);
   }
   .callout-icon {
-    font-size: 13px;
+    font-size: var(--text-ui);
     line-height: 1;
   }
 
   .callout-body {
-    font-size: 14px;
-    line-height: 1.65;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--foreground));
   }
   .callout-body :global(> :first-child) {
@@ -91,9 +92,10 @@ const meta = META[type];
   }
   .callout-body :global(code) {
     font-family: var(--font-family-mono);
-    font-size: 0.86em;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     padding: 1px 5px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: color-mix(in srgb, hsl(var(--muted-foreground)) 18%, transparent);
   }
 </style>

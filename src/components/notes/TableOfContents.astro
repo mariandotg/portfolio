@@ -52,7 +52,8 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 <style>
   /* ---- shared list / link styling ---- */
   .toc-label {
-    font-size: 11px;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: hsl(var(--muted-foreground));
@@ -70,7 +71,8 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
   }
   .toc-item--sub .toc-link {
     padding-left: 28px;
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
   }
 
   .toc-link {
@@ -79,8 +81,8 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     margin-left: -1px;
     border-left: 1px solid transparent;
     font-family: var(--font-family-mono);
-    font-size: 12.5px;
-    line-height: 1.5;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     color: hsl(var(--muted-foreground));
     transition: color 150ms ease, border-color 150ms ease;
   }
@@ -128,7 +130,7 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     margin: 0 0 40px;
     padding: 16px 18px;
     border: 1px solid hsl(var(--border));
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: color-mix(in oklab, hsl(var(--border)) 10%, transparent);
   }
   .toc-inline-summary {
@@ -142,7 +144,8 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     display: none;
   }
   .toc-inline-chevron {
-    font-size: 11px;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     color: hsl(var(--muted-foreground));
     transition: transform 180ms ease;
   }

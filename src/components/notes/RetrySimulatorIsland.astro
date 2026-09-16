@@ -11,7 +11,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
     margin: 1.6rem 0;
     padding: 16px;
     border: 1px solid hsl(var(--border));
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     background: color-mix(in srgb, hsl(var(--muted-foreground)) 5%, transparent);
     font-family: var(--font-family-display);
   }
@@ -25,7 +25,8 @@ import RetrySimulator from "./RetrySimulator.tsx";
   }
   .rsim-title {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -36,10 +37,11 @@ import RetrySimulator from "./RetrySimulator.tsx";
     align-items: center;
     gap: 8px;
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     cursor: pointer;
     padding: 4px 10px 4px 4px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     border: 1px solid hsl(var(--border));
     background: transparent;
     color: hsl(var(--muted-foreground));
@@ -52,7 +54,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
   .rsim-toggle-track {
     width: 30px;
     height: 18px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: hsl(var(--border));
     position: relative;
     transition: background 180ms ease;
@@ -66,7 +68,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
     left: 2px;
     width: 14px;
     height: 14px;
-    border-radius: 50%;
+    border-radius: var(--radius-pill);
     background: hsl(var(--primary-foreground));
     transition: transform 180ms ease;
   }
@@ -88,7 +90,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
     min-width: 84px;
     padding: 10px 14px;
     border: 1px solid hsl(var(--border));
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     transition: border-color 200ms ease, background 200ms ease;
   }
   .rsim-stat.good {
@@ -101,21 +103,23 @@ import RetrySimulator from "./RetrySimulator.tsx";
   }
   .rsim-stat-num {
     font-family: var(--font-family-mono);
-    font-size: 26px;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
     font-weight: 700;
-    line-height: 1.1;
     color: hsl(var(--foreground));
   }
   .rsim-stat-lbl {
     font-family: var(--font-family-mono);
-    font-size: 10px;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: hsl(var(--muted-foreground));
     margin-top: 2px;
   }
   .rsim-arrow {
-    font-size: 18px;
+    font-size: var(--text-title);
+    line-height: var(--text-title--line-height);
     color: hsl(var(--muted-foreground));
   }
 
@@ -129,10 +133,11 @@ import RetrySimulator from "./RetrySimulator.tsx";
   }
   .rsim-coin {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     font-weight: 600;
     padding: 3px 9px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     color: hsl(var(--data-gain));
     background: color-mix(in srgb, hsl(var(--data-gain)) 14%, transparent);
     border: 1px solid color-mix(in srgb, hsl(var(--data-gain)) 40%, transparent);
@@ -151,10 +156,11 @@ import RetrySimulator from "./RetrySimulator.tsx";
   }
 
   .rsim-verdict {
-    font-size: 13px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     text-align: center;
     padding: 8px 10px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     margin-bottom: 12px;
   }
   .rsim-verdict.ok {
@@ -174,10 +180,11 @@ import RetrySimulator from "./RetrySimulator.tsx";
   }
   .rsim-btn {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     cursor: pointer;
     padding: 7px 14px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));
     background: transparent;
     color: hsl(var(--foreground));

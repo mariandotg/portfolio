@@ -6,15 +6,15 @@ interface Props {
   title?: string;
 }
 
-const { type = "note", title } = Astro.props;
-
 const DEFAULT_LABEL: Record<CalloutType, string> = {
   note: "Note",
   rule: "Rule",
   warning: "Warning",
 };
 
-const label = title ?? DEFAULT_LABEL[type];
+// MDX does not type-check props: an unknown type renders as a note instead of an empty header.
+const type: CalloutType = Astro.props.type && Astro.props.type in DEFAULT_LABEL ? Astro.props.type : "note";
+const label = Astro.props.title ?? DEFAULT_LABEL[type];
 ---
 
 <aside class={`callout callout-${type} not-prose`}>

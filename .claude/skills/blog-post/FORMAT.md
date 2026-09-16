@@ -23,7 +23,7 @@ research system". Precedente propio: `the-quadratic-loop.mdx`.
 3. **La falla:** dónde el caso base se rompe o se encarece, con números.
 4. **Cada palanca, en su propia sección:** qué resuelve, qué rompe, cuánto cuesta. Incluí la trampa si la doc la deja ver.
 5. **Playground:** todas las perillas juntas (opcional).
-6. **Qué me llevo:** 3–5 conclusiones con número, más la regla en un `Callout type="takeaway"`.
+6. **Qué me llevo:** 3–5 conclusiones con número, más la regla en un `Callout type="rule"`.
 7. **Límites:** qué no modela la nota.
 8. **Cierre:** la implicación, sin CTA.
 

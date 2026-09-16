@@ -74,8 +74,8 @@ export function totalReadingMinutes(items: RoadmapItem[]): number {
 let seriesIntegrityChecked = false;
 
 export async function assertSeriesIntegrity(): Promise<void> {
-  if (seriesIntegrityChecked) return;
-  seriesIntegrityChecked = true;
+  // Memoize only in a build: the dev server lives across content edits.
+  if (seriesIntegrityChecked && !import.meta.env.DEV) return;
 
   const [seriesEntries, posts] = await Promise.all([
     getCollection("series"),
@@ -111,6 +111,7 @@ export async function assertSeriesIntegrity(): Promise<void> {
       }
     }
   }
+  seriesIntegrityChecked = true;
 }
 
 function postsInSeries(

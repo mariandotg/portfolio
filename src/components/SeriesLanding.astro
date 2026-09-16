@@ -41,7 +41,8 @@ const {
   <SeriesBanner
     base={bannerBase}
     variant="hero"
-    class="series-strip w-full"
+    ratio="6 / 1"
+    class="series-hero w-full"
   />
 
   {comingSoon ? (
@@ -72,8 +73,7 @@ const {
   }
 
   /* Hero assets at 6/1 — decorative strip under the title, not the page focal point. */
-  :global(.series-strip) {
-    --sb-ratio: 6 / 1;
+  :global(.series-hero) {
     margin-bottom: 2.5rem;
     border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));

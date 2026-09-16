@@ -15,10 +15,11 @@ interface Props {
   variant: BannerVariant;
   alt?: string;
   class?: string;
+  /** Pisa el ratio de la variante, p.ej. `6 / 1`. `object-fit: cover` recorta el asset. */
+  ratio?: string;
 }
 
-const { base, variant, alt = "", class: className } = Astro.props;
-const ratio = BANNER_RATIOS[variant];
+const { base, variant, alt = "", class: className, ratio = BANNER_RATIOS[variant] } = Astro.props;
 const src = base ? seriesBannerSrc(base, variant) : undefined;
 ---
 

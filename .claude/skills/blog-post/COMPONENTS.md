@@ -28,7 +28,7 @@ Antes de agregar un componente, respondé las tres preguntas. Si alguna es
 | El mismo contenido en variantes paralelas (lenguajes, configs) | `Tabs` + `Tab` | Implementación en TS y Java |
 | Una decisión del lector (escenario tipo examen) | Quiz con revelado: elegir → trampa → respuesta | "¿Qué hace el arquitecto?" |
 | Una matriz de comparación (varias opciones × criterios) | Tabla markdown; isla solo si se filtra u ordena | Workflow vs agente por costo/latencia |
-| La idea que el lector se lleva | `Callout type="takeaway"` | La regla en una línea |
+| La idea que el lector se lleva | `Callout type="rule"` | La regla en una línea |
 
 ## Cuándo no
 
@@ -58,7 +58,7 @@ Todos en `src/components/notes/`. Precedente de uso:
 
 | Componente | Props | Uso |
 |---|---|---|
-| `Callout.astro` | `type`: `note` \| `tip` \| `insight` \| `warning` \| `takeaway`; `title?` | Aside con acento. `takeaway` usa `--primary` |
+| `Callout.astro` | `type`: `note` \| `rule` \| `warning`; `title?` | Aside con acento: `note` neutro, `rule` para la regla que el lector se lleva, `warning` para una trampa. Un tipo desconocido cae a `note` |
 | `SideBySide.astro` | `leftLabel?`, `rightLabel?`, `variant?`: `neutral` \| `diff`. Slots `left`/`right` vía `<Fragment slot="left">` | Comparación. Apila en < 640px |
 | `Stepper.astro` + `Step.astro` | `Step`: `title?` | Recorrido paso a paso con prev/next y progreso |
 | `Tabs.astro` + `Tab.astro` | `Tab`: `label` | Variantes paralelas |

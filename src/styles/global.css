@@ -451,7 +451,7 @@ blockquote {
   list-style-type: lower-roman;
 }
 
-.note.prose :where(figcaption) {
+.note.prose :where(figcaption):not(:where(.not-prose, .not-prose *)) {
   margin-top: 0.75rem;
   font-family: var(--font-family-mono);
   font-size: var(--text-meta);

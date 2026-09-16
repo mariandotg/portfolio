@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, CardHeader } from './Card'
+import { Card, CardHeader } from '@/components/ui/card'
 import type { Certificate } from '@/models/resume.data.models'
 
 interface Props {
@@ -8,8 +8,8 @@ interface Props {
 
 const CertificateCard: React.FunctionComponent<Props> = ({ certificate }) => {
   const card = (
-    <Card className="print-avoid-break rounded-md border border-border bg-card p-3 transition-all group-hover:-translate-y-0.5 group-hover:border-primary/50">
-      <CardHeader className="space-y-1">
+    <Card className="gap-0 rounded-md border border-border bg-card p-3 py-3 shadow-none transition-all print-avoid-break group-hover:-translate-y-0.5 group-hover:border-primary/50">
+      <CardHeader className="flex flex-col gap-0 space-y-1 px-0">
         <div className="flex items-start justify-between gap-x-2">
           <p className="text-sm font-semibold leading-none transition-colors group-hover:text-primary">
             {certificate.title}

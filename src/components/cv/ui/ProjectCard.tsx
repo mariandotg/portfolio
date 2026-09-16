@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader } from './Card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { EntryTitle } from './EntryTitle'
 import type { Project } from '@/models/resume.data.models'
 import { Badge } from './Badge'
@@ -10,8 +10,8 @@ interface Props {
 
 const ProjectCard: React.FunctionComponent<Props> = ({ project }) => {
   return (
-    <Card className="flex flex-col overflow-hidden bg-transparent">
-      <CardHeader className="">
+    <Card className="flex flex-col gap-0 overflow-hidden rounded-sm border-0 bg-transparent py-0 shadow-none">
+      <CardHeader className="flex flex-col gap-0 space-y-1.5 px-0">
         <div className="space-y-1">
           <EntryTitle className="mb-1 underline-offset-2">
             {project.link ? (
@@ -38,7 +38,7 @@ const ProjectCard: React.FunctionComponent<Props> = ({ project }) => {
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="mt-auto flex">
+      <CardContent className="mt-auto flex px-0">
         <div className="mt-2 flex flex-wrap gap-1">
           {project.techStack.map((tech) => (
             <Badge variant="secondary" key={tech}>

@@ -1,10 +1,18 @@
 ---
 // "What does trimming one tool result save?" The exam guide's own example: an order lookup returns
 // 40+ fields when only 5 matter. Same loop, same tokens per field; only the result size changes.
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Axis from "./kit/Axis.astro";
+import Legend from "./kit/Legend.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
-import { fmtChange, fmtTokens, scale } from "./format";
+import { fmtChange, fmtTokens } from "./format";
 
 const FIELDS_FULL = 40;
 const FIELDS_TRIMMED = 5;
@@ -18,17 +26,17 @@ const runs = {
 };
 
 const N = BASE_WORKLOAD.turns;
-const W = 480;
-const H = 214;
-const L = 6;
-const R = 474;
-const T = 24;
-const B = 188;
 const top = Math.max(...runs.full.requests.map((r) => r.contextTokens));
-const slot = (R - L) / N;
-const x = (i: number) => L + i * slot;
-const y = scale(0, top, B, T);
-const barWidth = slot - 1;
+
+const frame = plotFrame({
+  w: 480,
+  h: 214,
+  inset: { l: 6, r: 6, t: 24, b: 26 },
+  x: [0, N],
+  y: [0, top],
+  bands: N,
+  bandGap: 1,
+});
 
 const panels = (Object.keys(runs) as Key[]).map((key) => {
   const run = runs[key];
@@ -38,28 +46,29 @@ const panels = (Object.keys(runs) as Key[]).map((key) => {
 });
 const full = panels[0];
 const trimmed = panels[1];
+
+const OPTIONS = [
+  { value: "full", label: `lookup returns ${FIELDS_FULL} fields` },
+  { value: "trimmed", label: `trimmed to ${FIELDS_TRIMMED} fields` },
+];
+const INITIAL: Key = "full";
 ---
 
-<AlcFigure
+<Figure
   question="What does trimming one tool result save?"
-  options={[
-    { value: "full", label: `lookup returns ${FIELDS_FULL} fields` },
-    { value: "trimmed", label: `trimmed to ${FIELDS_TRIMMED} fields` },
-  ]}
-  initial="full"
+  basis="calculated"
+  options={OPTIONS}
+  initial={INITIAL}
 >
   {
     panels.map((p) => (
-      <div data-alc-panel={p.key} hidden={p.key !== "full"}>
-        <div class="alc-headline">
-          <span class="alc-big">{fmtTokens(p.total)} input tokens</span>
-          {p.key === "trimmed" ? (
-            <span class="alc-delta good">{fmtChange(p.total, full.total)}</span>
-          ) : (
-            <span class="alc-delta bad">{(p.total / p.last.contextTokens).toFixed(1)}× the final context</span>
-          )}
-        </div>
-        <p class="alc-sub">
+      <Panel value={p.key} initial={INITIAL}>
+        <Stat
+          value={fmtTokens(p.total)}
+          unit="input tokens"
+          delta={p.key === "trimmed" ? fmtChange(p.total, full.total) : `${(p.total / p.last.contextTokens).toFixed(1)}× the final context`}
+          tone={p.key === "trimmed" ? "gain" : "loss"}
+        >
           {p.key === "full" ? (
             <>
               Each lookup adds <strong>{fmtTokens(p.perTurn - BASE_WORKLOAD.assistantTokens)}</strong> to the history, and every later request
@@ -71,43 +80,52 @@ const trimmed = panels[1];
               <strong>{fmtTokens(p.last.contextTokens)}</strong> instead of <strong>{fmtTokens(full.last.contextTokens)}</strong>.
             </>
           )}
-        </p>
-        <svg
-          class="alc-svg"
-          viewBox={`0 0 ${W} ${H}`}
-          role="img"
-          aria-label={`${N} requests with tool results of ${fields[p.key]} fields. The last request sends ${fmtTokens(p.last.contextTokens)} tokens and the loop sends ${fmtTokens(p.total)} input tokens in total.`}
+        </Stat>
+        <Plot
+          frame={frame}
+          label={`${N} requests with tool results of ${fields[p.key]} fields. The last request sends ${fmtTokens(p.last.contextTokens)} tokens and the loop sends ${fmtTokens(p.total)} input tokens in total.`}
         >
           {p.run.requests.map((r, i) => {
             const fresh = i === 0 ? r.contextTokens : p.perTurn;
+            const x = frame.band(i);
+            const bw = frame.bandWidth;
             return (
               <g>
-                <rect class="alc-fill-resent" x={x(i)} width={barWidth} y={y(r.contextTokens - fresh)} height={y(0) - y(r.contextTokens - fresh)} />
-                <rect class="alc-fill-new" x={x(i)} width={barWidth} y={y(r.contextTokens)} height={y(r.contextTokens - fresh) - y(r.contextTokens)} />
+                <rect class="alc-fill-resent" x={x} width={bw} y={frame.y(r.contextTokens - fresh)} height={frame.y(0) - frame.y(r.contextTokens - fresh)} />
+                <rect class="alc-fill-new" x={x} width={bw} y={frame.y(r.contextTokens)} height={frame.y(r.contextTokens - fresh) - frame.y(r.contextTokens)} />
               </g>
             );
           })}
-          <text class="alc-text-strong" x={x(N - 1) + barWidth} y={y(p.last.contextTokens) - 6} text-anchor="end">
+          <text class="alc-text-strong" x={frame.band(N - 1) + frame.bandWidth} y={frame.y(p.last.contextTokens) - 6} text-anchor="end">
             {fmtTokens(p.last.contextTokens)}
           </text>
-          <line class="alc-axis" x1={L} x2={R} y1={B} y2={B} />
-          <text class="alc-text" x={L} y={H - 6}>
-            request 1
-          </text>
-          <text class="alc-text" x={R} y={H - 6} text-anchor="end">
-            request {N}
-          </text>
-        </svg>
-      </div>
+          <Axis frame={frame} x={["request 1", `request ${N}`]} rule />
+        </Plot>
+      </Panel>
     ))
   }
-  <ul class="alc-legend">
-    <li><span class="alc-swatch" style="background: var(--alc-new)"></span> new this request</li>
-    <li><span class="alc-swatch" style="background: var(--alc-resent)"></span> sent again</li>
-  </ul>
-  <Fragment slot="caption">
+
+  <Legend items={[{ tone: "new", label: "new this request" }, { tone: "resent", label: "sent again" }]} />
+
+  <Fragment slot="a11y">
+    {
+      panels.map((p) => (
+        <DataTable
+          caption={`${fields[p.key]} fields per tool result: ${fmtTokens(p.total)} input tokens total.`}
+          columns={["metric", "value"]}
+          rows={[
+            ["fields per result", fields[p.key]],
+            ["last request context", fmtTokens(p.last.contextTokens)],
+            ["total input tokens", fmtTokens(p.total)],
+          ]}
+        />
+      ))
+    }
+  </Fragment>
+
+  <Source slot="caption">
     The 40-field order lookup is the exam guide's own example of a tool result that piles up in context. Assumption: every field is the
     same size, {fmtTokens(tokensPerField)} tokens. Same loop as above: {fmtTokens(trimmed.run.totals.inputTokens)} against{" "}
     {fmtTokens(full.run.totals.inputTokens)} input tokens.
-  </Fragment>
-</AlcFigure>
+  </Source>
+</Figure>

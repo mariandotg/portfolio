@@ -5,8 +5,15 @@
 import { simulate, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import type { CacheMode } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD, FAST_TOOL_SECONDS, SLOW_TOOL_SECONDS } from "./workloads";
-import { fmtUsd, fmtChange, cumulative, scale, points, nudgeLabels } from "./format";
-import AlcFigure from "./AlcFigure.astro";
+import { fmtUsd, fmtChange, cumulative, points, nudgeLabels } from "./format";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Axis from "./kit/Axis.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 
 type StateKey = "fast" | "slow";
 
@@ -31,15 +38,15 @@ const N = BASE_WORKLOAD.turns;
 const total = (line: number[]) => line[line.length - 1];
 const yMax = Math.max(...Object.values(STATES).flatMap((s) => [total(s.noCache), total(s.fiveMin), total(s.oneHour)]));
 
-const VB_W = 480;
-const VB_H = 230;
-const PLOT_LEFT = 6;
-const PLOT_RIGHT = VB_W - 100;
-const PLOT_TOP = 34;
-const PLOT_BOTTOM = 188;
-
-const xAt = scale(0, N - 1, PLOT_LEFT, PLOT_RIGHT);
-const yAt = scale(0, yMax, PLOT_BOTTOM, PLOT_TOP);
+const frame = plotFrame({
+  w: 480,
+  h: 230,
+  inset: { l: 6, r: 100, t: 34, b: 42 },
+  x: [0, N - 1],
+  y: [0, yMax],
+});
+const xAt = frame.x;
+const yAt = frame.y;
 
 function panelData(key: StateKey) {
   const s = STATES[key];
@@ -69,50 +76,67 @@ const OPTIONS = [
   { value: "fast", label: `tool takes ${FAST_TOOL_SECONDS} s` },
   { value: "slow", label: "tool takes 5 min 5 s" },
 ];
+const INITIAL: StateKey = "fast";
+
+const ariaLabel = (key: StateKey) => {
+  const p = PANELS[key];
+  return `Cumulative cost over ${N} requests when the tool takes ${key === "fast" ? `${FAST_TOOL_SECONDS} seconds` : "5 minutes 5 seconds"}. No cache: ${fmtUsd(p.noCacheTotal)}. 5-minute cache: ${fmtUsd(p.fiveMinTotal)}, ${fmtChange(p.fiveMinTotal, p.noCacheTotal)} vs no cache. 1-hour cache: ${fmtUsd(p.oneHourTotal)}.`;
+};
 ---
 
-<AlcFigure question="What happens when a tool call takes longer than the cache lives?" options={OPTIONS} initial="fast">
+<Figure
+  question="What happens when a tool call takes longer than the cache lives?"
+  basis="calculated"
+  options={OPTIONS}
+  initial={INITIAL}
+>
   {
     (["fast", "slow"] as StateKey[]).map((key) => {
       const p = PANELS[key];
       const fiveMinClass = p.fiveMinCheaper ? "new" : "bad";
-      const deltaClass = p.fiveMinCheaper ? "good" : "bad";
+      const deltaTone = p.fiveMinCheaper ? "gain" : "loss";
       return (
-        <div data-alc-panel={key} hidden={key !== "fast"}>
-          <div class="alc-headline">
-            <span class="alc-big">{fmtUsd(p.fiveMinTotal)}</span>
-            <span class={`alc-delta ${deltaClass}`}>{fmtChange(p.fiveMinTotal, p.noCacheTotal)} vs no cache</span>
-          </div>
-          <p class="alc-sub">{SUB[key]}</p>
-          <svg
-            viewBox={`0 0 ${VB_W} ${VB_H}`}
-            class="alc-svg"
-            role="img"
-            aria-label={`Cumulative cost over ${N} requests when the tool takes ${key === "fast" ? `${FAST_TOOL_SECONDS} seconds` : "5 minutes 5 seconds"}. No cache: ${fmtUsd(p.noCacheTotal)}. 5-minute cache: ${fmtUsd(p.fiveMinTotal)}, ${fmtChange(p.fiveMinTotal, p.noCacheTotal)} vs no cache. 1-hour cache: ${fmtUsd(p.oneHourTotal)}.`}
-          >
-            <text x={PLOT_LEFT} y={PLOT_TOP - 10} class="alc-text">{fmtUsd(yMax)} cost so far</text>
-            <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="alc-axis" />
-            <text x={PLOT_LEFT} y={PLOT_BOTTOM + 16} class="alc-text">1</text>
-            <text x={PLOT_RIGHT} y={PLOT_BOTTOM + 16} class="alc-text" text-anchor="end">{N}</text>
-            <text x={(PLOT_LEFT + PLOT_RIGHT) / 2} y={PLOT_BOTTOM + 28} class="alc-text" text-anchor="middle">request →</text>
-
+        <Panel value={key} initial={INITIAL}>
+          <Stat value={fmtUsd(p.fiveMinTotal)} delta={`${fmtChange(p.fiveMinTotal, p.noCacheTotal)} vs no cache`} tone={deltaTone}>
+            {SUB[key]}
+          </Stat>
+          <Plot frame={frame} label={ariaLabel(key)}>
+            <Axis frame={frame} y={`${fmtUsd(yMax)} cost so far`} x={["1", String(N)]} title="request →" />
             <polyline points={points(p.s.noCache, xAt, yAt)} class="alc-line neutral" />
             <polyline points={points(p.s.oneHour, xAt, yAt)} class="alc-line good" />
             <polyline points={points(p.s.fiveMin, xAt, yAt)} class={`alc-line ${fiveMinClass}`} />
-
             {p.labels.map((l) => (
-              <text x={PLOT_RIGHT + 6} y={l.y + 4} class={l.key === "5-min cache" ? "alc-text-strong" : "alc-text"}>
+              <text x={frame.right + 6} y={l.y + 4} class={l.key === "5-min cache" ? "alc-text-strong" : "alc-text"}>
                 {l.key}
               </text>
             ))}
-          </svg>
-        </div>
+          </Plot>
+        </Panel>
       );
     })
   }
-  <Fragment slot="caption">
-    Cache read costs 0.1× base input. Cache write costs 1.25× (5-minute) or 2× (1-hour). Lifetime
-    counts from the start of the request that wrote or read the entry. Claude Sonnet 5 prices, as
-    of {FACTS_AS_OF}: <a href={SOURCES.pricing}>pricing</a>, <a href={SOURCES.caching}>prompt caching</a>.
+
+  <Fragment slot="a11y">
+    {
+      (["fast", "slow"] as StateKey[]).map((key) => {
+        const p = PANELS[key];
+        return (
+          <DataTable
+            caption={ariaLabel(key)}
+            columns={["mode", "total cost"]}
+            rows={[
+              ["no cache", fmtUsd(p.noCacheTotal)],
+              ["5-minute cache", fmtUsd(p.fiveMinTotal)],
+              ["1-hour cache", fmtUsd(p.oneHourTotal)],
+            ]}
+          />
+        );
+      })
+    }
   </Fragment>
-</AlcFigure>
+
+  <Source slot="caption" links={[{ href: SOURCES.pricing, label: "pricing" }, { href: SOURCES.caching, label: "prompt caching" }]} asOf={FACTS_AS_OF}>
+    Cache read costs 0.1× base input. Cache write costs 1.25× (5-minute) or 2× (1-hour). Lifetime
+    counts from the start of the request that wrote or read the entry. Claude Sonnet 5 prices.
+  </Source>
+</Figure>

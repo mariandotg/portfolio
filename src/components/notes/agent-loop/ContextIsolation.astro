@@ -2,7 +2,13 @@
 // Static diagram: what each side of a Task call actually holds. The coordinator's context
 // carries its own history plus the summaries that came back. The subagent's first request
 // carries none of that — only its own tools and system prompt, plus the brief it was handed.
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Plot from "./kit/Plot.astro";
+import Legend from "./kit/Legend.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
+import { TONE_FILL, type Tone } from "./kit/tones";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtTokens } from "./format";
@@ -14,47 +20,42 @@ const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
   resultTokens: SUBAGENTS.resultTokens,
 });
 
-// Coordinator's context once every subagent has returned (request 2): its own tools, system
-// prompt and task, the Task-call turn that dispatched all four, and the four summaries it read back.
 const coordinatorFinal = r.coordinator.requests[1];
 const coordinatorBlocks = [
-  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" },
-  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" },
-  { label: "task", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "resent" },
-  { label: "4× Task calls", tokens: SUBAGENT_WORKLOAD.assistantTokens, cls: "new" },
-  { label: "4 returned summaries", tokens: SUBAGENTS.count * SUBAGENTS.resultTokens, cls: "write" },
+  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
+  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
+  { label: "task", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "resent" as Tone },
+  { label: "4× Task calls", tokens: SUBAGENT_WORKLOAD.assistantTokens, cls: "new" as Tone },
+  { label: "4 returned summaries", tokens: SUBAGENTS.count * SUBAGENTS.resultTokens, cls: "write" as Tone },
 ];
 const coordinatorTotal = coordinatorBlocks.reduce((n, b) => n + b.tokens, 0);
 
-// A subagent's first request: its own tools and system prompt, plus the brief — the coordinator's
-// task block, reused here to stand in for it. Nothing else from the coordinator's side crosses over.
 const subagentFirst = r.subagents[0].requests[0];
 const subagentBlocks = [
-  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" },
-  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" },
-  { label: "brief", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "new" },
+  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
+  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
+  { label: "brief", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "new" as Tone },
 ];
 const subagentTotal = subagentBlocks.reduce((n, b) => n + b.tokens, 0);
 
-// The block breakdown must add up to what the engine itself reports for these two requests.
 if (coordinatorTotal !== coordinatorFinal.contextTokens || subagentTotal !== subagentFirst.contextTokens) {
   throw new Error("ContextIsolation: block breakdown doesn't match the engine's own context tokens");
 }
 
-const W = 480;
 const rowLabelW = 150;
 const trackX0 = rowLabelW;
 const trackX1 = 468;
 const trackWidth = trackX1 - trackX0;
-const scaleMax = coordinatorTotal; // shared scale: the coordinator's row is the larger one
+const scaleMax = coordinatorTotal;
 const pxPerToken = trackWidth / scaleMax;
 
 const row1Y = 32;
 const row2Y = 100;
 const barHeight = 28;
-const H = 158;
 
-function layout(blocks: { label: string; tokens: number; cls: string }[]) {
+const frame = plotFrame({ w: 480, h: 158 });
+
+function layout(blocks: { label: string; tokens: number; cls: Tone }[]) {
   let cursor = trackX0;
   return blocks.map((b) => {
     const width = Math.max(b.tokens * pxPerToken, 1);
@@ -70,20 +71,20 @@ const subagentLaidOut = layout(subagentBlocks);
 const ariaLabel = `The coordinator's context after every subagent returns is ${fmtTokens(coordinatorTotal)} tokens: its own tools, system prompt and task, the turn that made four Task calls, and the four summaries it read back. A subagent's first request is ${fmtTokens(subagentTotal)} tokens: only its own tools, its own system prompt, and the brief the coordinator wrote. It carries none of the coordinator's history.`;
 ---
 
-<AlcFigure question="What does a subagent know when it starts?">
+<Figure question="What does a subagent know when it starts?" basis="assumed">
   <p class="alc-sub">
     The coordinator's context is <strong>{fmtTokens(coordinatorTotal)}</strong> tokens once every subagent has
     reported back. The subagent's first request is <strong>{fmtTokens(subagentTotal)}</strong>: its own tools and
     system prompt, plus the brief. None of the coordinator's history is in it.
   </p>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
+  <Plot frame={frame} label={ariaLabel}>
     <text class="alc-text-strong" x="0" y={row1Y - 10}>Coordinator's context</text>
     <text class="alc-text" x={trackX1} y={row1Y - 10} text-anchor="end">{fmtTokens(coordinatorTotal)} tokens</text>
     {
       coordinatorLaidOut.map((b) => (
         <g>
-          <rect class={`alc-fill-${b.cls}`} x={b.x} y={row1Y} width={b.width} height={barHeight} />
+          <rect class={TONE_FILL[b.cls]} x={b.x} y={row1Y} width={b.width} height={barHeight} />
           {b.width > 34 && (
             <text class="alc-text" x={b.x + b.width / 2} y={row1Y + barHeight + 14} text-anchor="middle">
               {b.label}
@@ -98,7 +99,7 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
     {
       subagentLaidOut.map((b) => (
         <g>
-          <rect class={`alc-fill-${b.cls}`} x={b.x} y={row2Y} width={b.width} height={barHeight} />
+          <rect class={TONE_FILL[b.cls]} x={b.x} y={row2Y} width={b.width} height={barHeight} />
           {b.width > 34 && (
             <text class="alc-text" x={b.x + b.width / 2} y={row2Y + barHeight + 14} text-anchor="middle">
               {b.label}
@@ -114,20 +115,31 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
       width={coordinatorTotal * pxPerToken}
       height={barHeight + 4}
     />
-  </svg>
+  </Plot>
 
-  <ul class="alc-legend">
-    <li><span class="alc-swatch" style="background: var(--alc-resent)"></span> its own tools/system/task, every request</li>
-    <li><span class="alc-swatch" style="background: var(--alc-new)"></span> new this turn</li>
-    <li><span class="alc-swatch" style="background: var(--alc-write)"></span> written back from elsewhere</li>
-  </ul>
+  <Legend
+    items={[
+      { tone: "resent", label: "its own tools/system/task, every request" },
+      { tone: "new", label: "new this turn" },
+      { tone: "write", label: "written back from elsewhere" },
+    ]}
+  />
 
-  <Fragment slot="caption">
+  <DataTable
+    slot="a11y"
+    caption="Coordinator vs subagent context at start."
+    columns={["side", "block", "tokens"]}
+    rows={[
+      ...coordinatorBlocks.map((b) => ["coordinator", b.label, fmtTokens(b.tokens)]),
+      ...subagentBlocks.map((b) => ["subagent", b.label, fmtTokens(b.tokens)]),
+    ]}
+  />
+
+  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: "multi-agent research system" }]} asOf={FACTS_AS_OF}>
     Same run as the triangles above: {SUBAGENTS.count} subagents, {SUBAGENTS.turnsEach} turns each,{" "}
     {SUBAGENT_WORKLOAD.toolResultTokens.toLocaleString()}-token tool results,{" "}
     {SUBAGENTS.resultTokens.toLocaleString()}-token summaries. The dashed outline on the subagent's row is the
     coordinator's row, to the same scale. Assumption: the brief is the same size as the coordinator's own task
-    block ({SUBAGENT_WORKLOAD.taskTokens.toLocaleString()} tokens) — the docs don't size a brief. Source:{" "}
-    <a href={SOURCES.multiAgent} target="_blank" rel="noreferrer">multi-agent research system</a>, as of {FACTS_AS_OF}.
-  </Fragment>
-</AlcFigure>
+    block ({SUBAGENT_WORKLOAD.taskTokens.toLocaleString()} tokens) — the docs don't size a brief.
+  </Source>
+</Figure>

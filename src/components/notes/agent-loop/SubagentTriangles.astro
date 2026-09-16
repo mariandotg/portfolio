@@ -2,7 +2,12 @@
 // Static diagram: each request's bar height is the context it sends, so one loop draws a
 // triangle and the triangle's area is the input you pay. Splitting the tool work into four
 // short loops draws four small triangles whose combined area is far smaller.
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtTokens, fmtChange, fmtSeconds } from "./format";
@@ -14,8 +19,6 @@ const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
   resultTokens: SUBAGENTS.resultTokens,
 });
 
-const W = 480;
-const H = 240;
 const plotX0 = 14;
 const plotX1 = 468;
 const plotWidth = plotX1 - plotX0;
@@ -30,8 +33,6 @@ const singlePeak = r.single.totals.peakContextTokens;
 const pixelsPerToken = (row1Base - (row1LabelY + 14)) / (singlePeak * 1.08);
 const barHeight = (v: number) => v * pixelsPerToken;
 
-// Shared x scale: row 2 (2 coordinator + 4×15 subagent bars, with gaps between groups) sets the
-// pitch; row 1's 57 bars use the same pitch and simply end before the row fills up.
 const GAP_AFTER_COORDINATOR = 10;
 const GAP_BETWEEN_SUBAGENTS = 8;
 const totalBarUnits = r.coordinator.requests.length + r.subagents.reduce((n, s) => n + s.requests.length, 0);
@@ -56,22 +57,20 @@ const toolCalls = SUBAGENTS.count * (SUBAGENTS.turnsEach - 1);
 const toolResultsTotal = toolCalls * SUBAGENT_WORKLOAD.toolResultTokens;
 const summariesTotal = SUBAGENTS.count * SUBAGENTS.resultTokens;
 
+const frame = plotFrame({ w: 480, h: 240 });
+
 const ariaLabel = `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and sends ${fmtTokens(singleTokens)} input tokens in total. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team sends ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
 ---
 
-<AlcFigure question="Why do four short loops send fewer tokens than one long one?">
-  <div class="alc-headline">
-    <span class="alc-big">{fmtTokens(teamTokens)}</span>
-    <span class="alc-delta good">{fmtChange(teamTokens, singleTokens)} input tokens</span>
-  </div>
-  <p class="alc-sub">
+<Figure question="Why do four short loops send fewer tokens than one long one?" basis="calculated">
+  <Stat value={fmtTokens(teamTokens)} unit="input tokens" delta={fmtChange(teamTokens, singleTokens)} tone="gain">
     Same tool work. Dispatched in parallel, the team finishes in <strong>{fmtSeconds(r.totals.durationSeconds)}</strong>{" "}
     instead of <strong>{fmtSeconds(r.single.totals.durationSeconds)}</strong>. The coordinator reads{" "}
     <strong>{fmtTokens(summariesTotal)}</strong> of summaries, not <strong>{fmtTokens(toolResultsTotal)}</strong> of
     tool results.
-  </p>
+  </Stat>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
+  <Plot frame={frame} label={ariaLabel}>
     <text class="alc-text-strong" x={plotX0} y={row1LabelY}>One agent · {toolCalls} tool calls</text>
     <text class="alc-text" x={plotX1} y={row1LabelY} text-anchor="end">
       {fmtTokens(singleTokens)} input tokens
@@ -105,12 +104,20 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
       )
     }
     <text class="alc-text" x={coordinatorLabelX} y={coordinatorLabelY}>coordinator</text>
-  </svg>
+  </Plot>
 
-  <Fragment slot="caption">
+  <DataTable
+    slot="a11y"
+    caption="Single agent vs coordinator + subagents, same tool work."
+    columns={["layout", "input tokens", "peak context"]}
+    rows={[
+      ["one agent", fmtTokens(singleTokens), fmtTokens(singlePeak)],
+      ["team", fmtTokens(teamTokens), fmtTokens(r.coordinator.totals.peakContextTokens)],
+    ]}
+  />
+
+  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: "multi-agent research system" }]} asOf={FACTS_AS_OF}>
     Anthropic reports that its multi-agent Research system uses about 15× the tokens of a chat, because its
-    subagents search far more (cited, not simulated). Source:{" "}
-    <a href={SOURCES.multiAgent} target="_blank" rel="noreferrer">multi-agent research system</a>, as of{" "}
-    {FACTS_AS_OF}. Assumption: each subagent has the same tools and system prompt as the coordinator.
-  </Fragment>
-</AlcFigure>
+    subagents search far more (cited, not simulated). Assumption: each subagent has the same tools and system prompt as the coordinator.
+  </Source>
+</Figure>

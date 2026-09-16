@@ -5,7 +5,13 @@
 // is still writing.
 import { CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { fmtTokens, fmtUsd, fmtChange } from "./format";
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 
 type StateKey = "together" | "staggered";
 
@@ -47,30 +53,35 @@ const OPTIONS = [
   { value: "staggered", label: "first one, then the rest" },
 ];
 
-const VB_W = 480;
 const SLOT_W = 50;
 const SLOT_H = 34;
 const SLOT_GAP = 4;
 const ROW_X0 = 8;
 const ROW_Y = 46;
+
+const frame = plotFrame({ w: 480, h: 120 });
 const slotX = (i: number) => ROW_X0 + i * (SLOT_W + SLOT_GAP);
+const INITIAL: StateKey = "together";
+
+const ariaLabel = (key: StateKey) => {
+  const c = COST[key];
+  const compareTo = key === "staggered" ? COST.together.usd : COST.staggered.usd;
+  return `${COUNT} parallel requests sharing a ${fmtTokens(PREFIX_TOKENS)}-token prefix, ${key === "together" ? "all firing at once" : "staggered after the first response begins"}. Token-equivalent cost ${fmtTokens(c.tokEq)}, ${fmtUsd(c.usd)} on Claude Sonnet 5, ${fmtChange(c.usd, compareTo)} vs the other mode.`;
+};
 ---
 
-<AlcFigure question="Does firing 8 parallel requests cache 8 times?" options={OPTIONS} initial="together">
+<Figure question="Does firing 8 parallel requests cache 8 times?" basis="assumed" options={OPTIONS} initial={INITIAL}>
   {
     (["together", "staggered"] as StateKey[]).map((key) => {
       const c = COST[key];
-      const deltaClass = key === "staggered" ? "good" : "bad";
+      const deltaTone = key === "staggered" ? "gain" : "loss";
       const compareTo = key === "staggered" ? COST.together.usd : COST.staggered.usd;
-      const ariaLabel = `${COUNT} parallel requests sharing a ${fmtTokens(PREFIX_TOKENS)}-token prefix, ${key === "together" ? "all firing at once" : "staggered after the first response begins"}. Token-equivalent cost ${fmtTokens(c.tokEq)}, ${fmtUsd(c.usd)} on Claude Sonnet 5, ${fmtChange(c.usd, compareTo)} vs the other mode.`;
       return (
-        <div data-alc-panel={key} hidden={key !== "together"}>
-          <div class="alc-headline">
-            <span class="alc-big">{fmtUsd(c.usd)}</span>
-            <span class={`alc-delta ${deltaClass}`}>{fmtChange(c.usd, compareTo)} vs the other mode</span>
-          </div>
-          <p class="alc-sub">{SUB[key]}</p>
-          <svg viewBox={`0 0 ${VB_W} 120`} class="alc-svg" role="img" aria-label={ariaLabel}>
+        <Panel value={key} initial={INITIAL}>
+          <Stat value={fmtUsd(c.usd)} delta={`${fmtChange(c.usd, compareTo)} vs the other mode`} tone={deltaTone}>
+            {SUB[key]}
+          </Stat>
+          <Plot frame={frame} label={ariaLabel(key)}>
             {SLOTS[key].map((slot, i) => (
               <>
                 <rect x={slotX(i)} y={ROW_Y} width={SLOT_W} height={SLOT_H} class={slot.mode === "write" ? "alc-fill-write" : "alc-fill-read"} />
@@ -83,15 +94,27 @@ const slotX = (i: number) => ROW_X0 + i * (SLOT_W + SLOT_GAP);
             <text x={ROW_X0} y={ROW_Y + SLOT_H + 20} class="alc-text">
               {fmtTokens(c.tokEq)} token-equivalent
             </text>
-          </svg>
-        </div>
+          </Plot>
+        </Panel>
       );
     })
   }
-  <Fragment slot="caption">
+
+  <Fragment slot="a11y">
+    {
+      (["together", "staggered"] as StateKey[]).map((key) => (
+        <DataTable
+          caption={ariaLabel(key)}
+          columns={["mode", "writes", "reads", "USD"]}
+          rows={[[key, SLOTS[key].filter((s) => s.mode === "write").length, SLOTS[key].filter((s) => s.mode === "read").length, fmtUsd(COST[key].usd)]]}
+        />
+      ))
+    }
+  </Fragment>
+
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }, { href: SOURCES.pricing, label: "pricing" }]} asOf={FACTS_AS_OF}>
     Assumption: 8 requests sharing a 40,000-token prefix (tools, system, and a shared document); the
     8-second wait for the first response to begin is illustrative, not documented. Rule: a cache
-    entry becomes available only after the first response begins. Source:{" "}
-    <a href={SOURCES.caching}>prompt caching</a>, <a href={SOURCES.pricing}>pricing</a>, as of {FACTS_AS_OF}.
-  </Fragment>
-</AlcFigure>
+    entry becomes available only after the first response begins.
+  </Source>
+</Figure>

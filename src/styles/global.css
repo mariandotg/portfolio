@@ -334,6 +334,131 @@ blockquote {
   margin-inline: auto;
 }
 
+/* Note prose — tables, inline code, block elements (design-system.md §6) */
+.note.prose :where(code):not(:where(pre *)) {
+  font-weight: 400;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875em;
+}
+
+.note.prose :where(code):not(:where(pre *))::before,
+.note.prose :where(code):not(:where(pre *))::after {
+  content: none !important;
+}
+
+.callout.not-prose :where(.callout-body code) {
+  font-family: var(--font-family-mono);
+  font-weight: 400;
+  font-size: 0.875em;
+  line-height: 1.4;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border)) !important;
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.note.prose > :where(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.6rem 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, hsl(var(--muted-foreground)) 5%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.note.prose :where(table) {
+  width: 100%;
+  min-width: min(100%, max-content);
+  border-collapse: collapse;
+  font-family: var(--font-family-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.note.prose :where(thead th) {
+  padding: 0.625rem 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  color: hsl(var(--foreground));
+  background: color-mix(in srgb, hsl(var(--muted-foreground)) 8%, transparent);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.note.prose :where(tbody td) {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.note.prose :where(tbody tr:last-child td) {
+  border-bottom: none;
+}
+
+.note.prose :where(blockquote) {
+  border-left: 3px solid hsl(var(--primary));
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 1.5rem 0;
+  color: hsl(var(--muted-foreground));
+  font-style: normal;
+}
+
+.note.prose :where(blockquote p) {
+  margin: 0.5rem 0;
+}
+
+.note.prose :where(blockquote > :first-child) {
+  margin-top: 0;
+}
+
+.note.prose :where(blockquote > :last-child) {
+  margin-bottom: 0;
+}
+
+.note.prose :where(hr) {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 2rem 0;
+}
+
+.note.prose :where(ul ul, ul ol, ol ul, ol ol) {
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+.note.prose :where(ul ul) {
+  list-style-type: circle;
+}
+
+.note.prose :where(ol ol) {
+  list-style-type: lower-alpha;
+}
+
+.note.prose :where(ul ul ul, ul ol ul, ol ul ul, ol ol ul) {
+  list-style-type: square;
+}
+
+.note.prose :where(ol ol ol) {
+  list-style-type: lower-roman;
+}
+
+.note.prose :where(figcaption) {
+  margin-top: 0.75rem;
+  font-family: var(--font-family-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  color: hsl(var(--muted-foreground));
+}
+
 /* Shiki code blocks — targets both class names Astro may produce */
 .shiki,
 .astro-code {

@@ -1,78 +1,34 @@
-# Using React Components in MDX Notes
+# MDX components in notes
 
-## Quick Start
+The maintained catalogue — props, budgets, and when to use each component — is
+[`.claude/skills/blog-post/COMPONENTS.md`](../.claude/skills/blog-post/COMPONENTS.md).
 
-Import and use React components directly in your MDX files with the `client:load` directive.
+## Import path
 
-### Example MDX File
-
-```mdx
----
-title: "My Post"
-description: "A post with interactive components"
-pubDate: 2025-02-15
----
-
-import Counter from "../../components/Counter";
-import AlertBox from "../../components/AlertBox";
-
-# My Note
-
-Use components with the client:load directive:
-
-<Counter client:load />
-
-<AlertBox type="success" title="Success!" client:load>
-  This is an interactive alert that can be dismissed.
-</AlertBox>
-```
-
-### Adding New Components
-
-1. Create your component in `src/components/YourComponent.tsx`
-2. Import it at the top of your MDX file:
-   ```mdx
-   import YourComponent from "../../components/YourComponent";
-   ```
-3. Use it with `client:load`:
-   ```mdx
-   <YourComponent client:load />
-   ```
-
-### Available Components
-
-- **Counter**: Interactive counter with increment button
-- **AlertBox**: Dismissible alert boxes with different types (info, warning, success, error)
-
-See `src/components/README.md` for component documentation.
-
-## Client Directives
-
-- `client:load` - Hydrate immediately on page load (recommended for interactive components)
-- `client:idle` - Hydrate when browser is idle
-- `client:visible` - Hydrate when component enters viewport
-- `client:only="react"` - Only render on client, skip SSR
-
-## Passing Props
-
-Pass props just like in React:
+Note components live in `src/components/notes/`. Typical imports:
 
 ```mdx
-<AlertBox 
-  type="warning" 
-  title="Important!" 
-  client:load
->
-  Your custom message here
-</AlertBox>
+import Callout from "../../components/notes/Callout.astro";
+import SideBySide from "../../components/notes/SideBySide.astro";
+import Tabs from "../../components/notes/Tabs.astro";
+import Tab from "../../components/notes/Tab.astro";
 ```
 
-## Testing
+## Callouts
 
-Run the dev server:
+Three variants only: `note`, `rule`, `warning`. Sentence-case titles, no emoji.
+See `docs/design/design-system.md` §6.
+
+## Interactive islands
+
+Wrap React in an `*Island.astro` file and import the wrapper from MDX. Add
+`client:load`, `client:idle`, or `client:visible` on the wrapper as needed.
+
+## Verify locally
 
 ```bash
 pnpm dev
 ```
 
-Visit your note at `http://localhost:4321/notes/hello-world`
+Open the note under `/notes/<slug>` (draft posts are excluded from production
+routes until `draft` is cleared).

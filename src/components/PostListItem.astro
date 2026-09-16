@@ -52,7 +52,8 @@ const href = getLocalizedPath(`/notes/${slug}`, lang);
 
   .pli-date {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
     color: hsl(var(--muted-foreground));
@@ -63,7 +64,8 @@ const href = getLocalizedPath(`/notes/${slug}`, lang);
   .pli-kicker {
     display: block;
     font-family: var(--font-family-mono);
-    font-size: 11px;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: hsl(var(--primary));
@@ -71,9 +73,9 @@ const href = getLocalizedPath(`/notes/${slug}`, lang);
   }
 
   .pli-title {
-    font-size: 16px;
+    font-size: var(--text-subtitle);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: var(--text-subtitle--line-height);
     color: hsl(var(--foreground));
     margin: 0 0 5px;
     transition: color 150ms ease-in-out;
@@ -96,8 +98,8 @@ const href = getLocalizedPath(`/notes/${slug}`, lang);
   }
 
   .pli-desc {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--muted-foreground));
     margin: 0;
     display: -webkit-box;

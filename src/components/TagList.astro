@@ -8,8 +8,17 @@ const { tags, class: className } = Astro.props;
 
 <div class:list={["flex flex-wrap gap-3", className]}>
   {tags.map((tag) => (
-    <span style="font-family: var(--font-family-mono); font-size: 12px; color: hsl(var(--muted-foreground));">
+    <span class="tag-item">
       #{tag}
     </span>
   ))}
 </div>
+
+<style>
+  .tag-item {
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+</style>

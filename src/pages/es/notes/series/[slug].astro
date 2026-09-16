@@ -54,13 +54,14 @@ const notesHref = getLocalizedPath("/notes", lang);
   /* `.series-hero` viaja como prop `class` al root de `SeriesBanner`, así que vive en el scope
      del hijo: sin `:global` la regla no lo alcanza. Ratio, overflow y fondo los pone el banner. */
   :global(.series-hero) {
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));
   }
   .series-meta {
     display: inline-block;
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     letter-spacing: 0.02em;
     color: hsl(var(--muted-foreground));
   }
@@ -69,7 +70,8 @@ const notesHref = getLocalizedPath("/notes", lang);
   }
 
   .empty-state {
-    font-size: 14px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--muted-foreground));
     padding: 2rem 0;
   }

@@ -99,23 +99,32 @@
 
   --color-skill-core: hsl(var(--skill-core));
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
   --font-family-display: 'IBM Plex Sans', system-ui, sans-serif;
   --font-family-mono: 'IBM Plex Mono', system-ui, monospace;
-  --font-family-inter: 'Inter', system-ui, sans-serif;
 
   /* Tailwind v4 namespaces — without these, `font-sans`/`font-mono` fall back
      to Tailwind's default stacks instead of IBM Plex. */
   --font-sans: var(--font-family-display);
   --font-mono: var(--font-family-mono);
 
-  /* Ported from the CV project's tailwind.config fontSize extend. */
-  --text-title: 1rem;
-  --text-title--line-height: 1rem;
-  --text-name: 1.5rem;
-  --text-name--line-height: 1.5rem;
+  --text-display: 32px;
+  --text-display--line-height: 1.2;
+  --text-title: 20px;
+  --text-title--line-height: 1.3;
+  --text-subtitle: 16px;
+  --text-subtitle--line-height: 1.4;
+  --text-body: 16px;
+  --text-body--line-height: 1.65;
+  --text-ui: 14px;
+  --text-ui--line-height: 1.5;
+  --text-meta: 12px;
+  --text-meta--line-height: 1.4;
+  --text-micro: 11px;
+  --text-micro--line-height: 1.3;
 }
 
 @theme {
@@ -141,10 +150,6 @@
   --breakpoint-tablet: 834px;
   --breakpoint-desktop: 1024px;
 
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-full: 100%;
-
   --animate-fade-in: fade-in 1s ease-in-out;
 
   @keyframes fade-in {
@@ -168,8 +173,8 @@ html {
 
 body {
   font-family: var(--font-family-display);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--text-ui);
+  line-height: var(--text-ui--line-height);
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   min-height: 100%;
@@ -248,7 +253,7 @@ blockquote {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background-color: hsl(var(--muted-foreground)); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background-color: hsl(var(--muted-foreground)); border-radius: var(--radius-sm); }
 
 /* Prose */
 .prose {
@@ -381,10 +386,6 @@ html.dark .astro-code span {
   ::view-transition-new(*) {
     animation: none !important;
   }
-}
-
-.font-inter {
-  font-family: var(--font-family-inter);
 }
 
 .print-force-new-page {

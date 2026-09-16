@@ -74,7 +74,7 @@ const notesHref = getLocalizedPath("/notes", lang);
     right: 0;
     height: 2px;
     background-color: hsl(var(--primary));
-    border-radius: 1px;
+    border-radius: var(--radius-sm);
   }
 
   .tab-btn:hover:not(.active-tab) {
@@ -91,7 +91,8 @@ const notesHref = getLocalizedPath("/notes", lang);
     align-items: center;
     gap: 6px;
     font-family: var(--font-family-mono);
-    font-size: 13px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--muted-foreground));
     transition: color 150ms ease-in-out;
   }

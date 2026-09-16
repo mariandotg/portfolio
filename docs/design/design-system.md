@@ -401,34 +401,32 @@ Prose gaps to close, all currently unstyled and now in use:
 
 ## 7. Series surface
 
-The series landing has inverted hierarchy. The 3:1 banner is the largest
-element on the page and carries no information; the `h1` is 24px.
+Landing hierarchy, `SeriesLanding` extraction, total reading time, and
+build-time guards for `seriesOrder` / missing series ids landed in MDG-133.
 
-- Promote `h1` to `--text-display`. Demote the banner to a 6:1 strip, or move
-  it below the header.
-- Add what a reader needs before committing: total reading time (the data
-  exists per post in `getSeriesRoadmap`, it is never summed), explicit
-  `N parts`, and who the series is for.
-- Give the empty state real content. `/claude-certified-architect` is a
-  top-level URL that competes with `/about`; today it can say only "posts are
-  on the way", with no scope and no date.
-- **Rename `featured`.** `series.ts:81` sets `featured: s.data.rootLevel`, so
-  the visible "Featured" badge means "promoted in routing", not "chosen".
-  Split the two concepts or drop the badge.
-- Add a `related` list for unnumbered companion notes. `the-cache-break` sits
-  deliberately outside the series with no way to say so.
+### Product decisions (MDG-135, 2026-09-16)
 
-Structural debt to fix while here:
+1. **Empty series are unpublished.** A series with zero published posts does
+   not appear in listings and does not get a route — including `rootLevel`
+   series such as `/claude-certified-architect`. JSON may exist in the repo
+   before the first note ships; the site simply does not publish it yet. No
+   empty-state landing, no outline teaser, no email capture.
+2. **Drop the "Featured" badge.** `featured` was `rootLevel` under another
+   name. Routing promotion stays as `rootLevel`; the reader-facing badge goes.
+3. **Delete the series `collection` field.** It was required, unread, and
+   already contradicted its posts. Collection remains a property of notes only.
+4. **Related unnumbered notes stay implicit.** Companions like
+   `the-cache-break` are not linked from the series landing or the note.
+   No `related` list.
 
-- The landing template is duplicated four times
-  (`notes/series/[slug]`, `[slug]`, and both `es/` mirrors). They are identical
-  today except for `getStandardSeries` vs `getRootLevelSeries`. Extract a
-  `SeriesLanding.astro` and let the four pages pass data in.
-- `seriesOrder` collisions are silent, and a post naming a series that does not
-  exist fails silently. Both should throw at build time, like
-  `RESERVED_ROOT_SLUGS` already does.
-- The `collection` field on series is required, read by nothing, and already
-  contradicts its own posts in `agent-vs-cursor.json`. Drop it.
+### Still to implement (from the decisions above)
+
+- Filter zero-post series out of `getSeriesIndex` / static paths (en + es,
+  standard and rootLevel).
+- Remove `featured` from `SeriesCard` / CV series consumers and i18n strings
+  that only served the badge.
+- Drop `collection` from the series content schema and from every
+  `src/content/series/*.json`.
 
 ---
 

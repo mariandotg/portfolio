@@ -344,13 +344,26 @@ the undocumented billing of the compaction pass.
 | `Plot` | `PLOT_*`, `plotX0/plotX1`, `BAR_*`, `trackX0/trackX1` — four naming conventions for one idea | 13 files |
 | `Axis` | the copied 3-4 line SVG block | 6 files |
 | `Legend` + `Swatch` | two implementations (`<span style="background:var(--alc-X)">` vs `<svg><rect class="alc-fill-X"/></svg>`) | 6 files |
-| `Toggle` | the `Record<Key,T>` + `panelData()` + `hidden={key!==initial}` pattern | 7 files |
+| ~~`Toggle` + `Panel`~~ | removed 2026-09-16 — see *Every state at once* below | — |
 | `Source` | ad-hoc caption markup | 13 files |
 | `DataTable` | nothing — new | all |
 
-Move `nudgeLabels()` from `CacheBreakEven.astro:59` and `CacheCost.astro:44`
-into `format.ts` with `minGap` as a parameter. `format.ts` is already the one
-correctly shared module; extend it rather than starting a new one.
+`nudgeLabels()` lives in `format.ts` with `minGap` as a parameter.
+
+### Every state at once (2026-09-16)
+
+A figure never hides a state behind a toggle. When a figure compares 2–4
+discrete states of one calculation (with/without, mode A/B, four changes), it
+renders all of them together on a shared scale, so the comparison is the
+figure. Controls stay only for a **continuous** variable (`LoopTriangle`,
+`CacheBreakEven`), where a slider is the point.
+
+These figures are HTML + scoped CSS inside `Figure`, not a scaled
+`<svg viewBox>`: text renders at its real size, and the visible structure (a
+semantic table, or sr-only sentences per row) replaces the hidden `DataTable`.
+Precedents: `InvalidationCascade`, `FanOutTimeline`, `TrimCost`,
+`TeamTimeline`, `ClearingCost`, `FactsSurvival`. `CacheCost` was deleted: it was
+the two-point version of `CacheBreakEven`.
 
 ### Accessibility
 

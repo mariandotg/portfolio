@@ -47,7 +47,7 @@ test("rows behind a label gutter — TeamTimeline's labelW/trackX0/laneY", () =>
   assert.equal(f.x(1200), 474);
 });
 
-test("one proportional bar — InvalidationLadder's BAR_X/BAR_W/BAR_Y/BAR_H", () => {
+test("one proportional bar — a request split into blocks by token share", () => {
   const total = 70_000;
   const f = plotFrame({ w: 480, h: 110, inset: { l: 6, r: 74, t: 54, b: 26 }, x: [0, total] });
 

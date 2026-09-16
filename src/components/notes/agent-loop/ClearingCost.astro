@@ -1,19 +1,14 @@
 ---
-// "Why can clearing old tool results cost more than keeping them?" Stacked tokens sent per
-// request against the full client history (ghost line) and the context-editing trigger.
-// Clearing every step invalidates the cache on every clear; batching the clears mostly avoids that.
+// "Why can clearing old tool results cost more than keeping them?" Diagram version: both
+// clear_at_least settings as aligned rows on the same token scale, instead of a toggle between
+// them. Each row is a sparkline of stacked per-request tokens (read/write/uncached) against the
+// full client history (ghost line) and the context-editing trigger. Clearing every step (top row)
+// invalidates the cache on every clear, so it writes far more than batching the clears (bottom row).
 import { simulate, SOURCES, FACTS_AS_OF, CONTEXT_EDITING_DEFAULTS } from "@/lib/sim/agent-loop";
 import { EDITING_WORKLOAD, editingWith, BATCHED_CLEAR_AT_LEAST } from "./workloads";
 import { fmtTokens, fmtUsd, fmtChange } from "./format";
 import Figure from "./kit/Figure.astro";
-import Panel from "./kit/Panel.astro";
-import Stat from "./kit/Stat.astro";
-import Plot from "./kit/Plot.astro";
-import Axis from "./kit/Axis.astro";
-import Legend from "./kit/Legend.astro";
 import Source from "./kit/Source.astro";
-import DataTable from "./kit/DataTable.astro";
-import { plotFrame } from "./kit/plot";
 
 type StateKey = "each" | "batched";
 
@@ -26,119 +21,119 @@ const RUNS: Record<StateKey, ReturnType<typeof simulate>> = {
 const N = EDITING_WORKLOAD.turns;
 const trigger = CONTEXT_EDITING_DEFAULTS.trigger;
 
+// Same scale for both rows: the larger of the two (they're equal — clearing never touches the
+// client's own history, only what gets sent).
 const yMax = Math.max(
   ...RUNS.each.requests.map((r) => r.historyTokens),
   ...RUNS.batched.requests.map((r) => r.historyTokens),
 );
+const pct = (v: number) => `${((v / yMax) * 100).toFixed(2)}%`;
 
-const frame = plotFrame({
-  w: 480,
-  h: 250,
-  inset: { l: 6, r: 130, t: 34, b: 54 },
-  x: [0, N],
-  y: [0, yMax],
-  bands: N,
-  bandGap: Math.min(1, ((480 - 6 - 130) / N) * 0.15),
-});
+// The full-history reference line: identical in both runs, so it's computed once and drawn in
+// both rows. Rendered as a thin filled ribbon (clip-path) rather than an SVG polyline.
+const GHOST_HALF_THICK = 0.9; // % of chart height
+const ghostPoints = RUNS.each.requests.map((req, i) => ({
+  x: ((i + 0.5) / N) * 100,
+  yTop: 100 - (req.historyTokens / yMax) * 100,
+}));
+const ghostPolygon = [
+  ...ghostPoints.map((p) => `${p.x.toFixed(2)}% ${Math.max(0, p.yTop - GHOST_HALF_THICK).toFixed(2)}%`),
+  ...[...ghostPoints].reverse().map((p) => `${p.x.toFixed(2)}% ${Math.min(100, p.yTop + GHOST_HALF_THICK).toFixed(2)}%`),
+].join(", ");
+const triggerBottom = `${((trigger / yMax) * 100).toFixed(2)}%`;
 
-const yAt = frame.y;
-const barWidth = frame.bandWidth;
-const barX = (i: number) => frame.band(i);
-const barCenter = (i: number) => frame.bandCenter(i);
-
-function panelData(key: StateKey) {
+function rowData(key: StateKey) {
   const r = RUNS[key];
   const clears = r.requests.filter((req) => req.clearedTokens > 0).length;
-  const ghostPoints = r.requests.map((req, i) => `${barCenter(i).toFixed(1)},${yAt(req.historyTokens).toFixed(1)}`).join(" ");
-  const bars = r.requests.map((req, i) => {
-    const cum1 = req.cacheReadTokens;
-    const cum2 = req.cacheReadTokens + req.cacheWriteTokens;
-    const cum3 = req.cacheReadTokens + req.cacheWriteTokens + req.uncachedInputTokens;
-    const y1 = yAt(cum1);
-    const y2 = yAt(cum2);
-    const y3 = yAt(cum3);
-    return { x: barX(i), y1, y2, y3 };
-  });
-  return { r, clears, ghostPoints, bars, editedTotal: r.totals.costUsd };
+  const editedTotal = r.totals.costUsd;
+  const tone = editedTotal < baseline.totals.costUsd ? "gain" : "loss";
+  const settingLabel = key === "each" ? "clear_at_least: 0" : `clear_at_least: ${fmtTokens(BATCHED_CLEAR_AT_LEAST)}`;
+  const note =
+    key === "each"
+      ? `${clears} of ${N} requests clear something. No cache entry ends where the edit happened, so each of those requests writes everything after the task again.`
+      : `Clearing happens in ${clears} batches. Most requests read the cache again.`;
+  const bars = r.requests.map((req) => ({
+    read: pct(req.cacheReadTokens),
+    write: pct(req.cacheWriteTokens),
+    uncached: pct(req.uncachedInputTokens),
+  }));
+  const sr = `Tokens sent per request over ${N} requests, ${settingLabel}. ${note} Total cost ${fmtUsd(editedTotal)}, ${fmtChange(editedTotal, baseline.totals.costUsd)} vs no clearing. The full client history reaches ${fmtTokens(yMax)}; clearing keeps the prompt near the ${fmtTokens(trigger)} trigger.`;
+  return { key, settingLabel, editedTotal, tone, bars, sr };
 }
 
-const PANELS: Record<StateKey, ReturnType<typeof panelData>> = { each: panelData("each"), batched: panelData("batched") };
-
-const SUB: Record<StateKey, string> = {
-  each: `${PANELS.each.clears} of ${N} requests clear something. No cache entry ends where the edit happened, so each of those requests writes everything after the task again.`,
-  batched: `Clearing happens in ${PANELS.batched.clears} batches. Most requests read the cache again.`,
-};
-
-const OPTIONS = [
-  { value: "each", label: "clear_at_least: 0" },
-  { value: "batched", label: "clear_at_least: 20k" },
-];
-
-const historyLabelY = yAt(yMax);
-const triggerY = yAt(trigger);
-const INITIAL: StateKey = "each";
-
-const ariaLabel = (key: StateKey) => {
-  const p = PANELS[key];
-  return `Tokens sent per request over ${N} requests, clear_at_least ${key === "each" ? "0" : fmtTokens(BATCHED_CLEAR_AT_LEAST)}. ${p.clears} of ${N} requests clear something. Total cost ${fmtUsd(p.editedTotal)}, ${fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing. The full client history reaches ${fmtTokens(yMax)}; clearing keeps the prompt near the ${fmtTokens(trigger)} trigger.`;
-};
+const ROWS = (["each", "batched"] as StateKey[]).map(rowData);
 ---
 
-<Figure question="Why can clearing old tool results cost more than keeping them?" basis="assumed" options={OPTIONS} initial={INITIAL}>
-  {
-    (["each", "batched"] as StateKey[]).map((key) => {
-      const p = PANELS[key];
-      const deltaTone = p.editedTotal < baseline.totals.costUsd ? "gain" : "loss";
-      return (
-        <Panel value={key} initial={INITIAL}>
-          <Stat value={fmtUsd(p.editedTotal)} delta={`${fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing`} tone={deltaTone}>
-            {SUB[key]}
-          </Stat>
-          <Plot frame={frame} label={ariaLabel(key)}>
-            <Axis frame={frame} y={`${fmtTokens(yMax)} tokens sent`} x={["1", String(N)]} title="request →" />
-            <line x1={frame.left} y1={triggerY} x2={frame.right} y2={triggerY} class="alc-marker" />
-            <text x={frame.right + 6} y={triggerY + 4} class="alc-text">trigger {fmtTokens(trigger)}</text>
+<Figure question="Why can clearing old tool results cost more than keeping them?" basis="assumed">
+  <table class="cc">
+    <caption class="sr-only">
+      Tokens sent per request over {N} requests, comparing clear_at_least: 0 against clear_at_least:{" "}
+      {fmtTokens(BATCHED_CLEAR_AT_LEAST)}, on the same 0–{fmtTokens(yMax)} token scale.
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="cc-setting">setting</th>
+        <th scope="col" class="cc-chart-head">
+          <span aria-hidden="true">0–{fmtTokens(yMax)} tokens sent per request</span>
+          <span class="sr-only">tokens sent per request, stacked by cache read, cache write, and uncached input</span>
+        </th>
+        <th scope="col" class="cc-cost">cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        ROWS.map((row) => (
+          <tr class="cc-row">
+            <th scope="row" class="cc-setting">
+              <code>{row.settingLabel}</code>
+            </th>
+            <td class="cc-chart-cell">
+              <div class="cc-chart" aria-hidden="true">
+                <div class="cc-bars">
+                  {row.bars.map((b) => (
+                    <div class="cc-bar">
+                      <span class="cc-seg cc-read" style={`height: ${b.read}`} />
+                      <span class="cc-seg cc-write" style={`height: ${b.write}`} />
+                      <span class="cc-seg cc-uncached" style={`height: ${b.uncached}`} />
+                    </div>
+                  ))}
+                </div>
+                <div class="cc-ghost" style={`clip-path: polygon(${ghostPolygon})`} />
+                <div class="cc-trigger" style={`bottom: ${triggerBottom}`} />
+              </div>
+              <span class="sr-only">{row.sr}</span>
+            </td>
+            <td class="cc-cost">
+              <span class="cc-usd">{fmtUsd(row.editedTotal)}</span>
+              <span class={`alc-delta ${row.tone === "gain" ? "good" : "bad"}`}>
+                {fmtChange(row.editedTotal, baseline.totals.costUsd)}
+              </span>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="cc-setting" />
+        <td class="cc-chart-cell">
+          <div class="cc-axis" aria-hidden="true">
+            <span>1</span>
+            <span class="cc-axis-title">request →</span>
+            <span>{N}</span>
+          </div>
+        </td>
+        <td class="cc-cost" />
+      </tr>
+    </tfoot>
+  </table>
 
-            {p.bars.map((b) => (
-              <>
-                <rect x={b.x} y={b.y1} width={barWidth} height={Math.max(0, frame.bottom - b.y1)} class="alc-fill-read" />
-                <rect x={b.x} y={b.y2} width={barWidth} height={Math.max(0, b.y1 - b.y2)} class="alc-fill-write" />
-                <rect x={b.x} y={b.y3} width={barWidth} height={Math.max(0, b.y2 - b.y3)} class="alc-fill-uncached" />
-              </>
-            ))}
-
-            <polyline points={p.ghostPoints} class="alc-ghost" />
-            <text x={frame.right + 6} y={historyLabelY + 4} class="alc-text">
-              <tspan x={frame.right + 6} dy="0">history without</tspan>
-              <tspan x={frame.right + 6} dy="13">clearing</tspan>
-            </text>
-          </Plot>
-          <Legend
-            items={[
-              { tone: "read", label: "read from cache (0.1×)" },
-              { tone: "write", label: "written to cache (1.25×)" },
-            ]}
-          />
-        </Panel>
-      );
-    })
-  }
-
-  <Fragment slot="a11y">
-    {
-      (["each", "batched"] as StateKey[]).map((key) => (
-        <DataTable
-          caption={ariaLabel(key)}
-          columns={["metric", "value"]}
-          rows={[
-            ["total cost", fmtUsd(PANELS[key].editedTotal)],
-            ["requests that clear", String(PANELS[key].clears)],
-            ["vs no clearing", fmtChange(PANELS[key].editedTotal, baseline.totals.costUsd)],
-          ]}
-        />
-      ))
-    }
-  </Fragment>
+  <ul class="alc-legend" aria-hidden="true">
+    <li><span class="alc-swatch" style="background: var(--alc-read)" />read from cache (0.1×)</li>
+    <li><span class="alc-swatch" style="background: var(--alc-write)" />written to cache (1.25×)</li>
+    <li><span class="cc-line cc-line-ghost" />history without clearing</li>
+    <li><span class="cc-line cc-line-trigger" />trigger {fmtTokens(trigger)}</li>
+  </ul>
 
   <Source slot="caption" links={[{ href: SOURCES.contextEditing, label: "context editing" }]} asOf={FACTS_AS_OF}>
     <code>clear_tool_uses_20250919</code> defaults: 100k-token trigger, keep the last 3 results.
@@ -146,3 +141,182 @@ const ariaLabel = (key: StateKey) => {
     request still reads the last cache entry written before the first of them.
   </Source>
 </Figure>
+
+<style>
+  .cc {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+  }
+  .cc th,
+  .cc td {
+    padding: 8px 0;
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 400;
+  }
+  .cc thead th {
+    padding-top: 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .cc tbody tr + tr {
+    border-top: 1px solid hsl(var(--border));
+  }
+  .cc tfoot td {
+    padding-top: 4px;
+    padding-bottom: 0;
+  }
+
+  .cc-setting {
+    width: 10.5rem;
+    padding-right: 14px !important;
+    color: hsl(var(--foreground));
+    white-space: nowrap;
+  }
+  .cc-setting code {
+    font-size: 0.92em;
+  }
+
+  .cc-cost {
+    width: 6.5rem;
+    padding-left: 14px !important;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+  .cc-usd {
+    display: block;
+    font-family: var(--font-family-mono);
+    color: hsl(var(--foreground));
+  }
+  .alc-delta {
+    display: inline-block;
+    margin-top: 2px;
+  }
+
+  .cc-chart-cell {
+    width: 100%;
+  }
+  .cc-chart {
+    position: relative;
+    height: 100px;
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-sm);
+    background: hsl(var(--background));
+  }
+  .cc-bars {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+    gap: 1px;
+  }
+  .cc-bar {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .cc-seg {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+  .cc-read { background: var(--alc-read); }
+  .cc-write { background: var(--alc-write); }
+  .cc-uncached { background: var(--alc-uncached); }
+
+  /* The full client history: a thin filled ribbon following the same points an SVG polyline would. */
+  .cc-ghost {
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--muted-foreground));
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  /* The context-editing trigger: one accent line, shared by both rows on the same scale. */
+  .cc-trigger {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    border-top: 2px dashed hsl(var(--primary));
+    pointer-events: none;
+  }
+
+  .cc-axis {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .cc-axis-title {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cc-line {
+    display: inline-block;
+    width: 14px;
+    height: 0;
+    border-top: 2px dashed hsl(var(--muted-foreground));
+    vertical-align: middle;
+  }
+  .cc-line-ghost {
+    border-top-style: solid;
+    opacity: 0.7;
+  }
+  .cc-line-trigger {
+    border-top-color: hsl(var(--primary));
+  }
+
+  @media (max-width: 560px) {
+    .cc thead .cc-setting,
+    .cc thead .cc-cost {
+      display: none;
+    }
+    .cc,
+    .cc tbody,
+    .cc tfoot,
+    .cc tr {
+      display: block;
+    }
+    .cc thead,
+    .cc thead tr {
+      display: block;
+    }
+    .cc thead .cc-chart-head {
+      display: block;
+      width: 100%;
+    }
+    .cc tbody tr {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "setting cost" "chart chart";
+      row-gap: 6px;
+      padding: 10px 0;
+    }
+    .cc tbody th,
+    .cc tbody td {
+      padding: 0 !important;
+      width: auto;
+    }
+    .cc tbody .cc-setting { grid-area: setting; }
+    .cc tbody .cc-cost { grid-area: cost; }
+    .cc tbody .cc-chart-cell { grid-area: chart; }
+    .cc tfoot tr {
+      display: block;
+    }
+    .cc tfoot td.cc-setting,
+    .cc tfoot td.cc-cost {
+      display: none;
+    }
+    .cc tfoot td.cc-chart-cell {
+      display: block;
+      width: 100%;
+    }
+  }
+</style>

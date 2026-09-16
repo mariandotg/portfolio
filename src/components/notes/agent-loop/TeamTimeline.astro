@@ -1,15 +1,12 @@
 ---
-// "Does splitting the work also make it faster?" Same coordinator + 4 subagents as the triangles
-// above, laid out on a wall-clock axis instead of a token axis. Toggle dispatches them in parallel
-// (one Task-call turn, all four run at once) or in sequence (one subagent at a time).
+// Diagram version: both dispatch modes on one shared wall-clock axis instead of a toggle. Same
+// coordinator + 4 subagents as the triangles above. Parallel stacks the 4 subagent runs on top of
+// each other in time; sequential lines them up one after another. The "one agent" duration is a
+// dashed reference marker repeated on every track.
 import Figure from "./kit/Figure.astro";
-import Panel from "./kit/Panel.astro";
 import Stat from "./kit/Stat.astro";
-import Plot from "./kit/Plot.astro";
 import Legend from "./kit/Legend.astro";
 import Source from "./kit/Source.astro";
-import DataTable from "./kit/DataTable.astro";
-import { plotFrame } from "./kit/plot";
 import { simulateMultiAgent } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtSeconds, fmtChange } from "./format";
@@ -65,30 +62,8 @@ if (
 }
 
 const scaleMax = Math.max(SCHEDULES.sequential.total, singleDuration) * 1.04;
-
-const labelW = 82;
-const trackX0 = labelW;
-const trackX1 = 474;
-const laneH = 22;
-const laneGap = 8;
-const lanes: { key: string; label: string }[] = [
-  { key: "single", label: "One agent" },
-  { key: "coordinator", label: "Coordinator" },
-  { key: "sub0", label: "Subagent 1" },
-  { key: "sub1", label: "Subagent 2" },
-  { key: "sub2", label: "Subagent 3" },
-  { key: "sub3", label: "Subagent 4" },
-];
-const laneY = (i: number) => 16 + i * (laneH + laneGap);
-const H = laneY(lanes.length - 1) + laneH + 16;
-
-const frame = plotFrame({
-  w: 480,
-  h: H,
-  inset: { l: 0, r: 480 - trackX1, t: 0, b: 0 },
-  x: [0, scaleMax],
-});
-const x = frame.x;
+const pct = (seconds: number) => `${((seconds / scaleMax) * 100).toFixed(2)}%`;
+const spanPct = (a: number, b: number) => `${Math.max(((b - a) / scaleMax) * 100, 0.6).toFixed(2)}%`;
 
 function panel(key: Key) {
   const s = SCHEDULES[key];
@@ -99,73 +74,222 @@ function panel(key: Key) {
 }
 const PANELS: Record<Key, ReturnType<typeof panel>> = { parallel: panel("parallel"), sequential: panel("sequential") };
 
-const OPTIONS = [
-  { value: "parallel", label: "parallel" },
-  { value: "sequential", label: "sequential" },
-];
-const INITIAL: Key = "parallel";
-
-const ariaLabel = (key: Key) => {
+const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
   const p = PANELS[key];
-  return `${key === "parallel" ? "Dispatched in parallel" : "Dispatched in sequence"}, the coordinator and its ${count} subagents finish in ${fmtSeconds(p.team)}, ${p.change} versus ${fmtSeconds(singleDuration)} for one agent doing the same tool work alone.`;
-};
+  const stacked = key === "parallel";
+  return {
+    key,
+    label: key === "parallel" ? "Parallel" : "Sequential",
+    stacked,
+    team: p.team,
+    change: p.change,
+    deltaTone: p.deltaTone,
+    coordinator: p.s.coordinator.map(([a, b]) => ({ left: pct(a), width: spanPct(a, b) })),
+    subagents: p.s.subagents.map(([a, b], i) => ({
+      left: pct(a),
+      width: spanPct(a, b),
+      top: stacked ? `${((i * 100) / count).toFixed(2)}%` : "0%",
+      height: stacked ? `${(100 / count).toFixed(2)}%` : "100%",
+    })),
+    sentence: `Dispatched in ${key === "parallel" ? "parallel" : "sequence"}, the coordinator and its ${count} subagents finish in ${fmtSeconds(p.team)}, ${p.change} versus ${fmtSeconds(singleDuration)} for one agent doing the same tool work alone.`,
+  };
+});
 ---
 
-<Figure question="Does splitting the work also make it faster?" basis="assumed" options={OPTIONS} initial={INITIAL}>
-  {
-    (["parallel", "sequential"] as Key[]).map((key) => {
-      const p = PANELS[key];
-      return (
-        <Panel value={key} initial={INITIAL}>
-          <Stat value={fmtSeconds(p.team)} delta={`${p.change} vs one agent`} tone={p.deltaTone} />
-          <Plot frame={frame} label={ariaLabel(key)}>
-            {lanes.map((lane, i) => (
-              <text class="alc-text" x="0" y={laneY(i) + laneH / 2 + 4}>{lane.label}</text>
-            ))}
+<Figure question="Does splitting the work also make it faster?" basis="assumed">
+  <Stat value={fmtSeconds(PANELS.parallel.team)} delta={`${PANELS.parallel.change} vs one agent`} tone={PANELS.parallel.deltaTone}>
+    Dispatched in parallel. The same team dispatched in sequence takes {fmtSeconds(PANELS.sequential.team)}, {PANELS.sequential.change} vs one agent.
+  </Stat>
 
-            <rect
-              class="alc-ghost"
-              x={x(0)}
-              y={laneY(0)}
-              width={x(singleDuration) - x(0)}
-              height={laneH}
-            />
-            <text class="alc-text" x={x(singleDuration) + 4} y={laneY(0) + laneH / 2 + 4}>{fmtSeconds(singleDuration)}</text>
+  <div class="tt">
+    <div class="tt-axis" aria-hidden="true">
+      <span class="tt-tick" style={`left: ${pct(0)}`}>0s</span>
+      <span class="tt-tick tt-tick-ref" style={`left: ${pct(singleDuration)}`}>{fmtSeconds(singleDuration)} · one agent</span>
+    </div>
 
-            {p.s.coordinator.map(([a, b]) => (
-              <rect class="alc-fill-read" x={x(a)} y={laneY(1)} width={Math.max(x(b) - x(a), 1.5)} height={laneH} />
-            ))}
-
-            {p.s.subagents.map(([a, b], i) => (
-              <rect class="alc-fill-new" x={x(a)} y={laneY(2 + i)} width={Math.max(x(b) - x(a), 1.5)} height={laneH} />
-            ))}
-
-            <line class="alc-axis" x1={trackX0} y1={H - 6} x2={trackX1} y2={H - 6} />
-            <text class="alc-text" x={trackX0} y={H - 6} dy="12">0</text>
-            <text class="alc-text" x={x(p.team)} y={H - 6} dy="12" text-anchor="end">{fmtSeconds(p.team)}</text>
-          </Plot>
-        </Panel>
-      );
-    })
-  }
+    <ol class="tt-groups">
+      {
+        GROUPS.map((g) => (
+          <li class="tt-group">
+            <p class="tt-group-summary">
+              <span class="tt-group-name">{g.label}</span>
+              <span class:list={["tt-group-time", { accent: g.key === "parallel" }]}>{fmtSeconds(g.team)}</span>
+              <span class:list={["tt-group-delta", g.deltaTone]}>{g.change} vs one agent</span>
+            </p>
+            <ol class="tt-lanes" aria-hidden="true">
+              <li class="tt-lane">
+                <span class="tt-lane-label">Coordinator</span>
+                <span class="tt-track">
+                  <span class="tt-ref-marker" style={`left: ${pct(singleDuration)}`} />
+                  {g.coordinator.map((seg) => (
+                    <span class="tt-seg tt-seg-coordinator" style={`left: ${seg.left}; width: ${seg.width}`} />
+                  ))}
+                </span>
+              </li>
+              <li class="tt-lane">
+                <span class="tt-lane-label">Subagents ×{count}</span>
+                <span class="tt-track">
+                  <span class="tt-ref-marker" style={`left: ${pct(singleDuration)}`} />
+                  {g.subagents.map((seg) => (
+                    <span
+                      class:list={["tt-seg", "tt-seg-subagent", { "tt-seg-stacked": g.stacked }]}
+                      style={`left: ${seg.left}; width: ${seg.width}; top: ${seg.top}; height: ${seg.height}`}
+                    />
+                  ))}
+                </span>
+              </li>
+            </ol>
+            <span class="sr-only">{g.sentence}</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
 
   <Legend items={[{ tone: "read", label: "coordinator request" }, { tone: "new", label: "subagent run" }]} />
 
-  <Fragment slot="a11y">
-    {
-      (["parallel", "sequential"] as Key[]).map((key) => (
-        <DataTable
-          caption={ariaLabel(key)}
-          columns={["dispatch", "wall time", "vs one agent"]}
-          rows={[[key, fmtSeconds(PANELS[key].team), PANELS[key].change]]}
-        />
-      ))
-    }
-  </Fragment>
-
   <Source slot="caption">
     Same coordinator and {SUBAGENTS.count} subagents as above. Assumption: every coordinator request takes{" "}
-    {reqDur} seconds and subagents run back-to-back with no gap between dispatches. Fixed scale in both states, up
+    {reqDur} seconds and subagents run back-to-back with no gap between dispatches. Shared scale in both groups, up
     to the sequential total, {fmtSeconds(SCHEDULES.sequential.total)}.
   </Source>
 </Figure>
+
+<style>
+  .tt {
+    --label-w: 6.5rem;
+    margin-top: 14px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+  }
+
+  .tt-axis {
+    position: relative;
+    height: 16px;
+    margin: 0 0 6px var(--label-w);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .tt-tick {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+  }
+  .tt-tick-ref {
+    padding-left: 6px;
+    transform: translateX(-100%);
+  }
+
+  .tt-groups {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tt-group + .tt-group {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid hsl(var(--border));
+  }
+
+  .tt-group-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+  .tt-group-name {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  .tt-group-time {
+    font-family: var(--font-family-mono);
+    color: hsl(var(--foreground));
+  }
+  .tt-group-time.accent {
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+  .tt-group-delta {
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    color: hsl(var(--muted-foreground));
+  }
+  .tt-group-delta.gain {
+    color: var(--alc-good);
+  }
+  .tt-group-delta.loss {
+    color: var(--alc-bad);
+  }
+
+  .tt-lanes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tt-lane {
+    display: grid;
+    grid-template-columns: var(--label-w) 1fr;
+    align-items: center;
+    min-height: 30px;
+  }
+  .tt-lane + .tt-lane {
+    margin-top: 4px;
+  }
+  .tt-lane-label {
+    padding-right: 12px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .tt-track {
+    position: relative;
+    height: 22px;
+    border-left: 1px solid hsl(var(--border));
+  }
+  .tt-ref-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 2px dashed hsl(var(--muted-foreground));
+    opacity: 0.6;
+  }
+  .tt-seg {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: var(--radius-sm);
+  }
+  .tt-seg-coordinator {
+    background: var(--alc-read);
+  }
+  .tt-seg-subagent {
+    background: var(--alc-new);
+  }
+  /* Stacked (parallel): four strips at the same time span read as one solid block. */
+  .tt-seg-stacked {
+    border-radius: 0;
+  }
+
+  @media (max-width: 560px) {
+    .tt {
+      --label-w: 0px;
+    }
+    .tt-axis {
+      display: none;
+    }
+    .tt-lane {
+      grid-template-columns: 1fr;
+      grid-template-areas: "label" "track";
+      row-gap: 4px;
+      padding: 4px 0;
+    }
+    .tt-lane-label {
+      grid-area: label;
+    }
+    .tt-track {
+      grid-area: track;
+      width: 100%;
+    }
+  }
+</style>

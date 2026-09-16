@@ -1,15 +1,11 @@
 ---
-// "What does trimming one tool result save?" The exam guide's own example: an order lookup returns
-// 40+ fields when only 5 matter. Same loop, same tokens per field; only the result size changes.
+// Diagram version: the exam guide's own example, an order lookup that returns 40 fields when the
+// agent needs 5. Both loops share one scale so the reader sees the saving as the gap between the two
+// triangles instead of toggling between them: same loop, same tokens per field, only the result size
+// changes.
 import Figure from "./kit/Figure.astro";
-import Panel from "./kit/Panel.astro";
 import Stat from "./kit/Stat.astro";
-import Plot from "./kit/Plot.astro";
-import Axis from "./kit/Axis.astro";
-import Legend from "./kit/Legend.astro";
 import Source from "./kit/Source.astro";
-import DataTable from "./kit/DataTable.astro";
-import { plotFrame } from "./kit/plot";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtChange, fmtTokens } from "./format";
@@ -18,8 +14,6 @@ const FIELDS_FULL = 40;
 const FIELDS_TRIMMED = 5;
 const tokensPerField = BASE_WORKLOAD.toolResultTokens / FIELDS_FULL;
 
-type Key = "full" | "trimmed";
-const fields: Record<Key, number> = { full: FIELDS_FULL, trimmed: FIELDS_TRIMMED };
 const runs = {
   full: simulate({ ...BASE_WORKLOAD, toolResultTokens: FIELDS_FULL * tokensPerField }),
   trimmed: simulate({ ...BASE_WORKLOAD, toolResultTokens: FIELDS_TRIMMED * tokensPerField }),
@@ -28,104 +22,186 @@ const runs = {
 const N = BASE_WORKLOAD.turns;
 const top = Math.max(...runs.full.requests.map((r) => r.contextTokens));
 
-const frame = plotFrame({
-  w: 480,
-  h: 214,
-  inset: { l: 6, r: 6, t: 24, b: 26 },
-  x: [0, N],
-  y: [0, top],
-  bands: N,
-  bandGap: 1,
-});
+const full = { last: runs.full.requests[N - 1], total: runs.full.totals.inputTokens };
+const trimmed = { last: runs.trimmed.requests[N - 1], total: runs.trimmed.totals.inputTokens };
 
-const panels = (Object.keys(runs) as Key[]).map((key) => {
-  const run = runs[key];
-  const perTurn = BASE_WORKLOAD.assistantTokens + fields[key] * tokensPerField;
-  const last = run.requests[run.requests.length - 1];
-  return { key, run, perTurn, last, total: run.totals.inputTokens };
-});
-const full = panels[0];
-const trimmed = panels[1];
+const fullPerTurn = BASE_WORKLOAD.assistantTokens + FIELDS_FULL * tokensPerField;
+const trimmedPerTurn = BASE_WORKLOAD.assistantTokens + FIELDS_TRIMMED * tokensPerField;
 
-const OPTIONS = [
-  { value: "full", label: `lookup returns ${FIELDS_FULL} fields` },
-  { value: "trimmed", label: `trimmed to ${FIELDS_TRIMMED} fields` },
-];
-const INITIAL: Key = "full";
+const columns = runs.full.requests.map((r, i) => ({
+  full: (r.contextTokens / top) * 100,
+  trimmed: (runs.trimmed.requests[i].contextTokens / top) * 100,
+}));
 ---
 
-<Figure
-  question="What does trimming one tool result save?"
-  basis="calculated"
-  options={OPTIONS}
-  initial={INITIAL}
->
-  {
-    panels.map((p) => (
-      <Panel value={p.key} initial={INITIAL}>
-        <Stat
-          value={fmtTokens(p.total)}
-          unit="input tokens"
-          delta={p.key === "trimmed" ? fmtChange(p.total, full.total) : `${(p.total / p.last.contextTokens).toFixed(1)}× the final context`}
-          tone={p.key === "trimmed" ? "gain" : "loss"}
-        >
-          {p.key === "full" ? (
-            <>
-              Each lookup adds <strong>{fmtTokens(p.perTurn - BASE_WORKLOAD.assistantTokens)}</strong> to the history, and every later request
-              sends it again.
-            </>
-          ) : (
-            <>
-              Each lookup adds <strong>{fmtTokens(p.perTurn - BASE_WORKLOAD.assistantTokens)}</strong>. The last request sends{" "}
-              <strong>{fmtTokens(p.last.contextTokens)}</strong> instead of <strong>{fmtTokens(full.last.contextTokens)}</strong>.
-            </>
-          )}
-        </Stat>
-        <Plot
-          frame={frame}
-          label={`${N} requests with tool results of ${fields[p.key]} fields. The last request sends ${fmtTokens(p.last.contextTokens)} tokens and the loop sends ${fmtTokens(p.total)} input tokens in total.`}
-        >
-          {p.run.requests.map((r, i) => {
-            const fresh = i === 0 ? r.contextTokens : p.perTurn;
-            const x = frame.band(i);
-            const bw = frame.bandWidth;
-            return (
-              <g>
-                <rect class="alc-fill-resent" x={x} width={bw} y={frame.y(r.contextTokens - fresh)} height={frame.y(0) - frame.y(r.contextTokens - fresh)} />
-                <rect class="alc-fill-new" x={x} width={bw} y={frame.y(r.contextTokens)} height={frame.y(r.contextTokens - fresh) - frame.y(r.contextTokens)} />
-              </g>
-            );
-          })}
-          <text class="alc-text-strong" x={frame.band(N - 1) + frame.bandWidth} y={frame.y(p.last.contextTokens) - 6} text-anchor="end">
-            {fmtTokens(p.last.contextTokens)}
-          </text>
-          <Axis frame={frame} x={["request 1", `request ${N}`]} rule />
-        </Plot>
-      </Panel>
-    ))
-  }
+<Figure question="What does trimming one tool result save?" basis="calculated">
+  <Stat
+    value={fmtChange(trimmed.total, full.total)}
+    delta={`${fmtTokens(full.total)} → ${fmtTokens(trimmed.total)} input tokens`}
+    tone="gain"
+  >
+    Each 40-field lookup adds <strong>{fmtTokens(fullPerTurn - BASE_WORKLOAD.assistantTokens)}</strong> to the
+    history; trimmed to 5 fields it's <strong>{fmtTokens(trimmedPerTurn - BASE_WORKLOAD.assistantTokens)}</strong>.
+    The last of {N} requests sends <strong>{fmtTokens(full.last.contextTokens)}</strong> tokens, or{" "}
+    <strong>{fmtTokens(trimmed.last.contextTokens)}</strong> trimmed.
+  </Stat>
 
-  <Legend items={[{ tone: "new", label: "new this request" }, { tone: "resent", label: "sent again" }]} />
+  <div class="tc-row">
+    <div class="tc-chart" aria-hidden="true">
+      {
+        columns.map((c) => (
+          <span class="tc-col">
+            <span class="tc-bar tc-bar-full" style={`height: ${c.full.toFixed(2)}%`} />
+            <span class="tc-bar tc-bar-trim" style={`height: ${c.trimmed.toFixed(2)}%`} />
+          </span>
+        ))
+      }
+    </div>
+    <div class="tc-last" aria-hidden="true">
+      <span class="tc-last-value full">{fmtTokens(full.last.contextTokens)}</span>
+      <span class="tc-last-value trim">{fmtTokens(trimmed.last.contextTokens)}</span>
+      <span class="tc-last-label">last request</span>
+    </div>
+  </div>
+  <div class="tc-axis" aria-hidden="true">
+    <span>request 1</span>
+    <span>request {N}</span>
+  </div>
 
-  <Fragment slot="a11y">
-    {
-      panels.map((p) => (
-        <DataTable
-          caption={`${fields[p.key]} fields per tool result: ${fmtTokens(p.total)} input tokens total.`}
-          columns={["metric", "value"]}
-          rows={[
-            ["fields per result", fields[p.key]],
-            ["last request context", fmtTokens(p.last.contextTokens)],
-            ["total input tokens", fmtTokens(p.total)],
-          ]}
-        />
-      ))
-    }
-  </Fragment>
+  <p class="sr-only">
+    40 fields per tool result: the last of {N} requests sends {fmtTokens(full.last.contextTokens)} tokens, and the
+    loop sends {fmtTokens(full.total)} input tokens in total.
+  </p>
+  <p class="sr-only">
+    Trimmed to 5 fields: the last of {N} requests sends {fmtTokens(trimmed.last.contextTokens)} tokens, and the loop
+    sends {fmtTokens(trimmed.total)} input tokens in total.
+  </p>
+
+  <ul class="alc-legend" aria-hidden="true">
+    <li><span class="tc-swatch full" />{FIELDS_FULL} fields, total {fmtTokens(full.total)}</li>
+    <li><span class="tc-swatch trim" />{FIELDS_TRIMMED} fields, total {fmtTokens(trimmed.total)}</li>
+    <li class="tc-note">the gap is the saving: {fmtChange(trimmed.total, full.total)}</li>
+  </ul>
 
   <Source slot="caption">
-    The 40-field order lookup is the exam guide's own example of a tool result that piles up in context. Assumption: every field is the
-    same size, {fmtTokens(tokensPerField)} tokens. Same loop as above: {fmtTokens(trimmed.run.totals.inputTokens)} against{" "}
-    {fmtTokens(full.run.totals.inputTokens)} input tokens.
+    The 40-field order lookup is the exam guide's own example of a tool result that piles up in context. Assumption:
+    every field is the same size, {fmtTokens(tokensPerField)} tokens. Same loop, {N} requests each:{" "}
+    {fmtTokens(trimmed.total)} against {fmtTokens(full.total)} input tokens.
   </Source>
 </Figure>
+
+<style>
+  .tc-row {
+    --tc-label-w: 4.5rem;
+    --tc-h: 160px;
+    display: grid;
+    grid-template-columns: 1fr var(--tc-label-w);
+    align-items: end;
+    gap: 12px;
+  }
+
+  .tc-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: var(--tc-h);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .tc-col {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+  }
+  .tc-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 1px 1px 0 0;
+  }
+  .tc-bar-full {
+    background: color-mix(in srgb, var(--alc-bad) 45%, transparent);
+  }
+  .tc-bar-trim {
+    left: 25%;
+    right: 25%;
+    background: var(--alc-good);
+  }
+
+  .tc-last {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    padding-bottom: 2px;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+  }
+  .tc-last-value {
+    font-weight: 700;
+  }
+  .tc-last-value.full {
+    color: var(--alc-bad);
+  }
+  .tc-last-value.trim {
+    color: var(--alc-good);
+  }
+  .tc-last-label {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .tc-axis {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0 0;
+    padding-right: calc(var(--tc-label-w) + 12px);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .tc-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: -1px;
+  }
+  .tc-swatch.full {
+    background: color-mix(in srgb, var(--alc-bad) 45%, transparent);
+  }
+  .tc-swatch.trim {
+    background: var(--alc-good);
+  }
+  .tc-note {
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 480px) {
+    .tc-row {
+      --tc-h: 120px;
+      grid-template-columns: 1fr;
+      grid-template-areas: "chart" "last";
+      row-gap: 6px;
+    }
+    .tc-chart {
+      grid-area: chart;
+    }
+    .tc-last {
+      grid-area: last;
+      flex-direction: row;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .tc-last-label {
+      display: none;
+    }
+    .tc-axis {
+      padding-right: 0;
+    }
+  }
+</style>

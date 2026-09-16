@@ -23,7 +23,8 @@ Antes de agregar un componente, respondé las tres preguntas. Si alguna es
 |---|---|---|
 | Un flujo con orden en el tiempo (loop, handoff, ciclo de vida) | Flujo reproducible: `Stepper` o isla animada con play/pausa/paso | Loop `tool_use` → `end_turn` |
 | Una relación espacial (arquitectura, jerarquía, quién habla con quién) | Diagrama SVG inline | Hub-and-spoke; capas de `CLAUDE.md` |
-| Una variable que cambia un resultado | Simulador con un control (toggle o slider) | Regla en prompt vs hook; posición del dato en el contexto |
+| Una variable **continua** que cambia un resultado | Simulador con un slider | Segundos entre requests; largo del loop |
+| De 2 a 4 estados **discretos** de un mismo cálculo (con/sin, antes/después, modo A/B) | Diagrama estático en HTML con todos los estados visibles a la misma escala. **Nunca un toggle:** esconde la comparación que es el punto | `InvalidationCascade`, `FanOutTimeline`, `TrimCost` |
 | Dos opciones comparadas (rota/correcta, antes/después) | `SideBySide variant="diff"` | Descripción de tool antes y después |
 | El mismo contenido en variantes paralelas (lenguajes, configs) | `Tabs` + `Tab` | Implementación en TS y Java |
 | Una decisión del lector (escenario tipo examen) | Quiz con revelado: elegir → trampa → respuesta | "¿Qué hace el arquitecto?" |
@@ -62,15 +63,15 @@ Todos en `src/components/notes/`. Precedente de uso:
 | `SideBySide.astro` | `leftLabel?`, `rightLabel?`, `variant?`: `neutral` \| `diff`. Slots `left`/`right` vía `<Fragment slot="left">` | Comparación. Apila en < 640px |
 | `Stepper.astro` + `Step.astro` | `Step`: `title?` | Recorrido paso a paso con prev/next y progreso |
 | `Tabs.astro` + `Tab.astro` | `Tab`: `label` | Variantes paralelas |
-| `RetrySimulatorIsland.astro` | — | Precedente de simulador: toggle + contador + veredicto |
+| `RetrySimulatorIsland.astro` | — | Precedente de simulador: control + contador + veredicto (anterior a la regla de diagramas estáticos) |
 | `RequestAnatomy.astro` | — | SVG estático: qué reenvía cada request. Precedente de diagrama estático |
-| `agent-loop/kit/Figure.astro` | `question`, `basis` (obligatorio), `n?`, `options?`, `initial?`; slots `caption` y `a11y` | Marco de visual calculado: pregunta, toggle de 2–3 estados (paneles `data-alc-panel` renderizados en el servidor, sin React), y una línea final con el marcador de base epistémica más las fuentes. Estilos en `agent-loop/agent-loop.css` |
+| `agent-loop/kit/Figure.astro` | `question`, `basis` (obligatorio), `n?`; slots `caption` y `a11y` | Marco de visual calculado: pregunta, la figura con **todos sus estados visibles** (sin toggle, ver design-system.md §5), y una línea final con el marcador de base epistémica más las fuentes. Estilos en `agent-loop/agent-loop.css` |
 | `agent-loop/LoopTriangleIsland.astro` | — | Héroe con un slider: el loop dibuja un triángulo y el área es lo que se factura. Ejes fijos |
-| `agent-loop/TrimCost.astro` | — | Toggle 40 / 5 campos: el tamaño del tool result multiplica el total. Nota 1 de la serie |
+| `agent-loop/TrimCost.astro` | — | 40 y 5 campos a la misma escala: el tamaño del tool result multiplica el total. Nota 1 de la serie |
 | `agent-loop/SubagentTriangles.astro`, `ContextIsolation.astro`, `TeamTimeline.astro` | — | Subagentes: triángulos a la misma escala, qué sabe un subagente al empezar, paralelo vs secuencial. Nota 2 de la serie |
 | `agent-loop/CompactionSawtooth.astro` | `variant?`: `cost` \| `context` | Serrucho de compaction. `context` (solo tokens) para la serie, `cost` para la nota de ingeniería |
 | `agent-loop/FactsSurvival.astro` | — | Qué hechos siguen literales después de cada compaction, con y sin bloque de case facts. Nota 3 de la serie (la posición de los hallazgos va con `SideBySide`) |
-| `agent-loop/CacheCost.astro`, `CacheBreakEven.astro`, `InvalidationLadder.astro`, `LookbackWindow.astro`, `FanOutCache.astro`, `ClearingCost.astro` | — | Caching, invalidación, lookback, fan-out y context editing. Nota de ingeniería `the-cache-break` (fuera de la serie) |
+| `agent-loop/CacheBreakEven.astro`, `InvalidationCascade.astro`, `LookbackWindow.astro`, `FanOutTimeline.astro`, `ClearingCost.astro` | — | Caching, invalidación, lookback, fan-out y context editing. Nota de ingeniería `the-cache-break` (fuera de la serie). `InvalidationCascade` y `FanOutTimeline` son los precedentes de diagrama estático en HTML |
 
 **Base epistémica (`basis`, obligatoria en `Figure`):** cada figura declara cómo
 sabe su número, en mono junto al caption. Si mezcla orígenes, gana el más débil.

@@ -8,7 +8,6 @@ collection: "engineering-notes"
 ---
 
 import Callout from "../../components/notes/Callout.astro";
-import CacheCost from "../../components/notes/agent-loop/CacheCost.astro";
 import CacheBreakEven from "../../components/notes/agent-loop/CacheBreakEven.astro";
 import InvalidationCascade from "../../components/notes/agent-loop/InvalidationCascade.astro";
 import LookbackWindow from "../../components/notes/agent-loop/LookbackWindow.astro";
@@ -28,15 +27,13 @@ A cached request is a stack of blocks — `tools`, then `system`, then `messages
 
 On the 30-request loop from note 1, that discount takes the bill from $3.41 with no cache to $0.69 with a 5-minute cache — 80% less, for the exact same 1.64 million input tokens. The cache doesn't make the quadratic curve linear. It makes each point on it cheaper.
 
-<CacheCost />
-
 That's the case where the cache behaves the way you'd hope. The rest of this note is about the five documented ways it doesn't.
 
 ## Trap 1: the clock starts at the wrong end
 
 The 5-minute lifetime doesn't start when your last response finished. It starts "from the start of the request that writes or reads the cache entry," and generation time counts against it: the docs give a concrete example where a response takes 4 minutes to stream, leaving the caller about a minute to send the next request before the entry expires. If your tool is slow, or your model's own output is long, you can burn the TTL before you ever see the result.
 
-The toggle above already shows the shape of the trap: at 20 seconds between requests, the 5-minute cache is the cheap option. At 5 minutes 5 seconds, it's the expensive one, because the entry is always gone by the time the next request needs it. Every request writes its whole history again at 1.25×.
+Here is the shape of the trap: at 20 seconds between requests, the 5-minute cache is the cheap option. At 5 minutes 5 seconds, it's the expensive one, because the entry is always gone by the time the next request needs it. Every request writes its whole history again at 1.25×.
 
 <CacheBreakEven />
 
@@ -117,7 +114,7 @@ I ran the 60-request, 4,000-token-result workload from note 1 with a 5-minute ca
 
 <ClearingCost />
 
-With `clear_at_least` unset, clearing something happens on 38 of the 60 requests — a small amount every time — and each of those 38 requests can only read the 5,500-token prompt from the cache; the rest of the context, 21,000 to 36,000 tokens depending on how far the loop has grown, gets written again at 1.25×. The total, $3.45, is 40% more than doing no editing at all ($2.47). Setting `clear_at_least` to 20,000 tokens drops that to 7 batched clearing passes instead of 38 small ones, and most requests go back to reading the cache: $1.79, 27% less than no editing.
+With `clear_at_least` unset, clearing something happens on 38 of the 60 requests — a small amount every time — and each of those 38 requests can only read the 5,500-token prompt from the cache; the rest of the context, 21,000 to 36,000 tokens depending on how far the loop has grown, gets written again at 1.25×. The total, $3.45, is 39% more than doing no editing at all ($2.47). Setting `clear_at_least` to 20,000 tokens drops that to 7 batched clearing passes instead of 38 small ones, and most requests go back to reading the cache: $1.79, 27% less than no editing.
 
 Two things here are my assumptions, not the docs': a cleared result leaves a 10-token placeholder, and clearing invalidates only from the first cleared block onward, so a request still reads the cache entry written before that point. If real invalidation reaches further back than that, the default settings look worse than this note shows, not better.
 
@@ -182,7 +179,7 @@ One more multiplier worth knowing about, separate from all of this: the Batch AP
 - **The floor fails silently.** Below the minimum — 4,096 tokens on Haiku 4.5, the highest of the three models — a request isn't cached and the API says nothing. `cache_creation_input_tokens` and `cache_read_input_tokens` both at 0 is the only tell.
 - **The hierarchy means the cheapest change and the most expensive one can look identical from the call site.** Changing `tool_choice` (6.5×) and editing a tool definition (6.9×) are both one-line diffs; only one of them invalidates everything.
 - **Parallel isn't free, even when the work is.** Firing a fan-out at once costs 5× more on the shared prefix than waiting for the first response to begin. The 80% saving only exists if you wait for it.
-- **Every lever that shrinks the context also breaks the cache, and the break can cost more than the shrink saves.** Context editing without `clear_at_least` cost 40% more than doing nothing on this workload; with it set, 27% less.
+- **Every lever that shrinks the context also breaks the cache, and the break can cost more than the shrink saves.** Context editing without `clear_at_least` cost 39% more than doing nothing on this workload; with it set, 27% less.
 - **Compaction's own bill hides in a separate array.** On an 80-request workload that compacts twice, the real cost is 6% higher, and the real output 22% higher, than the top-level `usage` fields report.
 
 <Callout type="rule" title="The rule">

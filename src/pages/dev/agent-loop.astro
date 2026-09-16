@@ -5,7 +5,7 @@ import RequestAnatomy from "@/components/notes/RequestAnatomy.astro";
 // Dev-only gallery of the agent-loop visuals, so they can be checked while the note is a draft.
 if (!import.meta.env.DEV) return new Response(null, { status: 404 });
 
-const ORDER = ["LoopTriangleIsland", "CacheCost", "ClearingCost", "CompactionSawtooth", "SubagentTriangles"];
+const ORDER = ["LoopTriangleIsland", "ClearingCost", "CompactionSawtooth", "SubagentTriangles"];
 const modules = import.meta.glob<{ default: any }>("/src/components/notes/agent-loop/*.astro", { eager: true });
 const visuals = Object.entries(modules)
   .map(([path, mod]) => ({ name: path.split("/").pop()!.replace(".astro", ""), Component: mod.default }))

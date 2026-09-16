@@ -1,5 +1,6 @@
 ---
 name: ticket-implementer
+model: composer-2.5[fast=false]
 description: Implements one Linear ticket from the design-system batch (MDG-123..MDG-137) end to end, in its own worktree, and reports against the ticket's acceptance criteria. Use when delegating a single scoped UI ticket.
 ---
 

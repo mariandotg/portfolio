@@ -1,5 +1,6 @@
 ---
 name: ui-reviewer
+model: claude-opus-5[]
 description: Reviews a finished design-system ticket against its acceptance criteria and the token rules, before it merges. Use after a ticket-implementer reports done, and before opening or merging a PR.
 ---
 

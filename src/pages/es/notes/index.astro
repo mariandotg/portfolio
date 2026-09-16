@@ -3,7 +3,7 @@ import PageLayout from "../../../layouts/PageLayout.astro";
 import PostListItem from "../../../components/PostListItem.astro";
 import SeriesCard from "../../../components/SeriesCard.astro";
 import { getCollection } from "astro:content";
-import { getLangFromUrl, useTranslations } from "../../../i18n/utils";
+import { getLangFromUrl, useTranslations, getLocalizedPath, noteCollectionLabel } from "../../../i18n/utils";
 import { getSeriesIndex } from "../../../lib/series";
 
 const lang = getLangFromUrl(Astro.url);
@@ -13,6 +13,10 @@ const series = await getSeriesIndex(lang, t);
 
 const posts = await getCollection("notes", ({ data }) => !data.draft);
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const LATEST_COUNT = 3;
+const latestPosts = sortedPosts.slice(0, LATEST_COUNT);
+const archiveHref = getLocalizedPath("/notes/archive", lang);
 ---
 
 <PageLayout title={t.notes.pageTitle} description={t.notes.pageSubtitle}>
@@ -44,14 +48,25 @@ const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDa
     )}
 
     <section>
-      <h2 class="text-lg font-bold text-foreground mb-4">{t.nav.notes}</h2>
+      <div class="flex items-baseline justify-between gap-4 mb-4">
+        <h2 class="text-lg font-bold text-foreground">{t.nav.notes}</h2>
+        {sortedPosts.length > LATEST_COUNT && (
+          <a
+            href={archiveHref}
+            class="text-sm font-mono text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          >
+            {t.notes.viewArchive}
+          </a>
+        )}
+      </div>
       <div class="flex flex-col">
-        {sortedPosts.map((post) => (
+        {latestPosts.map((post) => (
           <PostListItem
             slug={post.id}
             title={post.data.title}
             description={post.data.description}
             pubDate={post.data.pubDate}
+            kicker={noteCollectionLabel(post.data.collection, t)}
           />
         ))}
       </div>

@@ -79,7 +79,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
         {formattedUpdated && (
           <>
             <span>·</span>
-            <span>Updated {formattedUpdated}</span>
+            <span>{t.notes.updated.replace("{date}", formattedUpdated)}</span>
           </>
         )}
       </div>

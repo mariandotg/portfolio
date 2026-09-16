@@ -41,6 +41,13 @@
   /* Core skill accent — the only colored skill badges (docs/design/palette.md).
      Same value as `--primary`; used as text over an 8% tint of itself. */
   --skill-core: 247 76% 61%;
+
+  /* Semantic data palette — figures, callouts, comparisons (docs/design/design-system.md §3.1). */
+  --data-new: 247 76% 61%;
+  --data-inert: 0 0% 42%;
+  --data-write: 38 90% 55%;
+  --data-gain: 150 55% 42%;
+  --data-loss: 8 75% 57%;
 }
 
 .dark {
@@ -74,6 +81,12 @@
 
   /* Lighter than dark `--primary`, which falls under AA on dark badge fills. */
   --skill-core: 247 84% 80%;
+
+  --data-new: 247 76% 72%;
+  --data-inert: 0 0% 56%;
+  --data-write: 38 85% 62%;
+  --data-gain: 150 50% 55%;
+  --data-loss: 8 80% 66%;
 }
 
 @theme inline {
@@ -98,6 +111,11 @@
   --color-ring: hsl(var(--ring));
 
   --color-skill-core: hsl(var(--skill-core));
+  --color-data-new: hsl(var(--data-new));
+  --color-data-inert: hsl(var(--data-inert));
+  --color-data-write: hsl(var(--data-write));
+  --color-data-gain: hsl(var(--data-gain));
+  --color-data-loss: hsl(var(--data-loss));
 
   --radius-sm: 6px;
   --radius-md: 10px;

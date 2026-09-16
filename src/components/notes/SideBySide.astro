@@ -49,10 +49,10 @@ const { leftLabel = "Before", rightLabel = "After", variant = "neutral" } = Astr
     min-width: 0;
   }
   .sxs-diff .sxs-left {
-    --tone: hsl(8 70% 55%);
+    --tone: hsl(var(--data-loss));
   }
   .sxs-diff .sxs-right {
-    --tone: hsl(150 55% 42%);
+    --tone: hsl(var(--data-gain));
   }
 
   .sxs-label {

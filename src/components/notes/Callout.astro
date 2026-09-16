@@ -38,19 +38,19 @@ const meta = META[type];
     background: color-mix(in srgb, var(--accent) 7%, transparent);
   }
   .callout-note {
-    --accent: hsl(212 60% 55%);
+    --accent: hsl(var(--data-inert));
   }
   .callout-tip {
-    --accent: hsl(160 55% 45%);
+    --accent: hsl(var(--data-gain));
   }
   .callout-insight {
-    --accent: hsl(38 90% 55%);
+    --accent: hsl(var(--data-write));
   }
   .callout-warning {
-    --accent: hsl(8 75% 57%);
+    --accent: hsl(var(--data-loss));
   }
   .callout-takeaway {
-    --accent: hsl(var(--primary));
+    --accent: hsl(var(--data-new));
   }
 
   .callout-head {

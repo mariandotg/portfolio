@@ -46,8 +46,8 @@ import RetrySimulator from "./RetrySimulator.tsx";
     transition: color 150ms ease, border-color 150ms ease;
   }
   .rsim-toggle.on {
-    color: hsl(150 55% 42%);
-    border-color: color-mix(in srgb, hsl(150 55% 42%) 45%, hsl(var(--border)));
+    color: hsl(var(--data-gain));
+    border-color: color-mix(in srgb, hsl(var(--data-gain)) 45%, hsl(var(--border)));
   }
   .rsim-toggle-track {
     width: 30px;
@@ -58,7 +58,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
     transition: background 180ms ease;
   }
   .rsim-toggle.on .rsim-toggle-track {
-    background: hsl(150 55% 42%);
+    background: hsl(var(--data-gain));
   }
   .rsim-toggle-knob {
     position: absolute;
@@ -67,7 +67,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #fff;
+    background: hsl(var(--primary-foreground));
     transition: transform 180ms ease;
   }
   .rsim-toggle.on .rsim-toggle-knob {
@@ -92,12 +92,12 @@ import RetrySimulator from "./RetrySimulator.tsx";
     transition: border-color 200ms ease, background 200ms ease;
   }
   .rsim-stat.good {
-    border-color: color-mix(in srgb, hsl(150 55% 42%) 55%, hsl(var(--border)));
-    background: color-mix(in srgb, hsl(150 55% 42%) 8%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--data-gain)) 55%, hsl(var(--border)));
+    background: color-mix(in srgb, hsl(var(--data-gain)) 8%, transparent);
   }
   .rsim-stat.bad {
-    border-color: color-mix(in srgb, hsl(8 75% 57%) 55%, hsl(var(--border)));
-    background: color-mix(in srgb, hsl(8 75% 57%) 8%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--data-loss)) 55%, hsl(var(--border)));
+    background: color-mix(in srgb, hsl(var(--data-loss)) 8%, transparent);
   }
   .rsim-stat-num {
     font-family: var(--font-family-mono);
@@ -133,14 +133,14 @@ import RetrySimulator from "./RetrySimulator.tsx";
     font-weight: 600;
     padding: 3px 9px;
     border-radius: 999px;
-    color: hsl(150 55% 38%);
-    background: color-mix(in srgb, hsl(150 55% 42%) 14%, transparent);
-    border: 1px solid color-mix(in srgb, hsl(150 55% 42%) 40%, transparent);
+    color: hsl(var(--data-gain));
+    background: color-mix(in srgb, hsl(var(--data-gain)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, hsl(var(--data-gain)) 40%, transparent);
   }
   .rsim-coin.dup {
-    color: hsl(8 75% 52%);
-    background: color-mix(in srgb, hsl(8 75% 57%) 14%, transparent);
-    border-color: color-mix(in srgb, hsl(8 75% 57%) 40%, transparent);
+    color: hsl(var(--data-loss));
+    background: color-mix(in srgb, hsl(var(--data-loss)) 14%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--data-loss)) 40%, transparent);
   }
   .rsim-coin.ghost {
     opacity: 0.28;
@@ -158,18 +158,12 @@ import RetrySimulator from "./RetrySimulator.tsx";
     margin-bottom: 12px;
   }
   .rsim-verdict.ok {
-    color: hsl(150 45% 34%);
-    background: color-mix(in srgb, hsl(150 55% 42%) 10%, transparent);
-  }
-  html.dark .rsim-verdict.ok {
-    color: hsl(150 55% 62%);
+    color: hsl(var(--data-gain));
+    background: color-mix(in srgb, hsl(var(--data-gain)) 10%, transparent);
   }
   .rsim-verdict.err {
-    color: hsl(8 65% 46%);
-    background: color-mix(in srgb, hsl(8 75% 57%) 10%, transparent);
-  }
-  html.dark .rsim-verdict.err {
-    color: hsl(8 80% 66%);
+    color: hsl(var(--data-loss));
+    background: color-mix(in srgb, hsl(var(--data-loss)) 10%, transparent);
   }
 
   .rsim-actions {
@@ -195,7 +189,7 @@ import RetrySimulator from "./RetrySimulator.tsx";
   .rsim-btn.primary {
     border-color: transparent;
     background: hsl(var(--primary));
-    color: #fff;
+    color: hsl(var(--primary-foreground));
   }
   .rsim-btn.primary:hover {
     background: hsl(var(--primary));

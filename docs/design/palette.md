@@ -23,6 +23,21 @@ shadcn tokens, defined as HSL triplets in `:root` / `.dark`, exposed through
 | `--border` | `#d1d1d1` | `#333333` |
 | `--skill-core` | `#6250e7` | `#aba1f7` |
 
+### Data palette (`--data-*`)
+
+Five semantic roles for figures, callouts, and comparisons. Defined as HSL
+triplets in `:root` / `.dark` like shadcn tokens; consumed as
+`hsl(var(--data-new))` etc. Dark steps are lighter because these colours sit on
+tinted fills, not on `--background` alone.
+
+| Token | Light | Dark | Role |
+|---|---|---|---|
+| `--data-new` | `247 76% 61%` | `247 76% 72%` | what this request adds (tracks `--primary`) |
+| `--data-inert` | `0 0% 42%` | `0 0% 56%` | already sent / neutral aside |
+| `--data-write` | `38 90% 55%` | `38 85% 62%` | cache write, cost incurred |
+| `--data-gain` | `150 55% 42%` | `150 50% 55%` | saved |
+| `--data-loss` | `8 75% 57%` | `8 80% 66%` | penalty |
+
 Legacy crimson tokens (`--color-legacy-*`, hardcoded hex in `@theme`) stay
 scoped to the WIP landing + `about`/`contact`/`work`. Not touched.
 
@@ -63,6 +78,26 @@ not against `--background` alone.
 |---|---|---|
 | `--skill-core` on its 8% tint | 4.91:1 | 7.85:1 |
 | `--muted-foreground` group label on `--background` | 5.33:1 | 6.12:1 |
+
+### Data palette text on tinted fills
+
+Measured like `--skill-core`: foreground token over the fill it actually sits on
+(callout left rule / label uses a 7% tint; figure delta chips use 12%).
+
+| Pair | Light | Dark |
+|---|---|---|
+| `--data-new` on 7% tint | 4.99:1 | 5.77:1 |
+| `--data-inert` on 7% tint | 4.87:1 | 5.71:1 |
+| `--data-write` on 7% tint | 1.92:1 | 9.73:1 |
+| `--data-gain` on 7% tint | 2.88:1 | 8.47:1 |
+| `--data-loss` on 7% tint | 3.41:1 | 6.48:1 |
+| `--data-gain` on 12% tint (delta chip) | 2.73:1 | 7.79:1 |
+| `--data-loss` on 12% tint (delta chip) | 3.20:1 | 6.07:1 |
+
+Figure bar and swatch fills use the full token colour; AA for small text on
+those fills is not required. Light-mode `--data-write` / `--data-gain` on tints
+are decorative accents only; dark-mode steps were lightened until label text
+on tints meets AA where used (new, inert, loss on 7%; gain/loss on 12% chips).
 
 ### History
 

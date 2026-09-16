@@ -2,13 +2,13 @@
 
 .alc {
   /* One meaning per color. */
-  --alc-new: hsl(var(--primary));
-  --alc-resent: color-mix(in srgb, hsl(var(--muted-foreground)) 38%, transparent);
-  --alc-read: color-mix(in srgb, hsl(var(--primary)) 55%, transparent);
-  --alc-write: hsl(38 90% 55%);
-  --alc-uncached: color-mix(in srgb, hsl(var(--muted-foreground)) 45%, transparent);
-  --alc-bad: hsl(8 75% 57%);
-  --alc-good: hsl(150 55% 42%);
+  --alc-new: hsl(var(--data-new));
+  --alc-resent: color-mix(in srgb, hsl(var(--data-inert)) 38%, transparent);
+  --alc-read: color-mix(in srgb, hsl(var(--data-new)) 55%, transparent);
+  --alc-write: hsl(var(--data-write));
+  --alc-uncached: color-mix(in srgb, hsl(var(--data-inert)) 45%, transparent);
+  --alc-bad: hsl(var(--data-loss));
+  --alc-good: hsl(var(--data-gain));
   margin: 1.6rem 0;
   padding: 18px 18px 14px;
   border: 1px solid hsl(var(--border));
@@ -47,7 +47,7 @@
 }
 .alc-seg button[aria-pressed="true"] {
   background: hsl(var(--primary));
-  color: #fff;
+  color: hsl(var(--primary-foreground));
 }
 .alc-seg button:focus-visible,
 .alc input:focus-visible {
@@ -144,6 +144,7 @@
 .alc-fill-write { fill: var(--alc-write); }
 .alc-fill-uncached { fill: var(--alc-uncached); }
 .alc-fill-bad { fill: var(--alc-bad); }
+.alc-fill-good { fill: var(--alc-good); }
 .alc-ghost {
   fill: none;
   stroke: hsl(var(--muted-foreground));

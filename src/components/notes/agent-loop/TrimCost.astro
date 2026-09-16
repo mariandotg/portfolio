@@ -9,6 +9,7 @@ import Source from "./kit/Source.astro";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtChange, fmtTokens } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
 
 const FIELDS_FULL = 40;
 const FIELDS_TRIMMED = 5;
@@ -32,18 +33,31 @@ const columns = runs.full.requests.map((r, i) => ({
   full: (r.contextTokens / top) * 100,
   trimmed: (runs.trimmed.requests[i].contextTokens / top) * 100,
 }));
+const isSpanish = getLangFromUrl(Astro.url) === "es";
 ---
 
-<Figure question="What does trimming one tool result save?" basis="calculated">
+<Figure question={isSpanish ? "¿Qué ahorro produce recortar un resultado de herramienta?" : "What does trimming one tool result save?"} basis="calculated">
   <Stat
     value={fmtChange(trimmed.total, full.total)}
-    delta={`${fmtTokens(full.total)} → ${fmtTokens(trimmed.total)} input tokens`}
+    delta={`${fmtTokens(full.total)} → ${fmtTokens(trimmed.total)} ${isSpanish ? "tokens de entrada" : "input tokens"}`}
     tone="gain"
   >
+    {isSpanish ? (
+      <>
+        Cada consulta de 40 campos agrega <strong>{fmtTokens(fullPerTurn - BASE_WORKLOAD.assistantTokens)}</strong> al
+        historial; con 5 campos agrega <strong>{fmtTokens(trimmedPerTurn - BASE_WORKLOAD.assistantTokens)}</strong>.
+        La última de {N} solicitudes envía <strong>{fmtTokens(full.last.contextTokens)}</strong> tokens, o{" "}
+        <strong>{fmtTokens(trimmed.last.contextTokens)}</strong> con el resultado recortado.
+      </>
+    ) : null}
+    {!isSpanish && (
+      <>
     Each 40-field lookup adds <strong>{fmtTokens(fullPerTurn - BASE_WORKLOAD.assistantTokens)}</strong> to the
     history; trimmed to 5 fields it's <strong>{fmtTokens(trimmedPerTurn - BASE_WORKLOAD.assistantTokens)}</strong>.
     The last of {N} requests sends <strong>{fmtTokens(full.last.contextTokens)}</strong> tokens, or{" "}
     <strong>{fmtTokens(trimmed.last.contextTokens)}</strong> trimmed.
+      </>
+    )}
   </Stat>
 
   <div class="tc-row">
@@ -60,33 +74,42 @@ const columns = runs.full.requests.map((r, i) => ({
     <div class="tc-last" aria-hidden="true">
       <span class="tc-last-value full">{fmtTokens(full.last.contextTokens)}</span>
       <span class="tc-last-value trim">{fmtTokens(trimmed.last.contextTokens)}</span>
-      <span class="tc-last-label">last request</span>
+      <span class="tc-last-label">{isSpanish ? "última solicitud" : "last request"}</span>
     </div>
   </div>
   <div class="tc-axis" aria-hidden="true">
-    <span>request 1</span>
-    <span>request {N}</span>
+    <span>{isSpanish ? "solicitud 1" : "request 1"}</span>
+    <span>{isSpanish ? "solicitud" : "request"} {N}</span>
   </div>
 
   <p class="sr-only">
-    40 fields per tool result: the last of {N} requests sends {fmtTokens(full.last.contextTokens)} tokens, and the
-    loop sends {fmtTokens(full.total)} input tokens in total.
+    {isSpanish
+      ? `40 campos por resultado de herramienta: la última de ${N} solicitudes envía ${fmtTokens(full.last.contextTokens)} tokens, y el bucle envía ${fmtTokens(full.total)} tokens de entrada en total.`
+      : `40 fields per tool result: the last of ${N} requests sends ${fmtTokens(full.last.contextTokens)} tokens, and the loop sends ${fmtTokens(full.total)} input tokens in total.`}
   </p>
   <p class="sr-only">
-    Trimmed to 5 fields: the last of {N} requests sends {fmtTokens(trimmed.last.contextTokens)} tokens, and the loop
-    sends {fmtTokens(trimmed.total)} input tokens in total.
+    {isSpanish
+      ? `Recortado a 5 campos: la última de ${N} solicitudes envía ${fmtTokens(trimmed.last.contextTokens)} tokens, y el bucle envía ${fmtTokens(trimmed.total)} tokens de entrada en total.`
+      : `Trimmed to 5 fields: the last of ${N} requests sends ${fmtTokens(trimmed.last.contextTokens)} tokens, and the loop sends ${fmtTokens(trimmed.total)} input tokens in total.`}
   </p>
 
   <ul class="alc-legend" aria-hidden="true">
-    <li><span class="tc-swatch full" />{FIELDS_FULL} fields, total {fmtTokens(full.total)}</li>
-    <li><span class="tc-swatch trim" />{FIELDS_TRIMMED} fields, total {fmtTokens(trimmed.total)}</li>
-    <li class="tc-note">the gap is the saving: {fmtChange(trimmed.total, full.total)}</li>
+    <li><span class="tc-swatch full" />{FIELDS_FULL} {isSpanish ? "campos, total" : "fields, total"} {fmtTokens(full.total)}</li>
+    <li><span class="tc-swatch trim" />{FIELDS_TRIMMED} {isSpanish ? "campos, total" : "fields, total"} {fmtTokens(trimmed.total)}</li>
+    <li class="tc-note">{isSpanish ? "el espacio es el ahorro" : "the gap is the saving"}: {fmtChange(trimmed.total, full.total)}</li>
   </ul>
 
   <Source slot="caption">
+    {isSpanish ? (
+      `La consulta de pedido de 40 campos es el ejemplo de la guía del examen sobre un resultado de herramienta que se acumula en el contexto. Supuesto: cada campo tiene el mismo tamaño, ${fmtTokens(tokensPerField)} tokens. El mismo bucle, con ${N} solicitudes cada uno: ${fmtTokens(trimmed.total)} frente a ${fmtTokens(full.total)} tokens de entrada.`
+    ) : null}
+    {!isSpanish && (
+      <>
     The 40-field order lookup is the exam guide's own example of a tool result that piles up in context. Assumption:
     every field is the same size, {fmtTokens(tokensPerField)} tokens. Same loop, {N} requests each:{" "}
     {fmtTokens(trimmed.total)} against {fmtTokens(full.total)} input tokens.
+      </>
+    )}
   </Source>
 </Figure>
 

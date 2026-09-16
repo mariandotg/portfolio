@@ -6,8 +6,13 @@
 import { simulate, CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtTokens, fmtUsd } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 import Figure from "./kit/Figure.astro";
 import Source from "./kit/Source.astro";
+
+const allUi = getAgentLoopUi(getLangFromUrl(Astro.url));
+const ui = allUi.invalidationCascade;
 
 const cached = simulate({ ...BASE_WORKLOAD, turns: 20, cache: "5m" });
 const req20 = cached.requests[19];
@@ -34,10 +39,10 @@ interface Row {
 
 // Order is the hierarchy: each row invalidates one level earlier than the row above.
 const ROWS: Row[] = [
-  { change: "append a tool result", from: null },
-  { change: "tool_choice", code: true, from: 2, focal: true },
-  { change: "system prompt", from: 1 },
-  { change: "a tool definition", from: 0 },
+  { change: ui.changes.appendResult, from: null },
+  { change: ui.changes.toolChoice, code: true, from: 2, focal: true },
+  { change: ui.changes.systemPrompt, from: 1 },
+  { change: ui.changes.toolDefinition, from: 0 },
 ];
 
 function priced(row: Row) {
@@ -62,23 +67,22 @@ const pct = (tokens: number) => `${((tokens / totalTok) * 100).toFixed(2)}%`;
 const smallLevels = LEVELS.slice(0, 2).reduce((sum, l) => sum + l.tokens, 0);
 ---
 
-<Figure question="Which change at request 20 costs the least, and which the most?" basis="calculated">
+<Figure question={ui.question} basis="calculated">
   <table class="ic">
     <caption class="sr-only">
-      Request 20 of a 30-request loop with a warm 5-minute cache: which blocks each change forces the cache to rewrite, and
-      what the request costs.
+      {ui.caption}
     </caption>
     <thead>
       <tr>
-        <th scope="col" class="ic-change">change at request 20</th>
+        <th scope="col" class="ic-change">{ui.columns.change}</th>
         <th scope="col" class="ic-scale">
           <span class="ic-cascade" aria-hidden="true">
             <span style={`width: ${pct(smallLevels)}`}>tools · system {fmtTokens(smallLevels)}</span>
             <span>messages {fmtTokens(LEVELS[2].tokens)} →</span>
           </span>
-          <span class="sr-only">what the request sends, by block</span>
+          <span class="sr-only">{ui.columns.scale}</span>
         </th>
-        <th scope="col" class="ic-cost">cost</th>
+        <th scope="col" class="ic-cost">{ui.columns.cost}</th>
       </tr>
     </thead>
     <tbody>
@@ -95,7 +99,7 @@ const smallLevels = LEVELS.slice(0, 2).reduce((sum, l) => sum + l.tokens, 0);
                     <span class="ic-read" style={`width: ${((c.read / c.tokens) * 100).toFixed(2)}%`} />
                     <span class="ic-write" />
                     <span class="sr-only">
-                      {c.key}: {c.invalidated ? "rewritten" : c.write > 0 ? "mostly read, newest tail written" : "read from cache"}.
+                      {c.key}: {c.invalidated ? ui.statuses.rewritten : c.write > 0 ? ui.statuses.mostlyRead : ui.statuses.read}.
                     </span>
                   </span>
                 ))}
@@ -112,14 +116,13 @@ const smallLevels = LEVELS.slice(0, 2).reduce((sum, l) => sum + l.tokens, 0);
   </table>
 
   <ul class="alc-legend" aria-hidden="true">
-    <li><span class="ic-swatch ic-read" />read from cache (0.1×)</li>
-    <li><span class="ic-swatch ic-write" />written to cache (1.25×)</li>
-    <li class="ic-rule">a change rewrites its block and every block to its right</li>
+    <li><span class="ic-swatch ic-read" />{ui.legend.read}</li>
+    <li><span class="ic-swatch ic-write" />{ui.legend.write}</li>
+    <li class="ic-rule">{ui.legend.rule}</li>
   </ul>
 
-  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }]} asOf={FACTS_AS_OF}>
-    Cache hierarchy: <code>tools</code> → <code>system</code> → <code>messages</code>. Bar width is each block's share of
-    the {fmtTokens(totalTok)}-token request. Claude Sonnet 5 prices from the engine's request-20 context.
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: allUi.sourceLinks.caching }]} asOf={FACTS_AS_OF}>
+    {ui.source(fmtTokens(totalTok))}
   </Source>
 </Figure>
 

@@ -9,6 +9,9 @@ import type { Tone } from "./kit/tones";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtTokens } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+
+const isSpanish = getLangFromUrl(Astro.url) === "es";
 
 const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
   count: SUBAGENTS.count,
@@ -18,20 +21,23 @@ const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
 });
 
 const coordinatorFinal = r.coordinator.requests[1];
+const blockLabels = isSpanish
+  ? { tools: "herramientas", system: "sistema", task: "tarea", taskCalls: "4× llamadas a Task", summaries: "4 resúmenes devueltos", brief: "instrucciones" }
+  : { tools: "tools", system: "system", task: "task", taskCalls: "4× Task calls", summaries: "4 returned summaries", brief: "brief" };
 const coordinatorBlocks = [
-  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
-  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
-  { label: "task", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "resent" as Tone },
-  { label: "4× Task calls", tokens: SUBAGENT_WORKLOAD.assistantTokens, cls: "new" as Tone },
-  { label: "4 returned summaries", tokens: SUBAGENTS.count * SUBAGENTS.resultTokens, cls: "write" as Tone },
+  { label: blockLabels.tools, tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
+  { label: blockLabels.system, tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
+  { label: blockLabels.task, tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "resent" as Tone },
+  { label: blockLabels.taskCalls, tokens: SUBAGENT_WORKLOAD.assistantTokens, cls: "new" as Tone },
+  { label: blockLabels.summaries, tokens: SUBAGENTS.count * SUBAGENTS.resultTokens, cls: "write" as Tone },
 ];
 const coordinatorTotal = coordinatorBlocks.reduce((n, b) => n + b.tokens, 0);
 
 const subagentFirst = r.subagents[0].requests[0];
 const subagentBlocks = [
-  { label: "tools", tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
-  { label: "system", tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
-  { label: "brief", tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "new" as Tone },
+  { label: blockLabels.tools, tokens: SUBAGENT_WORKLOAD.toolsTokens, cls: "resent" as Tone },
+  { label: blockLabels.system, tokens: SUBAGENT_WORKLOAD.systemTokens, cls: "resent" as Tone },
+  { label: blockLabels.brief, tokens: SUBAGENT_WORKLOAD.taskTokens, cls: "new" as Tone },
 ];
 const subagentTotal = subagentBlocks.reduce((n, b) => n + b.tokens, 0);
 
@@ -44,14 +50,25 @@ if (coordinatorTotal !== coordinatorFinal.contextTokens || subagentTotal !== sub
 const scale = coordinatorTotal;
 const pct = (tokens: number) => (tokens / scale) * 100;
 
-const ariaLabel = `The coordinator's context after every subagent returns is ${fmtTokens(coordinatorTotal)} tokens: its own tools, system prompt and task, the turn that made four Task calls, and the four summaries it read back. A subagent's first request is ${fmtTokens(subagentTotal)} tokens: only its own tools, its own system prompt, and the brief the coordinator wrote. It carries none of the coordinator's history.`;
+const ariaLabel = isSpanish
+  ? `El contexto del coordinador después de que regresan todos los subagentes es de ${fmtTokens(coordinatorTotal)} tokens: sus propias herramientas, el prompt del sistema y la tarea, el turno que hizo cuatro llamadas a Task y los cuatro resúmenes que recibió. La primera solicitud de un subagente tiene ${fmtTokens(subagentTotal)} tokens: solo sus propias herramientas, su propio prompt del sistema y las instrucciones escritas por el coordinador. No lleva el historial del coordinador.`
+  : `The coordinator's context after every subagent returns is ${fmtTokens(coordinatorTotal)} tokens: its own tools, system prompt and task, the turn that made four Task calls, and the four summaries it read back. A subagent's first request is ${fmtTokens(subagentTotal)} tokens: only its own tools, its own system prompt, and the brief the coordinator wrote. It carries none of the coordinator's history.`;
 ---
 
-<Figure question="What does a subagent know when it starts?" basis="assumed">
+<Figure question={isSpanish ? "¿Qué sabe un subagente cuando comienza?" : "What does a subagent know when it starts?"} basis="assumed">
   <p class="alc-sub">
+    {isSpanish && (
+      <>
+        El contexto del coordinador tiene <strong>{fmtTokens(coordinatorTotal)}</strong> tokens cuando todos los subagentes
+        ya respondieron. La primera solicitud del subagente tiene <strong>{fmtTokens(subagentTotal)}</strong>: sus propias
+        herramientas y su prompt del sistema, más las instrucciones. No incluye el historial del coordinador.
+      </>
+    )}
+    {!isSpanish && <span>
     The coordinator's context is <strong>{fmtTokens(coordinatorTotal)}</strong> tokens once every subagent has
     reported back. The subagent's first request is <strong>{fmtTokens(subagentTotal)}</strong>: its own tools and
     system prompt, plus the brief. None of the coordinator's history is in it.
+    </span>}
   </p>
 
   <p class="sr-only">{ariaLabel}</p>
@@ -59,7 +76,7 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
   <div class="ci">
     <div class="ci-row">
       <div class="ci-row-head">
-        <span class="alc-text-strong">Coordinator's context</span>
+        <span class="alc-text-strong">{isSpanish ? "Contexto del coordinador" : <>Coordinator's context</>}</span>
         <span class="alc-text">{fmtTokens(coordinatorTotal)} tokens</span>
       </div>
       <div class="ci-track" aria-hidden="true">
@@ -87,7 +104,7 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
 
     <div class="ci-row">
       <div class="ci-row-head">
-        <span class="alc-text-strong">Subagent's first request</span>
+        <span class="alc-text-strong">{isSpanish ? "Primera solicitud del subagente" : <>Subagent's first request</>}</span>
         <span class="alc-text">{fmtTokens(subagentTotal)} tokens</span>
       </div>
       <div class="ci-frame ci-frame-ghost">
@@ -111,25 +128,29 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
       </ul>
       <span class="sr-only">
         {subagentBlocks.map((b) => `${b.label} ${fmtTokens(b.tokens)}`).join(", ")}. Total {fmtTokens(subagentTotal)}
-        tokens. The dashed outline is the coordinator's row, to the same scale.
+        tokens. {isSpanish ? "El contorno discontinuo es la fila del coordinador, con la misma escala." : <>The dashed outline is the coordinator's row, to the same scale.</>}
       </span>
     </div>
   </div>
 
   <Legend
     items={[
-      { tone: "resent", label: "its own tools/system/task, every request" },
-      { tone: "new", label: "new this turn" },
-      { tone: "write", label: "written back from elsewhere" },
+      { tone: "resent", label: isSpanish ? "sus propias herramientas, sistema y tarea en cada solicitud" : "its own tools/system/task, every request" },
+      { tone: "new", label: isSpanish ? "nuevo en este turno" : "new this turn" },
+      { tone: "write", label: isSpanish ? "devuelto desde otro contexto" : "written back from elsewhere" },
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: "multi-agent research system" }]} asOf={FACTS_AS_OF}>
+  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: isSpanish ? "sistema de investigación multiagente" : "multi-agent research system" }]} asOf={FACTS_AS_OF}>
+    {isSpanish &&
+      `La misma ejecución que en los triángulos: ${SUBAGENTS.count} subagentes, ${SUBAGENTS.turnsEach} turnos cada uno, resultados de herramientas de ${SUBAGENT_WORKLOAD.toolResultTokens.toLocaleString()} tokens y resúmenes de ${SUBAGENTS.resultTokens.toLocaleString()} tokens. El contorno discontinuo de la fila del subagente es la fila del coordinador con la misma escala. Supuesto: las instrucciones tienen el mismo tamaño que el bloque de tarea del coordinador (${SUBAGENT_WORKLOAD.taskTokens.toLocaleString()} tokens); la documentación no indica el tamaño de las instrucciones.`}
+    {!isSpanish && <>
     Same run as the triangles above: {SUBAGENTS.count} subagents, {SUBAGENTS.turnsEach} turns each,{" "}
     {SUBAGENT_WORKLOAD.toolResultTokens.toLocaleString()}-token tool results,{" "}
     {SUBAGENTS.resultTokens.toLocaleString()}-token summaries. The dashed outline on the subagent's row is the
     coordinator's row, to the same scale. Assumption: the brief is the same size as the coordinator's own task
     block ({SUBAGENT_WORKLOAD.taskTokens.toLocaleString()} tokens) — the docs don't size a brief.
+    </>}
   </Source>
 </Figure>
 

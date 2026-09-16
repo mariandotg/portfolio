@@ -10,6 +10,9 @@ import Source from "./kit/Source.astro";
 import { simulateMultiAgent } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtSeconds, fmtChange } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+
+const isSpanish = getLangFromUrl(Astro.url) === "es";
 
 type Key = "parallel" | "sequential";
 
@@ -79,7 +82,7 @@ const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
   const stacked = key === "parallel";
   return {
     key,
-    label: key === "parallel" ? "Parallel" : "Sequential",
+    label: key === "parallel" ? (isSpanish ? "Paralelo" : "Parallel") : isSpanish ? "Secuencial" : "Sequential",
     stacked,
     team: p.team,
     change: p.change,
@@ -91,20 +94,24 @@ const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
       top: stacked ? `${((i * 100) / count).toFixed(2)}%` : "0%",
       height: stacked ? `${(100 / count).toFixed(2)}%` : "100%",
     })),
-    sentence: `Dispatched in ${key === "parallel" ? "parallel" : "sequence"}, the coordinator and its ${count} subagents finish in ${fmtSeconds(p.team)}, ${p.change} versus ${fmtSeconds(singleDuration)} for one agent doing the same tool work alone.`,
+    sentence: isSpanish
+      ? `En ${key === "parallel" ? "paralelo" : "secuencia"}, el coordinador y sus ${count} subagentes terminan en ${fmtSeconds(p.team)}, ${p.change} frente a ${fmtSeconds(singleDuration)} de un agente que hace solo el mismo trabajo de herramientas.`
+      : `Dispatched in ${key === "parallel" ? "parallel" : "sequence"}, the coordinator and its ${count} subagents finish in ${fmtSeconds(p.team)}, ${p.change} versus ${fmtSeconds(singleDuration)} for one agent doing the same tool work alone.`,
   };
 });
 ---
 
-<Figure question="Does splitting the work also make it faster?" basis="assumed">
-  <Stat value={fmtSeconds(PANELS.parallel.team)} delta={`${PANELS.parallel.change} vs one agent`} tone={PANELS.parallel.deltaTone}>
-    Dispatched in parallel. The same team dispatched in sequence takes {fmtSeconds(PANELS.sequential.team)}, {PANELS.sequential.change} vs one agent.
+<Figure question={isSpanish ? "¿Dividir el trabajo también lo hace más rápido?" : "Does splitting the work also make it faster?"} basis="assumed">
+  <Stat value={fmtSeconds(PANELS.parallel.team)} delta={`${PANELS.parallel.change} ${isSpanish ? "frente a un agente" : "vs one agent"}`} tone={PANELS.parallel.deltaTone}>
+    {isSpanish
+      ? `En paralelo. El mismo equipo en secuencia tarda ${fmtSeconds(PANELS.sequential.team)}, ${PANELS.sequential.change} frente a un agente.`
+      : `Dispatched in parallel. The same team dispatched in sequence takes ${fmtSeconds(PANELS.sequential.team)}, ${PANELS.sequential.change} vs one agent.`}
   </Stat>
 
   <div class="tt">
     <div class="tt-axis" aria-hidden="true">
       <span class="tt-tick" style={`left: ${pct(0)}`}>0s</span>
-      <span class="tt-tick tt-tick-ref" style={`left: ${pct(singleDuration)}`}>{fmtSeconds(singleDuration)} · one agent</span>
+      <span class="tt-tick tt-tick-ref" style={`left: ${pct(singleDuration)}`}>{fmtSeconds(singleDuration)} · {isSpanish ? "un agente" : "one agent"}</span>
     </div>
 
     <ol class="tt-groups">
@@ -114,11 +121,11 @@ const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
             <p class="tt-group-summary">
               <span class="tt-group-name">{g.label}</span>
               <span class:list={["tt-group-time", { accent: g.key === "parallel" }]}>{fmtSeconds(g.team)}</span>
-              <span class:list={["tt-group-delta", g.deltaTone]}>{g.change} vs one agent</span>
+              <span class:list={["tt-group-delta", g.deltaTone]}>{g.change} {isSpanish ? "frente a un agente" : "vs one agent"}</span>
             </p>
             <ol class="tt-lanes" aria-hidden="true">
               <li class="tt-lane">
-                <span class="tt-lane-label">Coordinator</span>
+                <span class="tt-lane-label">{isSpanish ? "Coordinador" : "Coordinator"}</span>
                 <span class="tt-track">
                   <span class="tt-ref-marker" style={`left: ${pct(singleDuration)}`} />
                   {g.coordinator.map((seg) => (
@@ -127,7 +134,7 @@ const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
                 </span>
               </li>
               <li class="tt-lane">
-                <span class="tt-lane-label">Subagents ×{count}</span>
+                <span class="tt-lane-label">{isSpanish ? "Subagentes" : "Subagents"} ×{count}</span>
                 <span class="tt-track">
                   <span class="tt-ref-marker" style={`left: ${pct(singleDuration)}`} />
                   {g.subagents.map((seg) => (
@@ -146,12 +153,12 @@ const GROUPS = (["parallel", "sequential"] as Key[]).map((key) => {
     </ol>
   </div>
 
-  <Legend items={[{ tone: "read", label: "coordinator request" }, { tone: "new", label: "subagent run" }]} />
+  <Legend items={[{ tone: "read", label: isSpanish ? "solicitud del coordinador" : "coordinator request" }, { tone: "new", label: isSpanish ? "ejecución del subagente" : "subagent run" }]} />
 
   <Source slot="caption">
-    Same coordinator and {SUBAGENTS.count} subagents as above. Assumption: every coordinator request takes{" "}
-    {reqDur} seconds and subagents run back-to-back with no gap between dispatches. Shared scale in both groups, up
-    to the sequential total, {fmtSeconds(SCHEDULES.sequential.total)}.
+    {isSpanish
+      ? `El mismo coordinador y los mismos ${SUBAGENTS.count} subagentes de arriba. Supuesto: cada solicitud del coordinador tarda ${reqDur} segundos y los subagentes se ejecutan seguidos, sin espacio entre despachos. La misma escala en ambos grupos, hasta el total secuencial de ${fmtSeconds(SCHEDULES.sequential.total)}.`
+      : `Same coordinator and ${SUBAGENTS.count} subagents as above. Assumption: every coordinator request takes ${reqDur} seconds and subagents run back-to-back with no gap between dispatches. Shared scale in both groups, up to the sequential total, ${fmtSeconds(SCHEDULES.sequential.total)}.`}
   </Source>
 </Figure>
 

@@ -4,9 +4,14 @@
 // it misses by exactly one position. Row 2: the same growth as parallel tool calls, where a run of
 // consecutive tool_use (or tool_result) blocks counts as one position, so the entry stays in reach.
 import { SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { getLangFromUrl } from "../../../i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 import Figure from "./kit/Figure.astro";
 import Source from "./kit/Source.astro";
 import DataTable from "./kit/DataTable.astro";
+
+const allUi = getAgentLoopUi(getLangFromUrl(Astro.url));
+const ui = allUi.lookbackWindow;
 
 const TOTAL_BLOCKS = 35;
 const ENTRY_BLOCK = 15; // cache entry written here (1-based)
@@ -25,22 +30,20 @@ const row2Groups = [
 
 const inGroup = (block: number, from: number, to: number) => block >= from && to >= block;
 
-const ariaLabel = `Two rows of 35 blocks with a cache entry written at block 15. Sequential: the 20-position window checks blocks 35 down to 16, and the entry at block 15 falls one position outside — a miss. Parallel: the same growth made of parallel tool calls collapses blocks 16 to 35 into 4 positions, so the entry at block 15 is only 5 positions back — a hit.`;
+const ariaLabel = ui.aria;
 ---
 
-<Figure question="Why does a 20-block lookback miss a cache entry that's still alive?" basis="calculated">
+<Figure question={ui.question} basis="calculated">
   <p class="alc-sub">
-    The lookback checks at most 20 positions per breakpoint, counting the breakpoint itself as
-    the first. A run of consecutive <code>tool_use</code> blocks counts as one position — so does
-    a run of consecutive <code>tool_result</code> blocks.
+    {ui.introBeforeCode}<code>tool_use</code>{ui.introBetweenCode}<code>tool_result</code>{ui.introAfterCode}
   </p>
 
   <div class="lw" role="img" aria-label={ariaLabel}>
     <div class="lw-row">
-      <p class="lw-row-title" aria-hidden="true">sequential tool calls — miss</p>
+      <p class="lw-row-title" aria-hidden="true">{ui.sequentialTitle}</p>
       <div class="lw-grid" aria-hidden="true" style={`--lw-cols: ${TOTAL_BLOCKS}`}>
         <span class="lw-bracket" style={`grid-column: ${windowStartBlock} / ${TOTAL_BLOCKS + 1}`}>
-          <span class="lw-bracket-label">20-position window (35 → 16)</span>
+          <span class="lw-bracket-label">{ui.windowLabel(windowStartBlock, TOTAL_BLOCKS)}</span>
         </span>
         {
           Array.from({ length: TOTAL_BLOCKS }, (_, i) => {
@@ -49,21 +52,21 @@ const ariaLabel = `Two rows of 35 blocks with a cache entry written at block 15.
             const isEntry = block === ENTRY_BLOCK;
             const cls = isEntry ? "lw-fill-bad" : inWindow ? "lw-fill-read" : "lw-fill-uncached";
             return <span class={`lw-cell ${cls}`} style={isEntry || inWindow ? "" : "opacity: 0.35"} />;
-          })
+        })
         }
         <span class="lw-callout" style={`grid-column: ${ENTRY_BLOCK} / ${ENTRY_BLOCK + 1}`}>
-          <span class="lw-callout-text">block 15<br />1 position short</span>
+          <span class="lw-callout-text">{ui.missCallout.block}<br />{ui.missCallout.detail}</span>
         </span>
       </div>
     </div>
 
     <div class="lw-row">
-      <p class="lw-row-title" aria-hidden="true">same growth, parallel tool calls — hit</p>
+      <p class="lw-row-title" aria-hidden="true">{ui.parallelTitle}</p>
       <div class="lw-grid" aria-hidden="true" style={`--lw-cols: ${TOTAL_BLOCKS}`}>
         {
           row2Groups.map((g) => (
             <span class="lw-bracket" style={`grid-column: ${g.fromBlock} / ${g.toBlock + 1}`}>
-              <span class="lw-bracket-label">pos {g.position}</span>
+              <span class="lw-bracket-label">{ui.positionLabel(g.position)}</span>
             </span>
           ))
         }
@@ -74,39 +77,34 @@ const ariaLabel = `Two rows of 35 blocks with a cache entry written at block 15.
             const group = row2Groups.find((g) => inGroup(block, g.fromBlock, g.toBlock));
             const cls = isEntry ? "lw-fill-good" : group ? (group.position % 2 === 0 ? "lw-fill-read" : "lw-fill-write") : "lw-fill-uncached";
             return <span class={`lw-cell ${cls}`} style={isEntry || group ? "" : "opacity: 0.35"} />;
-          })
+        })
         }
         <span class="lw-callout" style={`grid-column: ${ENTRY_BLOCK} / ${ENTRY_BLOCK + 1}`}>
-          <span class="lw-callout-text">block 15<br />position 5 of 20</span>
+          <span class="lw-callout-text">{ui.hitCallout.block}<br />{ui.hitCallout.detail}</span>
         </span>
       </div>
     </div>
   </div>
 
   <ul class="alc-legend" aria-hidden="true">
-    <li><span class="alc-swatch lw-fill-bad" />entry outside the window — miss</li>
-    <li><span class="alc-swatch lw-fill-good" />entry inside the window — hit</li>
-    <li><span class="alc-swatch lw-fill-read" />inside the 20-position window</li>
-    <li><span class="alc-swatch lw-fill-write" />parallel run, alternate position</li>
+    <li><span class="alc-swatch lw-fill-bad" />{ui.legend.outside}</li>
+    <li><span class="alc-swatch lw-fill-good" />{ui.legend.inside}</li>
+    <li><span class="alc-swatch lw-fill-read" />{ui.legend.window}</li>
+    <li><span class="alc-swatch lw-fill-write" />{ui.legend.parallel}</li>
   </ul>
 
   <DataTable
     slot="a11y"
-    caption="35-block growth: cache entry at block 15, 20-position lookback."
-    columns={["layout", "entry reachable?"]}
+    caption={ui.caption}
+    columns={ui.columns}
     rows={[
-      ["sequential (1 block = 1 position)", "miss — 1 position outside window"],
-      ["parallel runs (5 blocks = 1 position)", "hit — entry is position 5 of 20"],
+      [ui.rows.sequential, ui.rows.sequentialResult],
+      [ui.rows.parallel, ui.rows.parallelResult],
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }]} asOf={FACTS_AS_OF}>
-    Row 1 is the docs' own turn-3 example: 35 blocks, an entry written at block 15, the window
-    checks positions 35→16 and misses by one. Row 2 is an illustrative reconstruction of the same
-    35-block growth as 2 turns of 5 parallel tool calls each, to show how the run-counts-as-one-position
-    rule changes the count — the docs don't publish this second example. The fix for a real miss is an
-    explicit breakpoint placed often enough that no gap exceeds 20 positions — up to 4 explicit
-    breakpoints per request.
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: allUi.sourceLinks.caching }]} asOf={FACTS_AS_OF}>
+    {ui.source}
   </Source>
 </Figure>
 

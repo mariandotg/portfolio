@@ -1,4 +1,7 @@
 ---
+import { getLangFromUrl } from "../../i18n/utils";
+import { getAgentLoopUi } from "./agent-loop/i18n";
+
 interface Props {
   leftLabel?: string;
   rightLabel?: string;
@@ -9,11 +12,18 @@ interface Props {
 }
 
 const {
-  leftLabel = "Before",
-  rightLabel = "After",
+  leftLabel: rawLeftLabel,
+  rightLabel: rawRightLabel,
   variant = "neutral",
   accentRight = false,
 } = Astro.props;
+const ui = getAgentLoopUi(getLangFromUrl(Astro.url));
+const localizeLabel = (label: string | undefined, fallback: "Before" | "After") => {
+  const value = label ?? fallback;
+  return ui.sideBySide.labels[value as keyof typeof ui.sideBySide.labels] ?? value;
+};
+const leftLabel = localizeLabel(rawLeftLabel, "Before");
+const rightLabel = localizeLabel(rawRightLabel, "After");
 ---
 
 <div class={`sxs sxs-${variant}${accentRight ? " sxs-accent-right" : ""} not-prose`}>

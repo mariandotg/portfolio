@@ -2,6 +2,8 @@
 // The shell every note figure shares: the question it answers, the figure, a screen-reader equivalent,
 // and the caption. Figures show every state at once — no toggles. docs/design/design-system.md §5.
 import "../agent-loop.css";
+import { getLangFromUrl } from "../../../../i18n/utils";
+import { getAgentLoopUi } from "../i18n";
 
 export type Basis = "measured" | "calculated" | "assumed";
 
@@ -14,14 +16,17 @@ interface Props {
   n?: number;
 }
 const { question, basis, n } = Astro.props;
+const ui = getAgentLoopUi(getLangFromUrl(Astro.url));
 ---
 
 <figure class="alc not-prose" data-basis={basis}>
-  <figcaption class="alc-question">{n === undefined ? question : `Fig ${n} — ${question}`}</figcaption>
+  <figcaption class="alc-question">
+    {n === undefined ? question : `${ui.figurePrefix} ${n} — ${question}`}
+  </figcaption>
   <slot />
   <slot name="a11y" />
   <div class="alc-caption">
-    <span class="alc-basis"><span class="sr-only">Basis: </span>{basis}</span>
+    <span class="alc-basis"><span class="sr-only">{ui.basisLabel}</span>{ui.basis[basis]}</span>
     {
       Astro.slots.has("caption") && (
         <span class="alc-caption-text">

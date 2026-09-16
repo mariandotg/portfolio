@@ -1,0 +1,96 @@
+---
+title: "El bucle cuadrático"
+description: "Un agente reenvía todo su historial en cada request, por eso los tokens que envía crecen con el cuadrado del bucle. Un bucle de 30 requests con un contexto final de 104K tokens envía 1.64 millones de tokens de entrada, y el resultado de la tool es el multiplicador."
+pubDate: 2026-09-15
+tags: ["agentes-ia", "claude", "bucle-agéntico", "ingeniería-de-contexto", "claude-certified-architect"]
+draft: false
+lang: "es"
+translationKey: "the-quadratic-loop"
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 1
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import RequestAnatomy from "../../components/notes/RequestAnatomy.astro";
+import LoopTriangleIsland from "../../components/notes/agent-loop/LoopTriangleIsland.astro";
+import TrimCost from "../../components/notes/agent-loop/TrimCost.astro";
+
+La API de mensajes de Claude no recuerda nada. Cada request lleva la conversación completa: las definiciones de las tools, el system prompt, la tarea y cada tool call y resultado de tool hasta ese momento. En un chat, eso es un detalle. En un bucle agéntico, define todo lo que envía el agente.
+
+Estoy preparando el examen Claude Certified Architect de Anthropic. Dos de sus dominios, arquitectura agéntica y gestión de contexto, parten de este hecho. No quería memorizar una regla, así que construí un motor pequeño que cuenta lo que envía cada request. No hace llamadas a la API. Cada cifra de esta nota está calculada, y cada tamaño de workload es un supuesto declarado debajo del visual que lo usa.
+
+<Callout type="note" title="En el examen">
+Esta nota cubre dos consignas. **1.1**: el bucle agéntico continúa mientras `stop_reason` sea `"tool_use"`, se detiene con `"end_turn"` y agrega cada resultado de tool al historial de la conversación. **5.1**: cada request pasa el historial completo, los resultados de tools se acumulan en el contexto y consumen tokens de forma desproporcionada respecto de su relevancia, por eso hay que recortar los resultados de tools verbosos antes de que se acumulen.
+</Callout>
+
+## Un request
+
+Un request es una pila de bloques en un orden fijo: `tools`, después `system` y después `messages`. El modelo lo lee de arriba abajo y responde con un `stop_reason`. Si la razón es `"tool_use"`, tu código ejecuta la tool, agrega el resultado y vuelve a enviar la pila completa. Si es `"end_turn"`, el bucle termina.
+
+<RequestAnatomy />
+
+El request 3 envía siete bloques. Dos son nuevos. Los otros cinco ya se habían enviado y vuelven a ir igual.
+
+El workload de esta nota es un prompt de 5,500 tokens (3,000 tokens de definiciones de tools, un system prompt de 2,000 tokens y una tarea de 500 tokens), 400 tokens de salida por request y un resultado de tool de 3,000 tokens por llamada. El primer request envía 5,500 tokens.
+
+Ese número es el último de esta nota que crece en línea recta.
+
+## El bucle
+
+Cada request salvo el último termina en un tool call, y el resultado de la tool se suma al historial. Por eso el request *t* envía el prompt más todo lo que produjo el bucle antes:
+
+```
+input(t) = P + (t − 1) · (A + R)
+```
+
+Sumalo en los *N* requests:
+
+```
+total input = N · P + (A + R) · N(N − 1) / 2
+```
+
+El contexto crece en línea recta. El total crece con *N*².
+
+Dibujá una barra por request, tan alta como el contexto que envía. Las barras forman un triángulo, y el total es su área. Si duplicás el largo del bucle, el triángulo se vuelve dos veces más ancho y dos veces más alto.
+
+<LoopTriangleIsland />
+
+Un bucle de 30 requests termina con un contexto de 104,100 tokens, pero envía 1,644,000 tokens de entrada: 15.8 veces el contexto final. Con 60 requests, el total es 3.9× mayor, no 2×. Con 120 requests, llega a 24,936,000 tokens.
+
+El límite de contexto es una pared dura sobre esta misma curva. Claude Haiku 4.5 tiene una ventana de 200K tokens. Con este workload, el request 59 necesitaría 202,700 tokens, por eso el bucle no puede llegar a 60 requests en ese modelo.
+
+## El multiplicador
+
+Dos términos controlan el triángulo: *N*, la cantidad de requests, y *A + R*, lo que suma cada request. No siempre controlás *N*. El agente decide cuándo termina. Sí controlás *R*, porque escribís la tool.
+
+En la guía del examen aparece el mismo ejemplo: una consulta de pedidos que devuelve 40 campos cuando el agente necesita 5. Los 35 campos extra no cuestan su tamaño una sola vez. Cuestan ese tamaño en cada request posterior.
+
+<TrimCost />
+
+Recortar la consulta a los 5 campos relevantes reduce el bucle de 1.64 millones de tokens de entrada a 502,125, un 69% menos, y el último request envía 27,975 tokens en vez de 104,100. No cambia nada más: mismo prompt, misma cantidad de requests, mismo agente.
+
+El punto donde recortás importa. Si la tool devuelve 40 campos y un paso posterior ignora 35, esos 35 ya están en el historial. Recortá en la tool o entre la tool y el historial, antes de agregar el resultado.
+
+## Por qué importa el tamaño más allá del conteo
+
+Un contexto largo no es solo un número grande. El informe [Context Rot](https://www.trychroma.com/research/context-rot) de Chroma encontró que los 18 modelos evaluados pierden confiabilidad a medida que crece la entrada. Una ventana más grande no lo arregla: solo mueve la pared.
+
+Por eso hay dos formas de enfrentar el triángulo cuando recortar ya no alcanza. Podés dividir el trabajo para que ningún contexto individual crezca tanto; eso se explica en [la nota 2](/es/notes/four-short-loops). O podés reemplazar el historial por un resumen cuando se vuelve demasiado largo y decidir qué no puede perder ese resumen; eso se explica en [la nota 3](/es/notes/what-the-summary-forgot).
+
+## Lo que me llevo de esto
+
+- **La API no tiene estado, por eso el historial es la entrada.** Cada request envía todo lo anterior.
+- **El bucle es cuadrático.** Duplicar los requests envía aproximadamente cuatro veces los tokens.
+- **El resultado de la tool es el multiplicador.** Un campo que el agente no necesita se envía en cada request posterior.
+- **Recortá antes de que el resultado entre al historial.** Una vez agregado, cada request posterior lo lleva.
+
+<Callout type="rule" title="La regla">
+Cada token que devuelve una tool se vuelve a enviar en cada request posterior. Decidí qué necesita el agente antes de agregar el resultado al historial.
+</Callout>
+
+Este modelo cuenta tokens. No modela la calidad de las respuestas, la tokenización ni la variación entre tool calls, y trata cada campo como si tuviera el mismo tamaño. También deja afuera el precio: el caché, la vida útil del caché y las palancas de la API que reducen el contexto no entran en el examen, por eso tienen su propia nota de ingeniería, [El quiebre del caché](/es/notes/the-cache-break).
+
+---
+
+Para el examen, este es el hecho que sustenta la mitad de las preguntas de gestión de contexto. La regla cabe en una oración. La curva que dibuja, no.

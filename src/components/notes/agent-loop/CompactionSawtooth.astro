@@ -16,11 +16,13 @@ import { plotFrame } from "./kit/plot";
 import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
 import { fmtTokens, fmtUsd, fmtChange, points } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
 
 interface Props {
   variant?: "cost" | "context";
 }
 const { variant = "cost" } = Astro.props;
+const isSpanish = getLangFromUrl(Astro.url) === "es";
 
 const without = simulate(COMPACTION_WORKLOAD);
 const withC = simulate(compactionWith());
@@ -62,23 +64,28 @@ const costWith = withC.totals.costUsd;
 const px = (v: number) => ((v / frame.w) * 100).toFixed(2);
 const py = (v: number) => ((v / frame.h) * 100).toFixed(2);
 
-const ariaLabel =
-  variant === "cost"
+const ariaLabel = isSpanish
+  ? variant === "cost"
+    ? `Tokens de contexto en ${N} solicitudes. Sin compactación, el contexto sube hasta ${fmtTokens(peakWithout)} y cuesta ${fmtUsd(costWithout)}. Con compactación, el contexto se reinicia dos veces en el umbral de 150k y alcanza ${fmtTokens(peakWith)}, con un coste de ${fmtUsd(costWith)}.`
+    : `Tokens de contexto en ${N} solicitudes. Sin compactación, el contexto sube hasta ${fmtTokens(peakWithout)}. Con compactación, el contexto se reemplaza por un resumen al alcanzar el umbral de 150k, se reinicia dos veces y alcanza ${fmtTokens(peakWith)}.`
+  : variant === "cost"
     ? `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)} and costs ${fmtUsd(costWithout)}. With compaction the context resets twice at the 150k trigger and peaks at ${fmtTokens(peakWith)}, costing ${fmtUsd(costWith)}.`
     : `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)}. With compaction the context is replaced by a summary once it reaches the 150k trigger, resetting twice, and peaks at ${fmtTokens(peakWith)}.`;
 ---
 
-<Figure question="What does compaction do to the context?" basis={variant === "cost" ? "assumed" : "calculated"}>
+<Figure question={isSpanish ? "¿Qué le hace la compactación al contexto?" : "What does compaction do to the context?"} basis={variant === "cost" ? "assumed" : "calculated"}>
   {
     variant === "cost" ? (
-      <Stat value={fmtUsd(costWith)} delta={`${fmtChange(costWith, costWithout)} vs no compaction`} tone="gain">
-        Peak context <strong>{fmtTokens(peakWith)}</strong> instead of <strong>{fmtTokens(peakWithout)}</strong>. Each
-        compaction pass reads the whole context once, and that pass is billed.
+      <Stat value={fmtUsd(costWith)} delta={`${fmtChange(costWith, costWithout)} ${isSpanish ? "frente a sin compactación" : "vs no compaction"}`} tone="gain">
+        {isSpanish
+          ? <>Contexto máximo: <strong>{fmtTokens(peakWith)}</strong> en lugar de <strong>{fmtTokens(peakWithout)}</strong>. Cada pasada de compactación lee todo el contexto una vez y esa pasada se factura.</>
+          : <>Peak context <strong>{fmtTokens(peakWith)}</strong> instead of <strong>{fmtTokens(peakWithout)}</strong>. Each compaction pass reads the whole context once, and that pass is billed.</>}
       </Stat>
     ) : (
-      <Stat value={fmtTokens(peakWith)} unit="peak context" delta={`${fmtChange(peakWith, peakWithout)} vs no compaction`} tone="gain">
-        Without compaction the context climbs to <strong>{fmtTokens(peakWithout)}</strong>. With it, the context is
-        replaced by a summary once it reaches the trigger, and it never passes <strong>{fmtTokens(peakWith)}</strong>.
+      <Stat value={fmtTokens(peakWith)} unit={isSpanish ? "contexto máximo" : "peak context"} delta={`${fmtChange(peakWith, peakWithout)} ${isSpanish ? "frente a sin compactación" : "vs no compaction"}`} tone="gain">
+        {isSpanish
+          ? <>Sin compactación, el contexto sube hasta <strong>{fmtTokens(peakWithout)}</strong>. Con ella, el contexto se reemplaza por un resumen al alcanzar el umbral y nunca supera <strong>{fmtTokens(peakWith)}</strong>.</>
+          : <>Without compaction the context climbs to <strong>{fmtTokens(peakWithout)}</strong>. With it, the context is replaced by a summary once it reaches the trigger, and it never passes <strong>{fmtTokens(peakWith)}</strong>.</>}
       </Stat>
     )
   }
@@ -115,24 +122,24 @@ const ariaLabel =
     </Plot>
 
     <div class="sw-label sw-axis" style={`left: ${px(frame.left)}%; top: ${py(frame.bottom)}%`} aria-hidden="true">
-      request 1
+      {isSpanish ? "solicitud 1" : "request 1"}
     </div>
     <div
       class="sw-label sw-axis sw-axis-end"
       style={`left: ${px(frame.right)}%; top: ${py(frame.bottom)}%`}
       aria-hidden="true"
     >
-      request {N}
+      {isSpanish ? "solicitud" : "request"} {N}
     </div>
     <div class="sw-label sw-trigger" style={`left: ${px(frame.right)}%; top: ${py(triggerY)}%`} aria-hidden="true">
-      trigger {fmtTokens(COMPACTION_LIMITS.defaultTrigger)}
+      {isSpanish ? "umbral" : "trigger"} {fmtTokens(COMPACTION_LIMITS.defaultTrigger)}
     </div>
     <div
       class="sw-label sw-ghost"
       style={`left: ${px(x(N))}%; top: ${py(y(maxWithout))}%`}
       aria-hidden="true"
     >
-      without compaction
+      {isSpanish ? "sin compactación" : "without compaction"}
     </div>
     {
       compactions.map((c, i) => (
@@ -141,7 +148,7 @@ const ariaLabel =
           style={`left: ${px(x(c.index))}%; top: ${py(y(c.inputTokens))}%`}
           aria-hidden="true"
         >
-          summary
+          {isSpanish ? "resumen" : "summary"}
         </div>
       ))
     }
@@ -149,23 +156,22 @@ const ariaLabel =
 
   <DataTable
     slot="a11y"
-    caption={`Compaction across ${N} requests, variant ${variant}.`}
-    columns={["mode", "peak context", variant === "cost" ? "total cost" : "notes"]}
+    caption={`${isSpanish ? "Compactación en" : "Compaction across"} ${N} ${isSpanish ? "solicitudes, variante" : "requests, variant"} ${isSpanish ? (variant === "cost" ? "coste" : "contexto") : variant}.`}
+    columns={isSpanish ? ["modo", "contexto máximo", variant === "cost" ? "coste total" : "notas"] : ["mode", "peak context", variant === "cost" ? "total cost" : "notes"]}
     rows={[
-      ["without compaction", fmtTokens(peakWithout), variant === "cost" ? fmtUsd(costWithout) : "—"],
-      ["with compaction", fmtTokens(peakWith), variant === "cost" ? fmtUsd(costWith) : `${compactions.length} compactions`],
+      [isSpanish ? "sin compactación" : "without compaction", fmtTokens(peakWithout), variant === "cost" ? fmtUsd(costWithout) : "—"],
+      [isSpanish ? "con compactación" : "with compaction", fmtTokens(peakWith), variant === "cost" ? fmtUsd(costWith) : `${compactions.length} ${isSpanish ? "compactaciones" : "compactions"}`],
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.compaction, label: "compaction docs" }]} asOf={FACTS_AS_OF}>
+  <Source slot="caption" links={[{ href: SOURCES.compaction, label: isSpanish ? "documentación de compactación" : "compaction docs" }]} asOf={FACTS_AS_OF}>
     {
       variant === "cost" ? (
         <>
-          <code>compact_20260112</code> triggers at 150k tokens (minimum 50k) and bills the summarization pass. Not
-          available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request.
+          <code>compact_20260112</code> {isSpanish ? "se activa en 150k tokens (mínimo 50k) y factura la pasada de resumen. No está disponible en Haiku 4.5. Supuesto: la pasada de compactación lee la caché como una solicitud normal." : "triggers at 150k tokens (minimum 50k) and bills the summarization pass. Not available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request."}
         </>
       ) : (
-        <>The context is replaced by a summary once it reaches the trigger (150k tokens, minimum 50k).</>
+        <>{isSpanish ? "El contexto se reemplaza por un resumen al alcanzar el umbral (150k tokens, mínimo 50k)." : "The context is replaced by a summary once it reaches the trigger (150k tokens, minimum 50k)."}</>
       )
     }
   </Source>

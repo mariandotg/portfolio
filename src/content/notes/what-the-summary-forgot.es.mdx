@@ -1,0 +1,119 @@
+---
+title: "Lo que olvidó el resumen"
+description: "La compactación elimina cada bloque de contexto anterior al resumen que escribe. Seguí un caso de soporte con 6 hechos desde el motor de la nota 1: solo 1 de 6 sobrevive sin resumir en el historial, mientras 6 de 6 sobreviven en un bloque de hechos del caso fuera de él."
+pubDate: 2026-09-15
+tags: ["agentes-ia", "claude", "ingenieria-de-contexto", "resumenes", "claude-certified-architect"]
+draft: false
+lang: "es"
+translationKey: "what-the-summary-forgot"
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 3
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import SideBySide from "../../components/notes/SideBySide.astro";
+import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
+import FactsSurvival from "../../components/notes/agent-loop/FactsSurvival.astro";
+
+Un loop agéntico suficientemente largo supera un tamaño que el modelo no puede conservar completo. Algo reemplaza el historial por un resumen. Un resumen conserva la historia. Elimina los números.
+
+[La nota 1](/es/notes/the-quadratic-loop) mostró por qué el contexto crece en primer lugar: cada resultado de tool se suma al historial, y cada request posterior lo vuelve a enviar. Esta nota continúa cuando ese crecimiento se convierte en un problema: qué puede conservar un resumen, qué puede perder y dónde debe vivir un hecho para sobrevivir.
+
+<Callout type="note" title="En el examen">
+Esta es la consigna 5.1 del examen, dentro del dominio 5 (gestión de contexto y confiabilidad, 15% del examen): riesgo de la sumarización progresiva, efecto «lost in the middle», extracción de hechos a un bloque persistente y archivos scratchpad.
+</Callout>
+
+## El contexto se reemplaza
+
+El loop de la nota 1 crece sin límite hasta que algo interviene. La [compactación](https://platform.claude.com/docs/en/build-with-claude/compaction) es una de esas intervenciones: cuando el prompt alcanza una cantidad disparadora de tokens, Claude escribe un resumen y la API elimina cada bloque anterior.
+
+<CompactionSawtooth variant="context" />
+
+Sin compactación, un loop de 80 requests con resultados de tool de 5.000 tokens alcanza un contexto de 432.100 tokens. Con la compactación activada en el disparador predeterminado de 150.000 tokens, nunca supera 154.300. El contexto es más pequeño. Su contenido cambió de forma: ahora la mayor parte del historial es un párrafo.
+
+## Qué elimina un resumen
+
+Un resumen es una llamada al modelo como cualquier otra, y optimiza lo mismo que una persona cuando vuelve a contar una historia: la narración, no el registro. La guía del examen indica qué se pierde primero: valores numéricos, porcentajes, fechas y expectativas expresadas por el cliente se convierten en resúmenes vagos.
+
+Tomá un caso de soporte. El pedido del cliente se envió tarde. En algún lugar de la transcripción aparecen: un número de pedido, un importe, una fecha de compra, un estado, un reintegro que el agente prometió y una fecha límite para ese reintegro. Un buen resumen conserva «el cliente estaba frustrado por un envío tardío y se habló de un reintegro». No tiene obligación de conservar «$340, vence el 2026-09-20». Nada le indica al modelo qué oración vas a necesitar hacer cumplir más tarde.
+
+Los resultados de tool empeoran la situación antes de que empiece. Se acumulan en el contexto y consumen tokens de forma desproporcionada a su relevancia. El ejemplo de la guía del examen es una consulta que devuelve más de 40 campos cuando solo importan 5. Los 40 campos son candidatos a que el resumen los comprima, incluidos los 5 que necesitabas.
+
+## El bloque de hechos del caso
+
+La solución documentada no es un resumen mejor. Es no resumir el hecho. Extraé los hechos transaccionales —importes, fechas, números de pedido y estados— a un bloque persistente de hechos del caso, y poné ese bloque en cada prompt, fuera del historial que toca la compactación.
+
+Armé un caso de soporte pequeño: 6 hechos, cada uno introducido por el resultado de tool de un request en un loop de 80 requests. Bajé el disparador de compactación al mínimo documentado, 50.000 tokens, para que el loop se compacte 9 veces en lugar de 2. Así se ve el patrón y no una excepción afortunada.
+
+<FactsSurvival />
+
+La compactación elimina cada bloque anterior al resumen. Un hecho aparece literalmente en el contexto solo si fue introducido después de la última compactación. Todo lo anterior sobrevive solo si el resumen decidió conservarlo, y la grilla no afirma saber si lo hizo. En el request 80, solo la fecha límite del reintegro, introducida en el request 76 después de la novena y última compactación, sigue sin resumir: 1 de 6. Poné los mismos 6 hechos en un bloque de hechos del caso y los 6 siguen ahí: 6 de 6, con un costo supuesto de unos 180 tokens para seis hechos breves, pagado en cada prompt.
+
+Ese es el intercambio. Un bloque de hechos del caso consume tokens en cada request para hechos que sabés que vas a necesitar. Un historial que no curás conserva un hecho solo hasta la próxima compactación.
+
+## Archivos scratchpad
+
+Un bloque de hechos del caso sirve para hechos que podés nombrar de antemano: importes, fechas y estados. Una exploración larga —leer una docena de archivos para encontrar un patrón— produce hallazgos que no podés preparar como plantilla, y pueden ser demasiados para reenviarlos en cada prompt.
+
+El patrón documentado para eso es un archivo scratchpad. El agente escribe lo que encuentra en disco mientras avanza, en lugar de dejarlo solo en su contexto. Cuando llega el límite de contexto —un subagente devuelve su resultado o un `/compact` vacía la conversación— el hallazgo no desaparece, porque nunca estuvo solo dentro del contexto. Es un archivo que el siguiente turno o el siguiente agente puede leer. El `/compact` de Claude Code hace el mismo tipo de reemplazo que la compactación de la API, dentro de una sesión larga de la CLI y no sobre la API. No conviene confiar en que ninguno conserve un detalle que antes no se escribió en otro lugar.
+
+## También importa dónde queda un hecho
+
+Un bloque de hechos del caso y un scratchpad responden «¿el hecho todavía existe en algún lugar?». Ninguno responde «¿el modelo realmente lo va a usar si está enterrado?».
+
+Liu et al., [«Lost in the Middle: How Language Models Use Long Contexts»](https://arxiv.org/abs/2307.03172) (arXiv:2307.03172), descubrieron que el rendimiento del modelo es mayor cuando la información relevante está al principio o al final de una entrada larga, y baja cuando hay que encontrarla en el medio. Esto también ocurre en modelos construidos para ventanas de contexto largas.
+
+Poné el mismo resultado agregado de tools de dos formas. Una lista las secciones en el orden en que las tools devolvieron sus resultados, por lo que la sección importante puede quedar en cualquier lugar. La otra la lleva al principio y etiqueta cada sección que sigue.
+
+<SideBySide variant="diff" leftLabel="Hallazgo clave enterrado en el medio" rightLabel="Hallazgo clave arriba, con encabezados">
+<Fragment slot="left">
+
+```text
+Sección: historial de pedidos (12 pedidos)
+Sección: registro de dirección de envío
+Sección: HALLAZGO CLAVE — reintegro de $340
+  aprobado, vence el 2026-09-20
+Sección: medios de pago registrados
+Sección: notas del ticket de soporte
+```
+
+</Fragment>
+<Fragment slot="right">
+
+```text
+HALLAZGOS CLAVE
+- Reintegro de $340 aprobado,
+  vence el 2026-09-20
+
+## Historial de pedidos (12 pedidos)
+## Registro de dirección de envío
+## Medios de pago registrados
+## Notas del ticket de soporte
+```
+
+</Fragment>
+</SideBySide>
+
+No corresponde poner un número de precisión en ese diagrama: no ejecuté ninguno de los dos diseños con un modelo, y los números del artículo pertenecen a su propio benchmark, no a este. La guía del examen indica el movimiento: poné primero un resumen de hallazgos clave y organizá el resto bajo encabezados de sección explícitos. La consecuencia es mía y volví a ella mientras estudiaba: una ventana de contexto más grande no corrige dónde se dirige la atención. Solo le da más espacio al medio para perderse.
+
+## Recortá antes de que se acumule
+
+La nota 1 midió la consulta de 40 campos de la guía del examen: recortarla a los 5 campos que importan reduce un loop de 30 requests de 1.644.000 a 502.125 tokens de entrada, un 69% menos. Acá ese recorte ayuda dos veces más. Deja menos material para que el próximo resumen lo comprima y deja menos medio donde un hecho pueda perderse.
+
+## Qué me llevo
+
+- **Un resumen conserva la narración, no el registro.** Los números, las fechas, los porcentajes y las expectativas expresadas son exactamente lo que la sumarización progresiva elimina primero.
+- **Un hecho del caso consume tokens en cada prompt para garantizar que sobreviva a cada compactación.** En este caso, unos 180 tokens para 6 hechos. Es poco frente a perder el hecho que tiene una fecha límite.
+- **Un archivo scratchpad sobrevive a un límite de contexto porque nunca estuvo solo dentro del contexto.** Sirve para hallazgos que no podés preparar como plantilla. Un bloque de hechos del caso sigue siendo mejor para los hechos que sí podés nombrar.
+- **La posición es un riesgo independiente.** Un hecho puede sobrevivir a la compactación y aun así pasar desapercibido porque está enterrado en el medio de una entrada agregada larga.
+
+<Callout type="rule" title="La regla">
+Decidí, para cada hecho, si debe conservarse exacto. Si debe conservarse exacto, no lo dejes vivir solo en texto que una pasada de sumarización pueda tocar: extraelo o escribilo en un lugar al que la compactación no llegue.
+</Callout>
+
+La grilla de esta nota registra qué aparece literalmente en el contexto enviado al modelo, no qué recuerda el modelo después de leerlo. El modelo todavía puede interpretar mal un hecho que está ahí, y los 6 hechos y sus requests son un caso ilustrativo, no una transcripción. Ambos son riesgos reales. Esta nota mide solo el primero.
+
+---
+
+Para el examen, la reformulación útil no fue «resumí menos». Fue notar que un resumen y un hecho cumplen funciones distintas, por lo que no tenés que elegir un único lugar para guardar ambos.

@@ -4,6 +4,7 @@ import type { Lang } from "../i18n/utils";
 import { localizedSeries, getLocalizedPath } from "../i18n/utils";
 import { seriesBannerBase } from "./effects/banner/assets";
 import type { Translations } from "../i18n/en";
+import { assertTranslationIntegrity, getPublishedNotes, noteSlug } from "./notes";
 
 export interface SeriesCardData {
   slug: string;
@@ -28,12 +29,12 @@ export function seriesPath(id: string, rootLevel: boolean): string {
 }
 
 // A series with no published post is unpublished: no listing, no route. docs/design/design-system.md §7.
-async function publishedSeriesIds(): Promise<Set<string>> {
-  const posts = await getCollection("notes", ({ data }) => !data.draft);
+async function publishedSeriesIds(lang: Lang): Promise<Set<string>> {
+  const posts = await getPublishedNotes(lang);
   return new Set(posts.flatMap((p) => (p.data.series ? [p.data.series] : [])));
 }
 
-export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]> {
+export async function getRootLevelSeries(lang: Lang): Promise<CollectionEntry<"series">[]> {
   const entries = await getCollection("series", ({ data }) => data.rootLevel);
   // The collision guard covers unpublished series too, so a slug clash fails before the first post ships.
   for (const entry of entries) {
@@ -43,12 +44,12 @@ export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]>
       );
     }
   }
-  const published = await publishedSeriesIds();
+  const published = await publishedSeriesIds(lang);
   return entries.filter((entry) => published.has(entry.id));
 }
 
-export async function getStandardSeries(): Promise<CollectionEntry<"series">[]> {
-  const published = await publishedSeriesIds();
+export async function getStandardSeries(lang: Lang): Promise<CollectionEntry<"series">[]> {
+  const published = await publishedSeriesIds(lang);
   return getCollection("series", ({ data, id }) => !data.rootLevel && published.has(id));
 }
 
@@ -87,6 +88,7 @@ export async function assertSeriesIntegrity(): Promise<void> {
     getCollection("notes", ({ data }) => !data.draft),
   ]);
   const seriesIds = new Set(seriesEntries.map((s) => s.id));
+  await assertTranslationIntegrity();
 
   for (const post of posts) {
     const seriesId = post.data.series;
@@ -100,18 +102,19 @@ export async function assertSeriesIntegrity(): Promise<void> {
 
   for (const series of seriesEntries) {
     const inSeries = posts.filter((p) => p.data.series === series.id);
-    const byOrder = new Map<number, string[]>();
+    const byOrder = new Map<string, string[]>();
     for (const post of inSeries) {
       const order = post.data.seriesOrder;
       if (order === undefined) continue;
-      const ids = byOrder.get(order) ?? [];
+      const key = `${post.data.lang}:${order}`;
+      const ids = byOrder.get(key) ?? [];
       ids.push(post.id);
-      byOrder.set(order, ids);
+      byOrder.set(key, ids);
     }
-    for (const [order, ids] of byOrder) {
+    for (const [key, ids] of byOrder) {
       if (ids.length > 1) {
         throw new Error(
-          `Series "${series.id}" has duplicate seriesOrder ${order} on posts "${ids[0]}" and "${ids[1]}".`,
+          `Series "${series.id}" has duplicate language and seriesOrder ${key} on posts "${ids[0]}" and "${ids[1]}".`,
         );
       }
     }
@@ -131,7 +134,7 @@ function postsInSeries(
 export async function getSeriesIndex(lang: Lang, t: Translations): Promise<SeriesCardData[]> {
   const [seriesEntries, posts] = await Promise.all([
     getCollection("series"),
-    getCollection("notes", ({ data }) => !data.draft),
+    getPublishedNotes(lang),
   ]);
 
   return seriesEntries
@@ -153,8 +156,8 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
     });
 }
 
-export async function getSeriesPosts(slug: string): Promise<CollectionEntry<"notes">[]> {
-  const posts = await getCollection("notes", ({ data }) => !data.draft);
+export async function getSeriesPosts(slug: string, lang: Lang): Promise<CollectionEntry<"notes">[]> {
+  const posts = await getPublishedNotes(lang);
   return postsInSeries(posts, slug);
 }
 
@@ -173,13 +176,13 @@ export interface RoadmapItem {
 // readable and the first one is highlighted as the entry point. Once progress
 // is tracked, only the `status` derivation below needs to change.
 export async function getSeriesRoadmap(slug: string, lang: Lang): Promise<RoadmapItem[]> {
-  const posts = await getSeriesPosts(slug);
+  const posts = await getSeriesPosts(slug, lang);
   return Promise.all(
     posts.map(async (post, idx) => {
       const { remarkPluginFrontmatter } = await render(post);
       return {
         order: idx + 1,
-        href: getLocalizedPath(`/notes/${post.id}`, lang),
+        href: getLocalizedPath(`/notes/${noteSlug(post)}`, lang),
         title: post.data.title,
         description: post.data.description,
         readingTime: remarkPluginFrontmatter?.readingTime as number | undefined,

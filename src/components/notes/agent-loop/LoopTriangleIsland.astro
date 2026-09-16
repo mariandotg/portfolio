@@ -5,28 +5,31 @@ import DataTable from "./kit/DataTable.astro";
 import LoopTriangle from "./LoopTriangle.tsx";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtTokens } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
 
 const w = BASE_WORKLOAD;
+const lang = getLangFromUrl(Astro.url);
+const isSpanish = lang === "es";
 ---
 
-<Figure question="Why does twice the loop send about four times the tokens?" basis="calculated">
-  <LoopTriangle client:visible />
+<Figure question={isSpanish ? "¿Por qué duplicar el bucle envía aproximadamente cuatro veces más tokens?" : "Why does twice the loop send about four times the tokens?"} basis="calculated">
+  <LoopTriangle client:visible lang={lang} />
   <DataTable
     slot="a11y"
-    caption="Quadratic growth: each request resends the full history."
-    columns={["component", "tokens per request"]}
+    caption={isSpanish ? "Crecimiento cuadrático: cada solicitud vuelve a enviar el historial completo." : "Quadratic growth: each request resends the full history."}
+    columns={isSpanish ? ["componente", "tokens por solicitud"] : ["component", "tokens per request"]}
     rows={[
-      ["tools", fmtTokens(w.toolsTokens)],
-      ["system", fmtTokens(w.systemTokens)],
-      ["task", fmtTokens(w.taskTokens)],
-      ["assistant output", fmtTokens(w.assistantTokens)],
-      ["tool result", fmtTokens(w.toolResultTokens)],
+      [isSpanish ? "herramientas" : "tools", fmtTokens(w.toolsTokens)],
+      [isSpanish ? "sistema" : "system", fmtTokens(w.systemTokens)],
+      [isSpanish ? "tarea" : "task", fmtTokens(w.taskTokens)],
+      [isSpanish ? "salida del asistente" : "assistant output", fmtTokens(w.assistantTokens)],
+      [isSpanish ? "resultado de herramienta" : "tool result", fmtTokens(w.toolResultTokens)],
     ]}
   />
   <Source slot="caption">
-    {fmtTokens(w.toolsTokens)} of tools, a {fmtTokens(w.systemTokens)} system prompt, a {fmtTokens(w.taskTokens)} task, then
-    {fmtTokens(w.assistantTokens)} output and a {fmtTokens(w.toolResultTokens)} tool result per request. Every request sends the whole
-    history, because the Messages API keeps no state between requests.
+    {isSpanish
+      ? `${fmtTokens(w.toolsTokens)} de herramientas, un prompt del sistema de ${fmtTokens(w.systemTokens)}, una tarea de ${fmtTokens(w.taskTokens)}, luego ${fmtTokens(w.assistantTokens)} tokens de salida y un resultado de herramienta de ${fmtTokens(w.toolResultTokens)} por solicitud. Cada solicitud envía todo el historial porque la API de Messages no conserva estado entre solicitudes.`
+      : `${fmtTokens(w.toolsTokens)} of tools, a ${fmtTokens(w.systemTokens)} system prompt, a ${fmtTokens(w.taskTokens)} task, then ${fmtTokens(w.assistantTokens)} output and a ${fmtTokens(w.toolResultTokens)} tool result per request. Every request sends the whole history, because the Messages API keeps no state between requests.`}
   </Source>
 </Figure>
 

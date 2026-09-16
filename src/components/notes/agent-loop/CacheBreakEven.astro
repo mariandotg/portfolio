@@ -6,6 +6,8 @@ import { simulate, CACHE, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import type { CacheMode } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtUsd, fmtSeconds, nudgeLabels } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 import Figure from "./kit/Figure.astro";
 import Stat from "./kit/Stat.astro";
 import Source from "./kit/Source.astro";
@@ -13,6 +15,8 @@ import DataTable from "./kit/DataTable.astro";
 
 const GAP_MAX = 900; // 15 minutes
 const TTL = CACHE.ttl5mSeconds;
+const allUi = getAgentLoopUi(getLangFromUrl(Astro.url));
+const ui = allUi.cacheBreakEven;
 
 // Every request in the loop waits the same number of seconds, so a cache mode either hits on
 // every request or misses on every request in this range: the flat lines and the one step both
@@ -37,32 +41,30 @@ const yMiss = yPct(fiveMinMiss);
 
 const lineLabels = nudgeLabels(
   [
-    { text: "no cache", y: yNoCache, tone: "neutral" as const },
-    { text: "5-min (miss)", y: yMiss, tone: "bad" as const },
-    { text: "1-hour", y: yOneHour, tone: "good" as const },
-    { text: "5-min (hit)", y: yHit, tone: "new" as const },
+    { text: ui.labels.noCache, y: yNoCache, tone: "neutral" as const },
+    { text: ui.labels.fiveMinMiss, y: yMiss, tone: "bad" as const },
+    { text: ui.labels.oneHour, y: yOneHour, tone: "good" as const },
+    { text: ui.labels.fiveMinHit, y: yHit, tone: "new" as const },
   ],
   8,
 );
 
-const ariaLabel = `Total cost of the 30-request loop as a function of seconds between requests, 0 to 15 minutes. No cache stays flat at ${fmtUsd(noCacheCost)}. The 1-hour cache stays flat at ${fmtUsd(oneHourCost)}. The 5-minute cache stays at ${fmtUsd(fiveMinHit)} up to 5 minutes, then jumps to ${fmtUsd(fiveMinMiss)} past 5 minutes, becoming more expensive than no cache.`;
+const ariaLabel = ui.aria(fmtUsd(noCacheCost), fmtUsd(oneHourCost), fmtUsd(fiveMinHit), fmtUsd(fiveMinMiss));
 ---
 
-<Figure question="How slow can a tool be before the cache stops paying?" basis="calculated">
-  <Stat value={fmtSeconds(TTL)} delta="5-min cache turns worse past this gap" tone="loss">
-    Past {fmtSeconds(TTL)} between request starts, the 5-minute cache never gets a hit: every
-    request writes the whole prefix again at 1.25×, and the loop costs <strong>{fmtUsd(fiveMinMiss)}</strong>
-    instead of <strong>{fmtUsd(fiveMinHit)}</strong>. The 1-hour cache costs <strong>{fmtUsd(oneHourCost)}</strong> at any gap in this range.
+<Figure question={ui.question} basis="calculated">
+  <Stat value={fmtSeconds(TTL)} delta={ui.delta} tone="loss">
+    {ui.statBeforeMiss(fmtSeconds(TTL))}<strong>{fmtUsd(fiveMinMiss)}</strong>{ui.statBetweenCosts}<strong>{fmtUsd(fiveMinHit)}</strong>{ui.statAfterHit(fmtUsd(oneHourCost))}
   </Stat>
 
   <div class="cb">
-    <p class="cb-scale" aria-hidden="true">0 – {fmtUsd(yMax)} total cost</p>
+    <p class="cb-scale" aria-hidden="true">{ui.scale(fmtUsd(yMax))}</p>
 
     <div class="cb-body">
       <div class="cb-axis" aria-hidden="true">
         <span class="cb-tick cb-tick-start">0</span>
         <span class="cb-tick cb-tick-focal" style={`left: ${ttlPct.toFixed(2)}%`}>{fmtSeconds(TTL)}</span>
-        <span class="cb-tick cb-tick-end">15 min</span>
+        <span class="cb-tick cb-tick-end">{ui.endTick}</span>
       </div>
 
       <div class="cb-plot" role="img" aria-label={ariaLabel}>
@@ -77,7 +79,7 @@ const ariaLabel = `Total cost of the 30-request loop as a function of seconds be
         <span class="cb-marker" style={`left: ${ttlPct.toFixed(2)}%`} />
       </div>
 
-      <p class="cb-xtitle" aria-hidden="true">seconds between request starts →</p>
+      <p class="cb-xtitle" aria-hidden="true">{ui.xTitle}</p>
     </div>
 
     <ul class="cb-labels" aria-hidden="true">
@@ -94,19 +96,21 @@ const ariaLabel = `Total cost of the 30-request loop as a function of seconds be
 
   <DataTable
     slot="a11y"
-    caption={`Cache break-even: 5-minute TTL at ${fmtSeconds(TTL)}.`}
-    columns={["mode", "cost at short gaps", "cost past TTL"]}
+    caption={ui.caption(fmtSeconds(TTL))}
+    columns={ui.columns}
     rows={[
-      ["no cache", fmtUsd(noCacheCost), fmtUsd(noCacheCost)],
-      ["1-hour cache", fmtUsd(oneHourCost), fmtUsd(oneHourCost)],
-      ["5-minute cache", fmtUsd(fiveMinHit), fmtUsd(fiveMinMiss)],
+      [ui.rows.noCache, fmtUsd(noCacheCost), fmtUsd(noCacheCost)],
+      [ui.rows.oneHour, fmtUsd(oneHourCost), fmtUsd(oneHourCost)],
+      [ui.rows.fiveMinute, fmtUsd(fiveMinHit), fmtUsd(fiveMinMiss)],
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }, { href: SOURCES.pricing, label: "pricing" }]} asOf={FACTS_AS_OF}>
-    Every request in this loop waits the same number of seconds, so a cache mode either hits on
-    every request or misses on every request — the line steps once, at the TTL, instead of
-    sloping. Claude Sonnet 5, 30-request loop.
+  <Source
+    slot="caption"
+    links={[{ href: SOURCES.caching, label: allUi.sourceLinks.caching }, { href: SOURCES.pricing, label: allUi.sourceLinks.pricing }]}
+    asOf={FACTS_AS_OF}
+  >
+    {ui.source}
   </Source>
 </Figure>
 

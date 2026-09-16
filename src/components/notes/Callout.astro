@@ -1,20 +1,23 @@
 ---
 type CalloutType = "note" | "rule" | "warning";
 
+import { getLangFromUrl } from "../../i18n/utils";
+import { getAgentLoopUi } from "./agent-loop/i18n";
+
 interface Props {
   type?: CalloutType;
   title?: string;
 }
 
-const DEFAULT_LABEL: Record<CalloutType, string> = {
-  note: "Note",
-  rule: "Rule",
-  warning: "Warning",
-};
-
 // MDX does not type-check props: an unknown type renders as a note instead of an empty header.
-const type: CalloutType = Astro.props.type && Astro.props.type in DEFAULT_LABEL ? Astro.props.type : "note";
-const label = Astro.props.title ?? DEFAULT_LABEL[type];
+const lang = getLangFromUrl(Astro.url);
+const ui = getAgentLoopUi(lang);
+const type: CalloutType = Astro.props.type && Astro.props.type in ui.callout.defaults ? Astro.props.type : "note";
+const rawTitle = Astro.props.title;
+const label =
+  typeof rawTitle === "string" && rawTitle in ui.callout.titles
+    ? ui.callout.titles[rawTitle as keyof typeof ui.callout.titles]
+    : rawTitle ?? ui.callout.defaults[type];
 ---
 
 <aside class={`callout callout-${type} not-prose`}>

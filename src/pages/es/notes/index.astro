@@ -2,16 +2,16 @@
 import PageLayout from "../../../layouts/PageLayout.astro";
 import PostListItem from "../../../components/PostListItem.astro";
 import SeriesCard from "../../../components/SeriesCard.astro";
-import { getCollection } from "astro:content";
 import { getLangFromUrl, useTranslations, getLocalizedPath, noteCollectionLabel } from "../../../i18n/utils";
 import { getSeriesIndex } from "../../../lib/series";
+import { getPublishedNotes, noteSlug } from "../../../lib/notes";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
 const series = await getSeriesIndex(lang, t);
 
-const posts = await getCollection("notes", ({ data }) => !data.draft);
+const posts = await getPublishedNotes(lang);
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const LATEST_COUNT = 3;
@@ -60,7 +60,7 @@ const archiveHref = getLocalizedPath("/notes/archive", lang);
       <div class="flex flex-col">
         {latestPosts.map((post) => (
           <PostListItem
-            slug={post.id}
+            slug={noteSlug(post)}
             title={post.data.title}
             description={post.data.description}
             pubDate={post.data.pubDate}

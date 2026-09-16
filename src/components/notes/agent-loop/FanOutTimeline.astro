@@ -4,8 +4,13 @@
 // diagram puts that moment on the axis and shows which requests start before it and which after.
 import { CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { fmtTokens, fmtUsd, fmtChange } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 import Figure from "./kit/Figure.astro";
 import Source from "./kit/Source.astro";
+
+const allUi = getAgentLoopUi(getLangFromUrl(Astro.url));
+const ui = allUi.fanOutTimeline;
 
 const COUNT = 8;
 const PREFIX_TOKENS = 40_000; // tools + system + a shared document, an assumed workload
@@ -28,14 +33,14 @@ interface Burst {
 const LANES = [
   {
     key: "together",
-    label: "all at once",
+    label: ui.laneLabels.together,
     bursts: [{ atSeconds: 0, mode: "write", count: COUNT }] as Burst[],
     usd: usdOf(COUNT, 0),
     tokEq: tokEqOf(COUNT, 0),
   },
   {
     key: "staggered",
-    label: "first, then the rest",
+    label: ui.laneLabels.staggered,
     bursts: [
       { atSeconds: 0, mode: "write", count: 1 },
       { atSeconds: ASSUMED_WAIT_SECONDS, mode: "read", count: COUNT - 1 },
@@ -49,12 +54,12 @@ const at = (seconds: number) => `${((seconds / AXIS_SECONDS) * 100).toFixed(2)}%
 const saving = fmtChange(LANES[1].usd, LANES[0].usd);
 ---
 
-<Figure question="Does firing 8 parallel requests cache 8 times?" basis="assumed">
+<Figure question={ui.question} basis="assumed">
   <div class="fo">
     <div class="fo-axis" aria-hidden="true">
       <span class="fo-tick" style={`left: ${at(0)}`}>0 s</span>
       <span class="fo-tick fo-tick-focal" style={`left: ${at(ASSUMED_WAIT_SECONDS)}`}>
-        {ASSUMED_WAIT_SECONDS} s<span class="fo-tick-sep"> · </span><span class="fo-tick-note">first response begins</span>
+        {ASSUMED_WAIT_SECONDS} s<span class="fo-tick-sep"> · </span><span class="fo-tick-note">{ui.firstResponseBegins}</span>
       </span>
     </div>
 
@@ -76,8 +81,7 @@ const saving = fmtChange(LANES[1].usd, LANES[0].usd);
                     {b.count} × {b.mode === "write" ? "1.25×" : "0.1×"}
                   </span>
                   <span class="sr-only">
-                    {b.count === 1 ? "1 request" : `${b.count} requests`} at {b.atSeconds} s{" "}
-                    {b.mode === "write" ? "write the prefix at 1.25×" : "read the prefix at 0.1×"}.
+                    {b.mode === "write" ? ui.writeAt(b.count, b.atSeconds) : ui.readAt(b.count, b.atSeconds)}
                   </span>
                 </span>
               ))}
@@ -93,15 +97,17 @@ const saving = fmtChange(LANES[1].usd, LANES[0].usd);
   </div>
 
   <ul class="alc-legend" aria-hidden="true">
-    <li><span class="fo-swatch write" />writes the {fmtTokens(PREFIX_TOKENS)} prefix (1.25×)</li>
-    <li><span class="fo-swatch read" />reads it from cache (0.1×)</li>
-    <li class="fo-note">staggering: {saving}</li>
+    <li><span class="fo-swatch write" />{ui.legend.writes(fmtTokens(PREFIX_TOKENS))}</li>
+    <li><span class="fo-swatch read" />{ui.legend.reads}</li>
+    <li class="fo-note">{ui.legend.staggering(saving)}</li>
   </ul>
 
-  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }, { href: SOURCES.pricing, label: "pricing" }]} asOf={FACTS_AS_OF}>
-    Assumption: 8 requests sharing a 40,000-token prefix (tools, system, and a shared document); the
-    8-second wait for the first response to begin is illustrative, not documented. Rule: a cache
-    entry becomes available only after the first response begins.
+  <Source
+    slot="caption"
+    links={[{ href: SOURCES.caching, label: allUi.sourceLinks.caching }, { href: SOURCES.pricing, label: allUi.sourceLinks.pricing }]}
+    asOf={FACTS_AS_OF}
+  >
+    {ui.source}
   </Source>
 </Figure>
 

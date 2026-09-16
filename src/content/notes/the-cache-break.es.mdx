@@ -1,0 +1,193 @@
+---
+title: "El quiebre del caché"
+description: "Una tool que tarda 5 segundos más que la vida útil de 5 minutos del caché de Claude convierte un descuento del 80% en una penalización del 24%. Calculé ese quiebre y otros cuatro — el piso de tokens, la jerarquía de invalidación, la ventana de 20 bloques y el fan-out paralelo — a partir de reglas documentadas por Anthropic, sin adivinar."
+pubDate: 2026-09-15
+tags: ["claude", "cache-de-prompts", "ingenieria-de-contexto", "agentes-ia", "costos"]
+draft: false
+lang: "es"
+translationKey: "the-cache-break"
+collection: "engineering-notes"
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import CacheBreakEven from "../../components/notes/agent-loop/CacheBreakEven.astro";
+import InvalidationCascade from "../../components/notes/agent-loop/InvalidationCascade.astro";
+import LookbackWindow from "../../components/notes/agent-loop/LookbackWindow.astro";
+import FanOutTimeline from "../../components/notes/agent-loop/FanOutTimeline.astro";
+import ClearingCost from "../../components/notes/agent-loop/ClearingCost.astro";
+import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
+
+El caché de prompts de Claude lee un prefijo repetido a una décima parte de su precio. [El bucle cuadrático](/es/notes/the-quadratic-loop) ya mostró por qué el historial de un agente crece con el cuadrado de la cantidad de requests. Esta nota toma ese crecimiento como dado y hace una pregunta más acotada: ¿qué hace realmente el caché con el precio y dónde deja de ayudar en silencio?
+
+<Callout type="note" title="Cómo leer los números">
+**Calculado** significa una fórmula aplicada a valores documentados, con el mismo motor que usa El bucle cuadrático. **Documentado** significa que el valor tiene un enlace a la documentación de Anthropic, consultada al 2026-09-15. **Supuesto** significa que elegí el workload o que la documentación no especifica ese comportamiento. Nada de esto modela la calidad de las respuestas.
+</Callout>
+
+## El descuento
+
+Un request con caché es una pila de bloques — `tools`, luego `system` y luego `messages` — y la [documentación de prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) calcula cada bloque de tres maneras: leerlo desde el caché a 0.1× del precio base de entrada, escribirlo a 1.25× con el caché de 5 minutos o a 2× con el caché de 1 hora, o pagar el precio completo de 1× si nunca estuvo cacheado. No colocás estos marcadores a mano en cada bloque: un campo `cache_control` de nivel superior en el request hace que el sistema coloque el breakpoint en el último bloque cacheable.
+
+En el loop de 30 requests de la nota 1, ese descuento baja el costo de $3.41 sin caché a $0.69 con un caché de 5 minutos: un 80% menos, para los mismos 1,64 millones de tokens de entrada. El caché no convierte la curva cuadrática en lineal. Hace que cada punto de la curva sea más barato.
+
+Ese es el caso en que el caché se comporta como esperás. El resto de esta nota trata sobre las cinco formas documentadas en que deja de hacerlo.
+
+## Trampa 1: el reloj empieza en el extremo equivocado
+
+La vida útil de 5 minutos no empieza cuando termina tu última respuesta. Empieza «desde el inicio del request que escribe o lee la entrada de caché», y el tiempo de generación cuenta: la documentación da un ejemplo concreto en el que una respuesta tarda 4 minutos en transmitirse, por lo que al cliente le queda cerca de un minuto para enviar el siguiente request antes de que la entrada expire. Si tu tool es lenta o la salida del modelo es larga, podés consumir el TTL antes de ver el resultado.
+
+Esta es la forma de la trampa: con 20 segundos entre requests, el caché de 5 minutos es la opción barata. Con 5 minutos y 5 segundos, es la opción cara, porque la entrada siempre desaparece antes de que el siguiente request la necesite. Cada request vuelve a escribir todo su historial a 1.25×.
+
+<CacheBreakEven />
+
+Como cada request espera la misma cantidad de segundos, esto no es una pendiente que puedas ajustar: es un salto. Por debajo del TTL, el caché acierta en todos los requests y el loop cuesta $0.69. Un segundo después, falla en todos los requests y el loop cuesta $4.23: un 24% más que sin caché. No hay crédito parcial por quedar cerca.
+
+El caché de 1 hora evita toda la pregunta: cuesta $0.84 sin importar cuánto tarde la tool, porque 15 minutos no se acercan a agotar una vida útil de 1 hora. Ese es el intercambio. Pagás una escritura fija de 2× en lugar de una escritura condicional de 1.25×, a cambio de no tener que conocer la velocidad de tus tools.
+
+## Trampa 2: los prefijos cortos no entran al caché
+
+Por debajo de una longitud mínima, un prefijo no se cachea y la API no te avisa:
+
+| Modelo | Prefijo mínimo cacheable |
+|---|---|
+| Claude Opus 5 | 512 tokens |
+| Claude Sonnet 5 | 1.024 tokens |
+| Claude Haiku 4.5 | 4.096 tokens |
+
+«Cualquier request que intente cachear menos tokens que este número se procesa sin caché y no devuelve ningún error», según la [documentación del caché](https://platform.claude.com/docs/en/build-with-claude/prompt-caching). La misma documentación indica la única señal: si `cache_creation_input_tokens` y `cache_read_input_tokens` son ambos 0, el prompt no se cacheó. Un prefijo de 500 tokens en Sonnet 5, cuyo piso es 1.024, es exactamente ese caso.
+
+El orden acá es inverso a lo que esperaba. Haiku 4.5 es el modelo que elegirías cuando buscás algo barato y rápido, pero tiene el piso más alto de los tres: 4 veces el de Sonnet y 8 veces el de Opus. Un system prompt corto y un par de definiciones de tools pequeñas que entrarían al caché en Opus 5 pueden no entrar nunca en Haiku 4.5, sin ningún aviso.
+
+## Trampa 3: la jerarquía invalida lo que sigue
+
+La pila de tres bloques — `tools`, `system` y `messages` — también es un orden de dependencias. «La jerarquía del caché sigue `tools` → `system` → `messages`. Los cambios en cada nivel invalidan ese nivel y todos los niveles siguientes», según la documentación. Algunos cambios tienen un alcance más estrecho: `tool_choice` y agregar o quitar imágenes solo afectan los bloques de mensajes, nunca tools ni system, sin importar cuándo ocurran.
+
+Calculé ese efecto en el request 20 del loop de 30 requests, con un caché de 5 minutos ya activo:
+
+<InvalidationCascade />
+
+Agregar un resultado de tool —el caso normal, en cada turno del loop— lee casi todo desde el caché y escribe solo la cola nueva: $0.026. Cambiar `tool_choice` invalida cada bloque de messages, por lo que todo el segmento de 65.000 tokens de messages se vuelve a escribir a 1.25× aunque no haya cambiado nada: $0.168, 6,5 veces el costo del request normal. Editar el system prompt invalida system y todo lo que sigue, y deja solo el bloque de tools de 3.000 tokens en caché: $0.172, 6,7 veces. Editar una definición de tool invalida todo el prefijo: no se lee nada desde el caché y el costo llega a $0.179, 6,9 veces.
+
+Ninguna de estas operaciones es exótica. Un feature flag que cambia `tool_choice` entre turnos o un system prompt que concatena una variable que cambia por sesión paga este múltiplo en cada request posterior al cambio, mientras la nueva versión del caché siga activa.
+
+| Qué cambió | Caché de tools | Caché de system | Caché de messages |
+|---|---|---|---|
+| Definiciones de tools | invalidado | invalidado | invalidado |
+| Cambio de búsqueda web | válido | invalidado | invalidado |
+| Cambio de citas | válido | invalidado | invalidado |
+| Configuración de velocidad (`fast` / standard) | válido | invalidado | invalidado |
+| `tool_choice` | válido | válido | invalidado |
+| Imágenes agregadas o quitadas | válido | válido | invalidado |
+| Parámetros de thinking | depende del modelo | depende del modelo | invalidado |
+| Configuración de `effort` | depende del modelo | depende del modelo | invalidado |
+
+Fuente: [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), consultada al 2026-09-15.
+
+## Trampa 4: la búsqueda hacia atrás solo revisa 20 posiciones
+
+Incluso una entrada de caché que no fue tocada puede fallar. El sistema no recorre todo el historial para encontrar una entrada coincidente: revisa «como máximo 20 posiciones por breakpoint, contando el breakpoint como la primera», y se detiene si no encuentra nada. El ejemplo de la documentación es un turno con 35 bloques que revisa las posiciones 35 a 16; una entrada escrita en el bloque 15 queda a una posición de distancia de la ventana y falla, aunque siga viva.
+
+Hay algo que te da más espacio dentro de ese presupuesto: «una secuencia de bloques `tool_use` consecutivos cuenta como una posición, y lo mismo ocurre con una secuencia de bloques `tool_result` consecutivos». Un turno que dispara cinco llamadas de tool en paralelo consume la misma posición que un turno que dispara una.
+
+<LookbackWindow />
+
+Redibujé el ejemplo de la documentación con llamadas de tools paralelas en lugar de secuenciales (es una reconstrucción mía, no un ejemplo de la documentación), y la entrada que quedaba una posición fuera en el caso secuencial queda en la posición 5 de 20 en el caso paralelo: entra cómodamente, con espacio de sobra. Las llamadas de tools secuenciales consumen el presupuesto de búsqueda hacia atrás a razón de una posición por llamada. Las paralelas consumen una posición por turno, sin importar cuántas llamadas haya.
+
+La solución cuando una conversación supera las 20 posiciones entre escrituras de caché es poner un breakpoint explícito con la frecuencia suficiente para que ningún intervalo supere la ventana. Hay hasta 4 por request, y ese límite se comparte con el caché automático: «si ya existen 4 breakpoints explícitos a nivel de bloque, la API devuelve un error 400», porque no reserva un quinto lugar para el breakpoint automático.
+
+## Trampa 5: los requests paralelos no paralelizan el caché
+
+«Una entrada de caché recién queda disponible después de que empieza la primera respuesta», dice la documentación, y también indica qué hacer: «si necesitás aciertos de caché para requests paralelos, esperá la primera respuesta antes de enviar los siguientes». Lanzar de una vez un fan-out de requests con el mismo prefijo significa que ninguno puede leer una entrada mientras otro todavía la está escribiendo: todos pasan de largo frente al único request que podía crearla.
+
+Supongamos 8 requests paralelos que comparten un prefijo de 40.000 tokens —tools, system prompt y un documento de referencia compartido, el tipo de configuración que produciría un coordinador al entregar el mismo contexto a 8 subagentes:
+
+<FanOutTimeline />
+
+Si los lanzás juntos, los 8 escriben el prefijo a 1.25×: 400.000 tokens equivalentes, $0.80. Esperá a que empiece la primera respuesta —supongo 8 segundos, porque la documentación no dice cuánto tarda— y solo ese primer request escribe; los otros 7 leen a 0.1×: 78.000 tokens equivalentes, $0.156. Es un 80% menos, a cambio de una espera de 8 segundos antes de lanzar los otros 7.
+
+Este es el fan-out de subagentes de [Cuatro loops cortos](/es/notes/four-short-loops), visto desde el lado del caché y no desde el conteo de tokens. Separar el trabajo lo abarata de las dos formas. Espaciar el inicio abarata además el prefijo compartido.
+
+## Palanca 1: la edición de contexto rompe el caché a propósito
+
+Hasta acá, cada trampa te quitó el descuento por accidente. La [edición de contexto](https://platform.claude.com/docs/en/build-with-claude/context-editing) lo gasta a propósito para evitar que el contexto crezca sin límite. La estrategia `clear_tool_uses_20250919` se activa cuando el prompt supera un `trigger` (100.000 tokens por defecto), reemplaza resultados de tools antiguos por un marcador y conserva intactos los pares más recientes definidos por `keep` (3 por defecto). `exclude_tools` puede proteger tools específicas para que nunca se limpien; `clear_tool_inputs` (desactivado por defecto) también limpia los parámetros de la llamada, además de su resultado.
+
+La documentación es directa sobre el costo: «limpiar resultados de tools invalida los prefijos de prompt cacheados cuando se limpia contenido. Para tenerlo en cuenta, limpiá suficientes tokens para que la invalidación del caché valga la pena». Para eso existe `clear_at_least`: saltea una pasada de limpieza si no liberaría al menos esa cantidad de tokens.
+
+Ejecuté el workload de 60 requests y resultados de 4.000 tokens de la nota 1 con un caché de 5 minutos, y el parámetro `keep` por sí solo mueve el costo de $2.69 a $4.59: `keep: 1` cuesta $2.69, el valor predeterminado `keep: 3` cuesta $3.45 y `keep: 6` cuesta $4.59. Conservar más resultados recientes parece estrictamente más seguro para el modelo. No es gratis: un request que limpia vuelve a escribir todo lo que sigue al prompt, y cada resultado conservado hace más grande esa escritura.
+
+<ClearingCost />
+
+Sin configurar `clear_at_least`, algo se limpia en 38 de los 60 requests —una cantidad pequeña cada vez— y cada uno de esos 38 requests solo puede leer desde el caché el prompt de 5.500 tokens; el resto del contexto, entre 21.000 y 36.000 tokens según cuánto haya crecido el loop, se vuelve a escribir a 1.25×. El total, $3.45, es un 39% mayor que no editar nada ($2.47). Configurar `clear_at_least` en 20.000 tokens reduce las pasadas de limpieza de 38 pequeñas a 7 agrupadas, y la mayoría de los requests vuelve a leer desde el caché: $1.79, un 27% menos que sin editar.
+
+Dos cosas de este análisis son supuestos míos y no de la documentación: un resultado limpio deja un marcador de 10 tokens, y la limpieza invalida solo desde el primer bloque limpiado en adelante, por lo que un request todavía lee la entrada de caché escrita antes de ese punto. Si la invalidación real alcanza más atrás, la configuración predeterminada se ve peor de lo que muestra esta nota, no mejor.
+
+Existe otra estrategia para el mismo objetivo sobre bloques de thinking: `clear_thinking_20251015` limpia los turnos anteriores de thinking con un valor predeterminado de `keep` que varía según el modelo. Opus 4.5 o posterior y Sonnet 4.6 o posterior conservan por defecto todo el thinking anterior; las versiones anteriores de Opus y Sonnet y todos los modelos Haiku conservan solo el último turno. Cualquiera de las dos estrategias informa qué hizo en la respuesta: `context_management.applied_edits[]` enumera `cleared_tool_uses`, `cleared_thinking_turns` y `cleared_input_tokens` por edición, para que no tengas que inferirlo a partir de la factura.
+
+## Palanca 2: la compactación rompe más y oculta el costo
+
+La edición de contexto adelgaza los resultados de tools, pero deja todo lo demás en pie. La [compactación](https://platform.claude.com/docs/en/build-with-claude/compaction) reemplaza todo el historial por un resumen. `compact_20260112` se activa cuando el prompt llega a 150.000 tokens por defecto. Podés bajarlo, pero no por debajo de un mínimo de 50.000 tokens. Escribe un resumen y la API elimina todo lo anterior. No está disponible en Haiku 4.5.
+
+En el workload de 80 requests con resultados de 5.000 tokens, el historial sin compactar alcanza 432.100 tokens y cuesta $4.81. Con la compactación en su disparador predeterminado, el loop se compacta dos veces, nunca supera 154.300 tokens y cuesta $2.68.
+
+<CompactionSawtooth />
+
+La documentación recomienda un breakpoint `cache_control` al final del system prompt específicamente para que «siga siendo válido y se lea desde el caché» después de un evento de compactación, de modo que solo el resumen tenga que escribirse de nuevo. En este workload, el breakpoint vale $2.68 frente a $2.71 sin él: la diferencia es pequeña porque el prefijo compartido tiene solo 5.500 tokens y la compactación ocurre dos veces. Un system prompt más grande o un workload que se compacte con más frecuencia ampliaría la diferencia.
+
+La trampa está en cómo se factura la compactación. La pasada de sumarización se factura como cualquier otro trabajo y aparece como una entrada propia en el array separado `usage.iterations[]`. Los campos de nivel superior `usage.input_tokens` y `usage.output_tokens` la excluyen de forma intencional: «reflejan la suma de todas las iteraciones que no son de compactación». En el workload de 80 requests, las dos pasadas de compactación representan 305.600 tokens de entrada, 7.000 tokens de salida y $0.15 de los $2.68 totales. Un tracker de costos que solo lee los campos de nivel superior no los incluye: los totales reales son 5% mayores para tokens de entrada, 22% mayores para tokens de salida y 6% mayores para el costo que lo que informa. El número no está mal. Es el número equivocado para sumar.
+
+## Medilo en producción
+
+Todos los números anteriores vienen de una simulación de reglas documentadas, no de una cuenta real. En producción, el objeto `usage` del request es la fuente de verdad: `cache_creation_input_tokens` (lo escrito en este request), `cache_read_input_tokens` (lo leído en este request) e `input_tokens` (lo que no pertenece a ninguno de los dos: contenido nuevo sin caché), con un desglose por TTL disponible en `cache_creation.ephemeral_5m_input_tokens` y `cache_creation.ephemeral_1h_input_tokens`.
+
+La documentación no da una fórmula única con nombre para la tasa de aciertos, por lo que esto es una deducción y no una cita: la fracción de los tokens procesados que vino del caché es
+
+```
+hit_rate =
+  cache_read_input_tokens /
+  (cache_read_input_tokens + cache_creation_input_tokens + input_tokens)
+```
+
+y —por la trampa anterior— un request que usa compactación necesita calcular esa misma suma una vez por cada entrada de `usage.iterations[]`, y no solo con los campos de nivel superior:
+
+```ts
+interface Iteration {
+  type: string;
+  input_tokens: number;
+}
+interface Usage {
+  input_tokens: number;
+  cache_read_input_tokens: number;
+  cache_creation_input_tokens: number;
+  iterations?: Iteration[];
+}
+
+function logUsage(usage: Usage) {
+  const { cache_read_input_tokens: read, cache_creation_input_tokens: write } = usage;
+  const total = read + write + usage.input_tokens;
+  const hitRate = total ? read / total : 0;
+
+  const compactionInput = (usage.iterations ?? [])
+    .filter((it) => it.type === "compaction")
+    .reduce((sum, it) => sum + it.input_tokens, 0);
+
+  console.log({ total, hitRate, compactionInput });
+}
+```
+
+Hay otro multiplicador que conviene conocer, separado de todo esto: la Batch API cobra un 50% menos por los tokens de entrada y salida, y ese descuento «se puede combinar» con el prompt caching. No elimina ninguna de las trampas anteriores: un request en batch todavía tiene un piso, una jerarquía y una ventana de búsqueda hacia atrás. Es un descuento para trabajo que puede esperar, no una solución para el loop.
+
+## Qué me llevo
+
+- **El caché es una función escalonada, no una perilla.** Una tool que está 5 segundos por debajo del TTL y otra que está 5 segundos por encima tienen costos completamente distintos: $0.69 frente a $4.23 en el loop de 30 requests, aunque el workload no cambie.
+- **El piso falla en silencio.** Por debajo del mínimo —4.096 tokens en Haiku 4.5, el mayor de los tres modelos— un request no se cachea y la API no dice nada. Tener `cache_creation_input_tokens` y `cache_read_input_tokens` en 0 es la única señal.
+- **La jerarquía hace que el cambio más barato y el más caro parezcan iguales en el lugar donde se llama.** Cambiar `tool_choice` (6,5 veces) y editar una definición de tool (6,9 veces) son cambios de una línea; solo uno invalida todo.
+- **El paralelismo no es gratis, aunque el trabajo sí lo sea.** Lanzar un fan-out de una vez cuesta 5 veces más sobre el prefijo compartido que esperar a que empiece la primera respuesta. El ahorro del 80% existe solo si esperás.
+- **Cada palanca que achica el contexto también rompe el caché, y la ruptura puede costar más que el ahorro.** En este workload, editar el contexto sin `clear_at_least` costó 39% más que no editar nada; configurarlo produjo un 27% menos.
+- **La factura propia de la compactación se esconde en otro array.** En un workload de 80 requests que se compacta dos veces, el costo real es 6% mayor y la salida real es 22% mayor que lo que informan los campos `usage` de nivel superior.
+
+<Callout type="rule" title="La regla">
+Antes de usar una palanca que achique el contexto, calculá qué efecto tiene sobre el caché. La reducción suele ser real. Que también sea más barata depende de cuánto del prefijo sobreviva.
+</Callout>
+
+Este modelo calcula precios a partir de reglas documentadas y workloads que elegí, no de una cuenta real. Ignora tokens de thinking, tokenización real, límites de velocidad y la interacción entre batching y las cinco trampas anteriores. Los precios son los de Claude Sonnet 5 al 2026-09-15, y Anthropic puede cambiar cualquiera de estas funcionalidades beta. La edición de contexto y la compactación usan nombres de estrategia con fecha por una razón. Ejecutá tu propio workload con el mismo motor antes de confiar en un número de este modelo.
+
+El caché es la palanca más barata de todo este sistema, hasta que una de cinco reglas documentadas lo desactiva sin avisarte. Revisá cuál aplica antes de darlo por activo.

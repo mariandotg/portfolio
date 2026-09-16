@@ -2,6 +2,8 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD, MAX_TURNS } from "./workloads";
 import { fmtTokens } from "./format";
+import type { Lang } from "@/i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 
 const INITIAL_TURNS = 30;
 const MIN_TURNS = 2;
@@ -32,7 +34,12 @@ const ghostPolygon = [
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export default function LoopTriangle() {
+interface Props {
+  lang?: Lang;
+}
+
+export default function LoopTriangle({ lang = "en" }: Props) {
+  const copy = getAgentLoopUi(lang).loopTriangle;
   const id = useId();
   const [turns, setTurns] = useState(INITIAL_TURNS);
   const [playing, setPlaying] = useState(false);
@@ -77,26 +84,25 @@ export default function LoopTriangle() {
   return (
     <div data-alc-shots="15,30,60,120">
       <div className="alc-headline">
-        <span className="alc-big">{fmtTokens(t.inputTokens)} input tokens</span>
-        <span className="alc-delta bad">{(t.inputTokens / last.contextTokens).toFixed(1)}× the final context</span>
+        <span className="alc-big">{fmtTokens(t.inputTokens)} {copy.inputTokens}</span>
+        <span className="alc-delta bad">{(t.inputTokens / last.contextTokens).toFixed(1)}× {copy.finalContext}</span>
       </div>
       <p className="alc-sub">
-        The last request sends <strong>{fmtTokens(last.contextTokens)}</strong>.
+        {copy.lastRequestSends} <strong>{fmtTokens(last.contextTokens)}</strong>.
         {turns >= 4 && (
           <>
-            {" "}
-            Half the loop ({Math.floor(turns / 2)} requests) bills {fmtTokens(half.totals.inputTokens)}: twice the requests,{" "}
-            <strong>{growth.toFixed(1)}×</strong> the tokens.
+            {" "}{copy.halfLoopPrefix(Math.floor(turns / 2), fmtTokens(half.totals.inputTokens))}
+            <strong>{growth.toFixed(1)}×</strong>{copy.halfLoopSuffix}
           </>
         )}
       </p>
 
-      {showGhostLabel && <p className="lt-toplabel">{MAX_TURNS} requests</p>}
+      {showGhostLabel && <p className="lt-toplabel">{MAX_TURNS} {copy.requests}</p>}
 
       <div
         className="lt-chart"
         role="img"
-        aria-label={`${turns} requests. Each bar is the context one request sends; the last one sends ${fmtTokens(last.contextTokens)} tokens. The total area, ${fmtTokens(t.inputTokens)} input tokens, is what the loop sends in total.`}
+        aria-label={copy.aria(turns, fmtTokens(last.contextTokens), fmtTokens(t.inputTokens))}
       >
         <div className="lt-ghost" style={{ clipPath: `polygon(${ghostPolygon})` }} aria-hidden="true" />
         <div
@@ -127,22 +133,22 @@ export default function LoopTriangle() {
         </span>
       </div>
       <div className="lt-axis" aria-hidden="true">
-        <span>request 1</span>
-        <span>request →</span>
+        <span>{copy.requestOne}</span>
+        <span>{copy.requestArrow}</span>
       </div>
 
       <ul className="alc-legend">
         <li>
-          <span className="alc-swatch" style={{ background: "var(--alc-new)" }} /> new this request
+          <span className="alc-swatch" style={{ background: "var(--alc-new)" }} /> {copy.newThisRequest}
         </li>
         <li>
-          <span className="alc-swatch" style={{ background: "var(--alc-resent)" }} /> sent again
+          <span className="alc-swatch" style={{ background: "var(--alc-resent)" }} /> {copy.sentAgain}
         </li>
-        <li>area = input tokens billed</li>
+        <li>{copy.areaBilled}</li>
       </ul>
 
       <div className="alc-range">
-        <label htmlFor={id}>requests</label>
+        <label htmlFor={id}>{copy.rangeLabel}</label>
         <input
           id={id}
           type="range"
@@ -157,9 +163,9 @@ export default function LoopTriangle() {
         />
         <output htmlFor={id}>{turns}</output>
       </div>
-      <div className="alc-seg" role="group" aria-label="Animation">
+      <div className="alc-seg" role="group" aria-label={copy.animation}>
         <button type="button" aria-pressed={playing} onClick={() => setPlaying((p) => !p)}>
-          {playing ? "❚❚ pause" : "▶ run the loop"}
+          {playing ? copy.pause : copy.run}
         </button>
       </div>
     </div>

@@ -2,13 +2,13 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import PostListItem from "../../components/PostListItem.astro";
 import BackLink from "../../components/BackLink.astro";
-import { getCollection } from "astro:content";
 import { getLangFromUrl, useTranslations, getLocalizedPath, noteCollectionLabel } from "../../i18n/utils";
+import { getPublishedNotes, noteSlug } from "../../lib/notes";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
-const posts = await getCollection("notes", ({ data }) => !data.draft);
+const posts = await getPublishedNotes(lang);
 const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const notesHref = getLocalizedPath("/notes", lang);
@@ -69,7 +69,7 @@ const notesHref = getLocalizedPath("/notes", lang);
         {sorted.map((post) => (
           <div data-collection={post.data.collection} class="post-card">
             <PostListItem
-              slug={post.id}
+              slug={noteSlug(post)}
               title={post.data.title}
               description={post.data.description}
               pubDate={post.data.pubDate}

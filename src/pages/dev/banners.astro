@@ -1,17 +1,18 @@
 ---
 import { getCollection } from "astro:content";
+import { noteSlug } from "../../lib/notes";
 import { bannerSvg } from "@/lib/effects/banner";
 
 // Dev-only banner curation tool. Roll candidate seeds per post, save the one
 // you like into that post's frontmatter (bannerSeed). Not built in production.
 if (!import.meta.env.DEV) return new Response(null, { status: 404 });
 
-const posts = (await getCollection("notes")).sort(
+const posts = (await getCollection("notes", ({ data }) => data.lang === "en")).sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 
 const rows = posts.map((p) => ({
-  slug: p.id,
+  slug: noteSlug(p),
   title: p.data.title,
   draft: p.data.draft,
   seed: p.data.bannerSeed ?? "",

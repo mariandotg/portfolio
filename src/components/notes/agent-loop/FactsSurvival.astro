@@ -11,6 +11,9 @@ import Source from "./kit/Source.astro";
 import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
 import { fmtTokens } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+
+const isSpanish = getLangFromUrl(Astro.url) === "es";
 
 const run = simulate(compactionWith(COMPACTION_LIMITS.minTrigger));
 const N = COMPACTION_WORKLOAD.turns;
@@ -22,12 +25,12 @@ const segments = segStarts.map((start, i) => ({ start, end: segEnds[i] }));
 const lastSeg = segments.length - 1;
 
 const FACTS = [
-  { key: "order", label: "order number", introducedAt: 2 },
-  { key: "amount", label: "amount charged", introducedAt: 15 },
-  { key: "date", label: "purchase date", introducedAt: 30 },
-  { key: "status", label: "case status", introducedAt: 45 },
-  { key: "refund", label: "refund promised", introducedAt: 63 },
-  { key: "deadline", label: "refund deadline", introducedAt: 76 },
+  { key: "order", label: isSpanish ? "número de pedido" : "order number", introducedAt: 2 },
+  { key: "amount", label: isSpanish ? "importe cobrado" : "amount charged", introducedAt: 15 },
+  { key: "date", label: isSpanish ? "fecha de compra" : "purchase date", introducedAt: 30 },
+  { key: "status", label: isSpanish ? "estado del caso" : "case status", introducedAt: 45 },
+  { key: "refund", label: isSpanish ? "reembolso prometido" : "refund promised", introducedAt: 63 },
+  { key: "deadline", label: isSpanish ? "fecha límite del reembolso" : "refund deadline", introducedAt: 76 },
 ] as const;
 
 const segmentOf = (requestIndex: number) => segments.findIndex((s) => requestIndex >= s.start && requestIndex <= s.end);
@@ -56,32 +59,43 @@ const CASE_FACTS_BLOCK_TOKENS = 30 * FACTS.length;
 // position, this carries it in words for a screen reader.
 const rowSentence = (panel: PanelKey, f: (typeof facts)[number]) => {
   if (panel === "casefacts") {
-    return `verbatim in the case facts block from request ${f.introducedAt} through request ${N}.`;
+    return isSpanish
+      ? `textual en el bloque de datos del caso desde la solicitud ${f.introducedAt} hasta la solicitud ${N}.`
+      : `verbatim in the case facts block from request ${f.introducedAt} through request ${N}.`;
   }
   if (f.introSeg === lastSeg) {
-    return `introduced at request ${f.introducedAt}, still verbatim at request ${N}.`;
+    return isSpanish
+      ? `introducido en la solicitud ${f.introducedAt}, todavía textual en la solicitud ${N}.`
+      : `introduced at request ${f.introducedAt}, still verbatim at request ${N}.`;
   }
   const staleFrom = segments[f.introSeg].end + 1;
-  return `verbatim only right after request ${f.introducedAt}, then only in the summary from request ${staleFrom} through request ${N}.`;
+  return isSpanish
+    ? `textual solo después de la solicitud ${f.introducedAt}; luego solo está en el resumen desde la solicitud ${staleFrom} hasta la solicitud ${N}.`
+    : `verbatim only right after request ${f.introducedAt}, then only in the summary from request ${staleFrom} through request ${N}.`;
 };
 
 const FACT_COL_PCT = 22;
 const STRATEGY_COL_PCT = 9;
 const dataColPct = (100 - FACT_COL_PCT - STRATEGY_COL_PCT) / segments.length;
 
-const tableCaption = `Six case facts across ${N} requests, compacted ${compactionIndices.length} times: how many stay verbatim in context, kept only in the conversation history versus carried in a case facts block sent on every prompt.`;
+const tableCaption = isSpanish
+  ? `Seis datos de un caso en ${N} solicitudes, con ${compactionIndices.length} compactaciones: cuántos permanecen textuales en el contexto, solo en el historial de conversación frente a un bloque de datos del caso enviado en cada prompt.`
+  : `Six case facts across ${N} requests, compacted ${compactionIndices.length} times: how many stay verbatim in context, kept only in the conversation history versus carried in a case facts block sent on every prompt.`;
+const figureQuestion = isSpanish
+  ? "¿Cuántos datos de un caso de soporte llegan a la última solicitud?"
+  : "How many of a support case" + String.fromCharCode(39) + "s facts survive to the last request?";
 ---
 
-<Figure question="How many of a support case's facts survive to the last request?" basis="assumed">
+<Figure question={figureQuestion} basis="assumed">
   <div class="fs">
     <div class="fs-summary">
       <div class="fs-stat">
-        <span class="fs-stat-value">{historyCount} of {facts.length}</span>
-        <span class="fs-stat-label">verbatim &mdash; facts only in the history</span>
+        <span class="fs-stat-value">{historyCount} {isSpanish ? "de" : "of"} {facts.length}</span>
+        <span class="fs-stat-label">{isSpanish ? "textuales — solo datos en el historial" : "verbatim — facts only in the history"}</span>
       </div>
       <div class="fs-stat fs-stat-focal">
-        <span class="fs-stat-value">{casefactsCount} of {facts.length}</span>
-        <span class="fs-stat-label">verbatim &mdash; case facts block</span>
+        <span class="fs-stat-value">{casefactsCount} {isSpanish ? "de" : "of"} {facts.length}</span>
+        <span class="fs-stat-label">{isSpanish ? "textuales — bloque de datos del caso" : "verbatim — case facts block"}</span>
       </div>
     </div>
 
@@ -98,20 +112,20 @@ const tableCaption = `Six case facts across ${N} requests, compacted ${compactio
         <thead>
           <tr>
             <th scope="col" class="fs-corner">
-              <span class="sr-only">fact</span>
+              <span class="sr-only">{isSpanish ? "dato" : "fact"}</span>
             </th>
             <th scope="col" class="fs-corner">
-              <span class="sr-only">strategy</span>
+              <span class="sr-only">{isSpanish ? "estrategia" : "strategy"}</span>
             </th>
             {
               segments.map((s, i) => (
                 <th scope="col" class="fs-colhead">
-                  {i === 0 && <span class="fs-tick">req 1</span>}
+                  {i === 0 && <span class="fs-tick">{isSpanish ? "sol. 1" : "req 1"}</span>}
                   {i === segments.length - 1 && (
-                    <span class="fs-tick fs-tick-end">req {N}</span>
+                    <span class="fs-tick fs-tick-end">{isSpanish ? "sol." : "req"} {N}</span>
                   )}
                   <span class="sr-only">
-                    requests {s.start}&ndash;{s.end}
+                    {isSpanish ? "solicitudes" : "requests"} {s.start}&ndash;{s.end}
                   </span>
                 </th>
               ))
@@ -127,7 +141,8 @@ const tableCaption = `Six case facts across ${N} requests, compacted ${compactio
                     {f.label}
                   </th>
                   <th scope="row" class="fs-strategy">
-                    hist<span class="sr-only">ory &mdash; {rowSentence("history", f)}</span>
+                    <span aria-hidden="true">{isSpanish ? "hist." : "hist"}</span>
+                    <span class="sr-only">{isSpanish ? "historial —" : "history —"} {rowSentence("history", f)}</span>
                   </th>
                   {
                     segments.map((_, ci) => {
@@ -142,7 +157,8 @@ const tableCaption = `Six case facts across ${N} requests, compacted ${compactio
                 </tr>
                 <tr class:list={["fs-row", "fs-row-last", { "fs-row-alt": fi % 2 === 1 }]}>
                   <th scope="row" class="fs-strategy fs-strategy-focal">
-                    case<span class="sr-only"> facts &mdash; {rowSentence("casefacts", f)}</span>
+                    <span aria-hidden="true">{isSpanish ? "caso" : "case"}</span>
+                    <span class="sr-only">{isSpanish ? "datos del caso —" : "facts —"} {rowSentence("casefacts", f)}</span>
                   </th>
                   {
                     segments.map((_, ci) => {
@@ -165,18 +181,16 @@ const tableCaption = `Six case facts across ${N} requests, compacted ${compactio
 
   <Legend
     items={[
-      { tone: "new", label: "verbatim in context" },
-      { tone: "resent", label: "only in the summary, not guaranteed" },
-      { tone: "ghost", label: "not yet known" },
+      { tone: "new", label: isSpanish ? "textual en el contexto" : "verbatim in context" },
+      { tone: "resent", label: isSpanish ? "solo en el resumen, sin garantía" : "only in the summary, not guaranteed" },
+      { tone: "ghost", label: isSpanish ? "todavía desconocido" : "not yet known" },
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.compaction, label: "compaction docs" }]} asOf={FACTS_AS_OF}>
-    {facts.length} illustrative facts of one support case, placed at the request that introduces them. Compaction
-    trigger lowered to the documented minimum ({fmtTokens(COMPACTION_LIMITS.minTrigger)}) so the {N}-request loop
-    compacts {compactionIndices.length} times instead of 2. A case facts block assumes about{" "}
-    {fmtTokens(CASE_FACTS_BLOCK_TOKENS)} tokens for {facts.length} short facts. The table tracks what compaction
-    drops, never a probability that the summary kept a fact.
+  <Source slot="caption" links={[{ href: SOURCES.compaction, label: isSpanish ? "documentación de compactación" : "compaction docs" }]} asOf={FACTS_AS_OF}>
+    {isSpanish
+      ? `${facts.length} datos ilustrativos de un caso de soporte, colocados en la solicitud que los introduce. El umbral de compactación baja al mínimo documentado (${fmtTokens(COMPACTION_LIMITS.minTrigger)}), por lo que el bucle de ${N} solicitudes se compacta ${compactionIndices.length} veces en lugar de 2. Un bloque de datos del caso supone unos ${fmtTokens(CASE_FACTS_BLOCK_TOKENS)} tokens para ${facts.length} datos breves. La tabla muestra qué descarta la compactación, no la probabilidad de que el resumen conserve un dato.`
+      : `${facts.length} illustrative facts of one support case, placed at the request that introduces them. Compaction trigger lowered to the documented minimum (${fmtTokens(COMPACTION_LIMITS.minTrigger)}) so the ${N}-request loop compacts ${compactionIndices.length} times instead of 2. A case facts block assumes about ${fmtTokens(CASE_FACTS_BLOCK_TOKENS)} tokens for ${facts.length} short facts. The table tracks what compaction drops, never a probability that the summary kept a fact.`}
   </Source>
 </Figure>
 

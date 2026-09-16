@@ -7,8 +7,13 @@
 import { simulate, SOURCES, FACTS_AS_OF, CONTEXT_EDITING_DEFAULTS } from "@/lib/sim/agent-loop";
 import { EDITING_WORKLOAD, editingWith, BATCHED_CLEAR_AT_LEAST } from "./workloads";
 import { fmtTokens, fmtUsd, fmtChange } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
+import { getAgentLoopUi } from "./i18n";
 import Figure from "./kit/Figure.astro";
 import Source from "./kit/Source.astro";
+
+const allUi = getAgentLoopUi(getLangFromUrl(Astro.url));
+const ui = allUi.clearingCost;
 
 type StateKey = "each" | "batched";
 
@@ -47,37 +52,45 @@ function rowData(key: StateKey) {
   const clears = r.requests.filter((req) => req.clearedTokens > 0).length;
   const editedTotal = r.totals.costUsd;
   const tone = editedTotal < baseline.totals.costUsd ? "gain" : "loss";
-  const settingLabel = key === "each" ? "clear_at_least: 0" : `clear_at_least: ${fmtTokens(BATCHED_CLEAR_AT_LEAST)}`;
+  const settingLabel =
+    key === "each" ? ui.settingEach : ui.settingBatched(fmtTokens(BATCHED_CLEAR_AT_LEAST));
   const note =
     key === "each"
-      ? `${clears} of ${N} requests clear something. No cache entry ends where the edit happened, so each of those requests writes everything after the task again.`
-      : `Clearing happens in ${clears} batches. Most requests read the cache again.`;
+      ? ui.noteEach(clears, N)
+      : ui.noteBatched(clears);
   const bars = r.requests.map((req) => ({
     read: pct(req.cacheReadTokens),
     write: pct(req.cacheWriteTokens),
     uncached: pct(req.uncachedInputTokens),
   }));
-  const sr = `Tokens sent per request over ${N} requests, ${settingLabel}. ${note} Total cost ${fmtUsd(editedTotal)}, ${fmtChange(editedTotal, baseline.totals.costUsd)} vs no clearing. The full client history reaches ${fmtTokens(yMax)}; clearing keeps the prompt near the ${fmtTokens(trigger)} trigger.`;
+  const sr = ui.sr(
+    N,
+    settingLabel,
+    note,
+    fmtUsd(editedTotal),
+    fmtChange(editedTotal, baseline.totals.costUsd),
+    fmtTokens(yMax),
+    fmtTokens(trigger),
+  );
   return { key, settingLabel, editedTotal, tone, bars, sr };
 }
 
 const ROWS = (["each", "batched"] as StateKey[]).map(rowData);
 ---
 
-<Figure question="Why can clearing old tool results cost more than keeping them?" basis="assumed">
+<Figure question={ui.question} basis="assumed">
   <table class="cc">
     <caption class="sr-only">
-      Tokens sent per request over {N} requests, comparing clear_at_least: 0 against clear_at_least:{" "}
-      {fmtTokens(BATCHED_CLEAR_AT_LEAST)}, on the same 0–{fmtTokens(yMax)} token scale.
+      {ui.caption(N, fmtTokens(BATCHED_CLEAR_AT_LEAST), fmtTokens(yMax))}
     </caption>
     <thead>
       <tr>
-        <th scope="col" class="cc-setting">setting</th>
+        <th scope="col" class="cc-setting">{ui.setting}</th>
         <th scope="col" class="cc-chart-head">
-          <span aria-hidden="true">0–{fmtTokens(yMax)} tokens sent per request</span>
-          <span class="sr-only">tokens sent per request, stacked by cache read, cache write, and uncached input</span>
+          <span aria-hidden="true">{ui.scale(fmtTokens(yMax))}</span>
+          <span class="sr-only">{ui.srScale}</span>
         </th>
-        <th scope="col" class="cc-cost">cost</th>
+        <th scope="col" class="cc-cost">{ui.cost}</th>
       </tr>
     </thead>
     <tbody>
@@ -119,7 +132,7 @@ const ROWS = (["each", "batched"] as StateKey[]).map(rowData);
         <td class="cc-chart-cell">
           <div class="cc-axis" aria-hidden="true">
             <span>1</span>
-            <span class="cc-axis-title">request →</span>
+            <span class="cc-axis-title">{ui.requestAxis}</span>
             <span>{N}</span>
           </div>
         </td>
@@ -129,16 +142,15 @@ const ROWS = (["each", "batched"] as StateKey[]).map(rowData);
   </table>
 
   <ul class="alc-legend" aria-hidden="true">
-    <li><span class="alc-swatch" style="background: var(--alc-read)" />read from cache (0.1×)</li>
-    <li><span class="alc-swatch" style="background: var(--alc-write)" />written to cache (1.25×)</li>
-    <li><span class="cc-line cc-line-ghost" />history without clearing</li>
-    <li><span class="cc-line cc-line-trigger" />trigger {fmtTokens(trigger)}</li>
+    <li><span class="alc-swatch" style="background: var(--alc-read)" />{ui.legend.read}</li>
+    <li><span class="alc-swatch" style="background: var(--alc-write)" />{ui.legend.write}</li>
+    <li><span class="cc-line cc-line-ghost" />{ui.legend.history}</li>
+    <li><span class="cc-line cc-line-trigger" />{ui.legend.trigger(fmtTokens(trigger))}</li>
   </ul>
 
-  <Source slot="caption" links={[{ href: SOURCES.contextEditing, label: "context editing" }]} asOf={FACTS_AS_OF}>
-    <code>clear_tool_uses_20250919</code> defaults: 100k-token trigger, keep the last 3 results.
-    Clearing invalidates the cached prefix. Assumption: a cleared result leaves a 10-token placeholder, and only the cleared blocks change, so a
-    request still reads the last cache entry written before the first of them.
+  <Source slot="caption" links={[{ href: SOURCES.contextEditing, label: allUi.sourceLinks.contextEditing }]} asOf={FACTS_AS_OF}>
+    <code>clear_tool_uses_20250919</code> {ui.sourceDefaults}
+    {ui.sourceAfterCode}
   </Source>
 </Figure>
 

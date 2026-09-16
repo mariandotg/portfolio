@@ -10,6 +10,7 @@ import DataTable from "./kit/DataTable.astro";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtTokens, fmtChange, fmtSeconds } from "./format";
+import { getLangFromUrl } from "../../../i18n/utils";
 
 const r = simulateMultiAgent(SUBAGENT_WORKLOAD, {
   count: SUBAGENTS.count,
@@ -29,22 +30,36 @@ const toolCalls = SUBAGENTS.count * (SUBAGENTS.turnsEach - 1);
 const toolResultsTotal = toolCalls * SUBAGENT_WORKLOAD.toolResultTokens;
 const summariesTotal = SUBAGENTS.count * SUBAGENTS.resultTokens;
 
-const ariaLabel = `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and sends ${fmtTokens(singleTokens)} input tokens in total. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team sends ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
+const isSpanish = getLangFromUrl(Astro.url) === "es";
+const ariaLabel = isSpanish
+  ? `Las alturas de las barras son el contexto que envía cada solicitud. Un agente que hace 56 llamadas de herramienta en un solo bucle alcanza ${fmtTokens(singlePeak)} tokens y envía ${fmtTokens(singleTokens)} tokens de entrada en total. Cuatro subagentes que hacen el mismo trabajo en paralelo alcanzan ${fmtTokens(r.subagents[0].totals.peakContextTokens)} cada uno; el coordinador alcanza ${fmtTokens(r.coordinator.totals.peakContextTokens)}, y el equipo envía ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`
+  : `Bar heights are the context each request sends. One agent making 56 tool calls in a single loop peaks at ${fmtTokens(singlePeak)} tokens and sends ${fmtTokens(singleTokens)} input tokens in total. Four subagents doing the same tool work in parallel peak at ${fmtTokens(r.subagents[0].totals.peakContextTokens)} each, the coordinator peaks at ${fmtTokens(r.coordinator.totals.peakContextTokens)}, and the team sends ${fmtTokens(teamTokens)}, ${fmtChange(teamTokens, singleTokens)}.`;
 ---
 
-<Figure question="Why do four short loops send fewer tokens than one long one?" basis="calculated">
-  <Stat value={fmtTokens(teamTokens)} unit="input tokens" delta={fmtChange(teamTokens, singleTokens)} tone="gain">
-    Same tool work. Dispatched in parallel, the team finishes in <strong>{fmtSeconds(r.totals.durationSeconds)}</strong>{" "}
-    instead of <strong>{fmtSeconds(r.single.totals.durationSeconds)}</strong>. The coordinator reads{" "}
-    <strong>{fmtTokens(summariesTotal)}</strong> of summaries, not <strong>{fmtTokens(toolResultsTotal)}</strong> of
-    tool results.
+<Figure question={isSpanish ? "¿Por qué cuatro bucles cortos envían menos tokens que uno largo?" : "Why do four short loops send fewer tokens than one long one?"} basis="calculated">
+  <Stat value={fmtTokens(teamTokens)} unit={isSpanish ? "tokens de entrada" : "input tokens"} delta={fmtChange(teamTokens, singleTokens)} tone="gain">
+    {isSpanish ? (
+      <>
+        El trabajo de herramientas es el mismo. En paralelo, el equipo termina en <strong>{fmtSeconds(r.totals.durationSeconds)}</strong>{" "}
+        en lugar de <strong>{fmtSeconds(r.single.totals.durationSeconds)}</strong>. El coordinador lee{" "}
+        <strong>{fmtTokens(summariesTotal)}</strong> tokens de resúmenes, no <strong>{fmtTokens(toolResultsTotal)}</strong> tokens de
+        resultados de herramientas.
+      </>
+    ) : (
+      <>
+        Same tool work. Dispatched in parallel, the team finishes in <strong>{fmtSeconds(r.totals.durationSeconds)}</strong>{" "}
+        instead of <strong>{fmtSeconds(r.single.totals.durationSeconds)}</strong>. The coordinator reads{" "}
+        <strong>{fmtTokens(summariesTotal)}</strong> of summaries, not <strong>{fmtTokens(toolResultsTotal)}</strong> of
+        tool results.
+      </>
+    )}
   </Stat>
 
   <div class="st" role="img" aria-label={ariaLabel}>
     <div class="st-row">
       <div class="st-row-head">
-        <span class="st-row-label">One agent · {toolCalls} tool calls</span>
-        <span class="st-row-total">{fmtTokens(singleTokens)} input tokens</span>
+        <span class="st-row-label">{isSpanish ? "Un agente" : "One agent"} · {toolCalls} {isSpanish ? "llamadas de herramienta" : "tool calls"}</span>
+        <span class="st-row-total">{fmtTokens(singleTokens)} {isSpanish ? "tokens de entrada" : "input tokens"}</span>
       </div>
       <div class="st-chart">
         {
@@ -57,8 +72,8 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
 
     <div class="st-row">
       <div class="st-row-head">
-        <span class="st-row-label">Coordinator + {SUBAGENTS.count} subagents</span>
-        <span class="st-row-total">{fmtTokens(teamTokens)} input tokens</span>
+        <span class="st-row-label">{isSpanish ? "Coordinador" : "Coordinator"} + {SUBAGENTS.count} {isSpanish ? "subagentes" : "subagents"}</span>
+        <span class="st-row-total">{fmtTokens(teamTokens)} {isSpanish ? "tokens de entrada" : "input tokens"}</span>
       </div>
       <div class="st-chart st-chart-grouped">
         <div class="st-group" style={`flex-grow: ${r.coordinator.requests.length}`}>
@@ -80,7 +95,7 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
       </div>
       <div class="st-chart-labels">
         <span class="st-group-label" style={`flex-grow: ${r.coordinator.requests.length}`}>
-          coordinator
+          {isSpanish ? "coordinador" : "coordinator"}
         </span>
         {r.subagents.map((s) => <span aria-hidden="true" style={`flex-grow: ${s.requests.length}`} />)}
       </div>
@@ -89,17 +104,18 @@ const ariaLabel = `Bar heights are the context each request sends. One agent mak
 
   <DataTable
     slot="a11y"
-    caption="Single agent vs coordinator + subagents, same tool work."
-    columns={["layout", "input tokens", "peak context"]}
+    caption={isSpanish ? "Un agente frente a coordinador y subagentes, con el mismo trabajo de herramientas." : "Single agent vs coordinator + subagents, same tool work."}
+    columns={isSpanish ? ["estructura", "tokens de entrada", "contexto máximo"] : ["layout", "input tokens", "peak context"]}
     rows={[
-      ["one agent", fmtTokens(singleTokens), fmtTokens(singlePeak)],
-      ["team", fmtTokens(teamTokens), fmtTokens(r.coordinator.totals.peakContextTokens)],
+      [isSpanish ? "un agente" : "one agent", fmtTokens(singleTokens), fmtTokens(singlePeak)],
+      [isSpanish ? "equipo" : "team", fmtTokens(teamTokens), fmtTokens(r.coordinator.totals.peakContextTokens)],
     ]}
   />
 
-  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: "multi-agent research system" }]} asOf={FACTS_AS_OF}>
-    Anthropic reports that its multi-agent Research system uses about 15× the tokens of a chat, because its
-    subagents search far more (cited, not simulated). Assumption: each subagent has the same tools and system prompt as the coordinator.
+  <Source slot="caption" links={[{ href: SOURCES.multiAgent, label: isSpanish ? "sistema de investigación multiagente" : "multi-agent research system" }]} asOf={FACTS_AS_OF}>
+    {isSpanish
+      ? "Anthropic informa que su sistema Research multiagente usa cerca de 15× los tokens de un chat porque sus subagentes buscan mucho más (citado, no simulado). Supuesto: cada subagente tiene las mismas herramientas y el mismo prompt del sistema que el coordinador."
+      : "Anthropic reports that its multi-agent Research system uses about 15× the tokens of a chat, because its subagents search far more (cited, not simulated). Assumption: each subagent has the same tools and system prompt as the coordinator."}
   </Source>
 </Figure>
 

@@ -1,5 +1,8 @@
 ---
 // The caption: what the figure assumes, where its numbers come from, and when they were checked.
+import { getLangFromUrl } from "../../../../i18n/utils";
+import { getAgentLoopUi } from "../i18n";
+
 interface Props {
   /** Rendered as "Source: prompt caching, pricing". */
   links?: { href: string; label: string }[];
@@ -7,6 +10,7 @@ interface Props {
   asOf?: string;
 }
 const { links = [], asOf } = Astro.props;
+const ui = getAgentLoopUi(getLangFromUrl(Astro.url));
 ---
 
-<slot />{links.length > 0 && (<>{" Source: "}{links.map((l, i) => (<>{i > 0 ? ", " : ""}<a href={l.href}>{l.label}</a></>))}</>)}{asOf ? `, as of ${asOf}.` : ""}
+<slot />{links.length > 0 && (<> {ui.sourceLabel}: {links.map((l, i) => (<>{i > 0 ? ", " : ""}<a href={l.href}>{l.label}</a></>))}</>)}{asOf ? ui.sourceAsOf(asOf) : ""}

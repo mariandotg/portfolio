@@ -14,6 +14,8 @@ const notes = defineCollection({
     imageAlt: z.string().optional(),
     bannerSeed: z.string().optional(),
     draft: z.boolean().default(false),
+    lang: z.enum(['en', 'es']).default('en'),
+    translationKey: z.string().optional(),
     collection: z.enum(['engineering-notes', 'building-in-public']),
     series: z.string().optional(),
     seriesOrder: z.number().optional(),

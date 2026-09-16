@@ -1,10 +1,10 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
 import { SITE } from "../config";
 import type { APIContext } from "astro";
+import { getPublishedNotes, noteSlug } from "../lib/notes";
 
 export async function GET(context: APIContext) {
-  const posts = await getCollection("notes", ({ data }) => !data.draft);
+  const posts = await getPublishedNotes("en");
   const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
   return rss({
@@ -15,7 +15,7 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      link: `/notes/${post.id}/`,
+      link: `/notes/${noteSlug(post)}/`,
     })),
     customData: `<language>en-us</language>`,
   });

@@ -3,11 +3,23 @@
 import Figure from "./agent-loop/kit/Figure.astro";
 import Legend from "./agent-loop/kit/Legend.astro";
 import Source from "./agent-loop/kit/Source.astro";
+import { getLangFromUrl } from "../../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const isSpanish = lang === "es";
+
+const blockLabels = {
+  en: { tools: "tools", system: "system", task: "task", "call 1": "call 1", "result 1": "result 1", "call 2": "call 2", "result 2": "result 2" },
+  es: { tools: "herramientas", system: "sistema", task: "tarea", "call 1": "llamada 1", "result 1": "resultado 1", "call 2": "llamada 2", "result 2": "resultado 2" },
+} as const;
+const labels = blockLabels[lang];
+const blockLabel = (block: string) => labels[block as keyof typeof labels] ?? block;
+const requestLabel = (n: number) => (isSpanish ? `Solicitud ${n}` : `Request ${n}`);
 
 const rows = [
-  { label: "Request 1", blocks: ["tools", "system", "task"] },
-  { label: "Request 2", blocks: ["tools", "system", "task", "call 1", "result 1"] },
-  { label: "Request 3", blocks: ["tools", "system", "task", "call 1", "result 1", "call 2", "result 2"] },
+  { label: requestLabel(1), blocks: ["tools", "system", "task"] },
+  { label: requestLabel(2), blocks: ["tools", "system", "task", "call 1", "result 1"] },
+  { label: requestLabel(3), blocks: ["tools", "system", "task", "call 1", "result 1", "call 2", "result 2"] },
 ];
 const isNew = (row: number, i: number) => (row === 0 ? true : i >= rows[row - 1].blocks.length);
 const kind = (name: string) => (name === "tools" || name === "system" || name === "task" ? "prefix" : "history");
@@ -18,14 +30,17 @@ const rowsWithNew = rows.map((row, r) => ({
 }));
 ---
 
-<Figure question="What does each request send when the API keeps no state?" basis="measured">
+<Figure question={isSpanish ? "¿Qué envía cada solicitud cuando la API no conserva estado?" : "What does each request send when the API keeps no state?"} basis="measured">
   <p class="sr-only">
-    Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call
-    and tool result. Only the last blocks are new.
+    {isSpanish
+      ? "Tres solicitudes consecutivas sin estado. Cada una vuelve a enviar las herramientas, el prompt del sistema y la tarea, además de cada llamada y resultado de herramienta anterior. Solo los últimos bloques son nuevos."
+      : "Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call and tool result. Only the last blocks are new."}
   </p>
 
   <table class="ra">
-    <caption class="sr-only">Three consecutive stateless requests and which blocks repeat.</caption>
+    <caption class="sr-only">
+      {isSpanish ? "Tres solicitudes consecutivas sin estado y qué bloques se repiten." : "Three consecutive stateless requests and which blocks repeat."}
+    </caption>
     <tbody>
       {
         rowsWithNew.map((row, r) => (
@@ -37,13 +52,17 @@ const rowsWithNew = rows.map((row, r) => ({
               <span class="ra-chips" aria-hidden="true">
                 {row.blocks.map((b, i) => (
                   <span class:list={["ra-chip", kind(b) === "prefix" ? "ra-resent" : isNew(r, i) ? "ra-new" : "ra-old"]}>
-                    {b}
+                    {blockLabel(b)}
                   </span>
                 ))}
               </span>
               <span class="sr-only">
-                {row.blocks.join(", ")}
-                {row.newBlocks.length > 0 ? `. New this request: ${row.newBlocks.join(", ")}.` : "."}
+                {row.blocks.map(blockLabel).join(", ")}
+                {row.newBlocks.length > 0
+                  ? isSpanish
+                    ? `. Nuevos en esta solicitud: ${row.newBlocks.map(blockLabel).join(", ")}.`
+                    : `. New this request: ${row.newBlocks.map(blockLabel).join(", ")}.`
+                  : "."}
               </span>
             </td>
           </tr>
@@ -54,14 +73,15 @@ const rowsWithNew = rows.map((row, r) => ({
 
   <Legend
     items={[
-      { tone: "resent", label: "sent again" },
-      { tone: "new", label: "new this request" },
+      { tone: "resent", label: isSpanish ? "enviado de nuevo" : "sent again" },
+      { tone: "new", label: isSpanish ? "nuevo en esta solicitud" : "new this request" },
     ]}
   />
 
   <Source slot="caption">
-    The Messages API keeps no state between requests, so request N carries the tools, the system prompt, the task,
-    and every earlier tool call and tool result. No quantities here — three requests of the documented shape.
+    {isSpanish
+      ? "La API de Messages no conserva estado entre solicitudes. Por eso, la solicitud N lleva las herramientas, el prompt del sistema, la tarea y cada llamada y resultado de herramienta anterior. No hay cantidades aquí: son tres solicitudes con la forma documentada."
+      : "The Messages API keeps no state between requests, so request N carries the tools, the system prompt, the task, and every earlier tool call and tool result. No quantities here — three requests of the documented shape."}
   </Source>
 </Figure>
 

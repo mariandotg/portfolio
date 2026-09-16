@@ -1,0 +1,106 @@
+---
+title: "Cuatro bucles cortos"
+description: "Dividir las llamadas de tools de un agente entre cuatro subagentes de vida corta reduce 70% los tokens de entrada y lleva el pico de cada contexto a una fracción del original. Un subagente empieza cada request desde cero, y lo que devuelve queda limitado por el presupuesto del coordinador."
+pubDate: 2026-09-15
+tags: ["agentes-ia", "claude", "subagentes", "ingeniería-de-contexto", "claude-certified-architect"]
+draft: false
+lang: "es"
+translationKey: "four-short-loops"
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 2
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import SideBySide from "../../components/notes/SideBySide.astro";
+import SubagentTriangles from "../../components/notes/agent-loop/SubagentTriangles.astro";
+import ContextIsolation from "../../components/notes/agent-loop/ContextIsolation.astro";
+import TeamTimeline from "../../components/notes/agent-loop/TeamTimeline.astro";
+
+[La nota 1 de esta serie](/es/notes/the-quadratic-loop) mostró por qué el contexto de un solo agente crece como lo hace: cada request reenvía todo el historial, por eso el resultado de la tool es el multiplicador. Recortar ese resultado frena el crecimiento. No lo detiene. Dividí el mismo trabajo entre varios agentes de vida corta para que ningún contexto individual tenga que crecer tanto.
+
+Un coordinador delega mediante la tool `Task`. Cada subagente ejecuta su propio bucle en su propio contexto, y solo el coordinador habla con más de uno. Los subagentes no se hablan entre sí y ninguno hereda la conversación del coordinador. Es un hub-and-spoke, con el coordinador como hub: el único agente que ve el panorama completo.
+
+<Callout type="note" title="En el examen">
+Esta nota cubre tres consignas. **1.2**: un coordinador administra toda la comunicación entre subagentes, las decisiones de error y de routing; los subagentes ejecutan con contexto aislado y no heredan el historial del coordinador; si descomponés demasiado, quedan huecos de cobertura; si particionás demasiado suelto, los subagentes recorren el mismo terreno. **1.3**: la tool `Task` inicia un subagente, por eso `allowedTools` del coordinador debe incluirla; el contexto de un subagente solo contiene lo que dice su prompt, nada se transfiere automáticamente; varias llamadas a `Task` dentro de un turno del coordinador corren en paralelo. **5.1**: cuando el próximo lector tiene un presupuesto de contexto limitado, pedile a un subagente hallazgos estructurados — hechos clave, citas y relevancia — en vez de prosa.
+</Callout>
+
+## Dividir el trabajo
+
+Tomá el workload de la nota 1: un toolset de 3,000 tokens, un system prompt de 2,000 tokens, una tarea de 500 tokens y resultados de tools de 4,000 tokens. Un agente que hace 56 tool calls en un solo bucle alcanza un pico de contexto de 251,900 tokens y envía 7,335,900 tokens de entrada durante toda la ejecución.
+
+Dividí las mismas 56 tool calls entre 4 subagentes, 14 por cada uno, ejecutados en paralelo, y el equipo envía 2,195,400 tokens de entrada: 70% menos. El contexto de cada subagente alcanza un pico de 67,100 tokens en vez de 251,900, y el del coordinador alcanza 11,900.
+
+<SubagentTriangles />
+
+Cuatro triángulos cortos tienen mucha menos área combinada que uno largo, y además cada uno es más corto. El término *N*² de la nota 1 no desapareció: sigue aplicándose dentro del bucle de cada subagente. Solo se aplica a *N* = 15 requests, cuatro veces separadas, en vez de una sola vez a *N* = 57.
+
+## Un subagente empieza sin nada
+
+Dividir el trabajo solo sirve si el contexto propio de cada subagente se mantiene pequeño, y así ocurre porque un subagente empieza su ejecución desde cero. No hereda el historial del coordinador, las llamadas `Task` anteriores del coordinador ni lo que encontró otro subagente. Su primer request lleva sus propias tools, su propio system prompt y lo que indique el prompt del coordinador para esa llamada a `Task`. No lleva nada más.
+
+<ContextIsolation />
+
+El primer request de un subagente es de 5,500 tokens: tiene la misma forma de tools, system prompt y tarea que cualquier otro request, porque no hay un atajo para evitar enviarlos. Lo que falta es todo lo que un chat normalmente llevaría entre dos turnos: no hay historial que reenviar, porque desde el lado del subagente todavía no existe.
+
+El contexto propio del coordinador, una vez que todos los subagentes respondieron, es de 11,900 tokens: su prompt de 5,500 tokens, el turno de 400 tokens que hizo cuatro llamadas a `Task` y los 6,000 tokens de resúmenes recibidos. La guía del examen especifica qué lo hace posible: `Task` debe estar en `allowedTools` del coordinador, y cada tipo de subagente se configura con un `AgentDefinition`: una descripción, un system prompt y restricciones de tools. El brief contiene toda la entrega. Si le falta algo que un subagente necesita, no tiene otra forma de obtenerlo.
+
+## Qué recibe el coordinador
+
+Un brief estructurado resuelve qué entra en el contexto de un subagente. Lo que vuelve es otro problema, y esta vez el presupuesto relevante es el del coordinador, no el del subagente. En esta ejecución, el coordinador lee 6,000 tokens de resúmenes, no los 224,000 tokens de resultados de tools que los produjeron. Ese es el objetivo de delegar, pero solo sirve si el coordinador puede usar 6,000 tokens con la misma eficacia que 224,000.
+
+La respuesta de la guía del examen es cambiar lo que devuelve un subagente, no solo cuánto devuelve. Un resumen en prosa esconde las partes que el coordinador necesita revisar o citar. Un resultado estructurado muestra los elementos que necesita: hechos clave, una fuente, una fecha, un puntaje de relevancia y —si el subagente sabe que quedó incompleto— qué no alcanzó a cubrir.
+
+<SideBySide leftLabel="Resumen en prosa" rightLabel="Datos estructurados" variant="neutral" accentRight>
+<Fragment slot="left">
+"Investigué el límite de requests del proveedor. Parece que limita las requests a 100 por minuto por API key — lo encontré en una publicación de un foro de la comunidad de hace unos meses, y algunas personas dijeron que lo alcanzaron bajo carga. Conviene confirmarlo con su equipo de soporte antes de comprometernos, porque no lo encontré en la documentación oficial."
+</Fragment>
+<Fragment slot="right">
+```json
+{
+  "claim": "El límite es de 100 req/min por API key",
+  "source": "https://community.vendor.com/t/rate-limits/482",
+  "date": "2026-06-02",
+  "relevance": "alta",
+  "coverage_gap": "no está confirmado por la documentación oficial ni por el soporte del proveedor; solo aparece en una publicación de un foro de usuarios"
+}
+```
+</Fragment>
+</SideBySide>
+
+Inventé este ejemplo: es ilustrativo, no una ejecución que haya medido. Lo real es la forma del pedido: un coordinador con presupuesto de contexto limitado aprovecha más una cita, una fecha y un puntaje de relevancia que el razonamiento que los produjo. Acá los metadatos no son sobrecarga. Son la única parte de la respuesta sobre la que el coordinador puede actuar sin volver a derivarla.
+
+## En paralelo o en secuencia
+
+Dividir también cambia cuándo terminan las cosas, y eso depende de una elección que la guía del examen hace explícita: cuántas llamadas a `Task` hace el coordinador en un turno. Varias llamadas en el mismo turno corren en paralelo. Una llamada por turno, esperando cada resultado antes de iniciar la siguiente, corre en secuencia.
+
+<TeamTimeline />
+
+Despachados en paralelo, el coordinador y sus 4 subagentes terminan en 5 minutos 40 segundos: 70% menos que los 19 minutos que necesita el agente único para las mismas 56 llamadas a tools. Despachados en secuencia, el mismo equipo tarda 21 minutos 40 segundos — 14% *más* que hacerlo solo, porque la ejecución de cada subagente se suma al overhead del coordinador en vez de superponerse.
+
+Dividir ahorra tokens en ambos casos. Solo ahorra tiempo si el coordinador realmente emite las llamadas a `Task` juntas.
+
+## Dónde falla dividir
+
+Nada de esto es gratis, y la guía del examen indica dónde falla.
+
+Descomponé demasiado, y cada subagente responde correctamente su propia parte mientras deja afuera lo que solo aparece en el límite entre partes. El hueco no está en el brief de un subagente, sino en cómo el coordinador trazó los límites. Si particionás demasiado suelto, dos subagentes investigan el mismo terreno: tokens gastados dos veces por una respuesta, y nadie lo nota salvo que alguien lea ambos resúmenes con atención.
+
+El coordinador también es el único router. Todo hecho que pasa de un subagente a otro pasa por él, porque no se hablan entre sí. Si el paso de síntesis del coordinador no revisa los resúmenes recibidos para detectar huecos antes de responder, la mejora iterativa —detectar lo que falta y delegar otra vez para cubrirlo— nunca ocurre, y queda la primera pasada incompleta.
+
+## Lo que me llevo de esto
+
+- **La división funciona porque un subagente empieza en cero.** El ahorro no es un truco: proviene de impedir que un contexto alcance la longitud del contexto del agente único.
+- **El brief es toda la entrega, en ambas direcciones.** Lo que el coordinador no pone en el prompt, el subagente no lo tiene. Lo que el subagente no pone en su resumen, el coordinador no lo recibe.
+- **Las llamadas `Task` en paralelo compran tiempo, no solo tokens.** La misma ejecución dividida en secuencia tardó más tiempo de pared que un agente.
+- **El presupuesto de contexto del coordinador es el nuevo cuello de botella.** Dividir mueve el problema *N*² fuera de un contexto. No elimina el límite del coordinador sobre cuántos resúmenes puede usar bien.
+
+<Callout type="rule" title="La regla">
+Un subagente se mantiene pequeño porque empieza desde cero. Por eso su brief y su formato de devolución son las únicas dos cosas entre «pequeño» y «pequeño e inútil».
+</Callout>
+
+Este modelo cuenta tokens y segundos de tiempo de pared, no calidad de respuestas. Que 6,000 tokens de resúmenes contengan lo que necesita el coordinador depende de lo que pidió el brief y de lo que cada subagente decidió omitir; el ejemplo de entrega anterior es ilustrativo, no medido. También supone que cada subagente ejecuta el mismo tipo de bucle. Un subagente que necesita más turnos que los demás alcanzará un pico mayor que los 67,100 tokens mostrados.
+
+---
+
+Dividir el trabajo es una respuesta a un contexto que creció demasiado. La otra, de la nota 1, es reemplazar el historial por un resumen cuando ya no se puede dividir más y decidir qué puede perder ese resumen. Eso se explica en [la nota 3](/es/notes/what-the-summary-forgot).

@@ -1,13 +1,13 @@
 ---
 import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
-import NotePost from "../../layouts/NotePost.astro";
-import { getLangFromUrl, localizedSeries } from "../../i18n/utils";
-import { getSeriesPosts } from "../../lib/series";
-import { getPublishedNotes, noteSlug } from "../../lib/notes";
+import NotePost from "../../../layouts/NotePost.astro";
+import { getLangFromUrl, localizedSeries } from "../../../i18n/utils";
+import { getSeriesPosts } from "../../../lib/series";
+import { getPublishedNotes, noteSlug } from "../../../lib/notes";
 
 export async function getStaticPaths() {
-  const entries = await getPublishedNotes("en");
+  const entries = await getPublishedNotes("es");
   return entries.map((entry) => ({
     params: { slug: noteSlug(entry) },
     props: { entry },

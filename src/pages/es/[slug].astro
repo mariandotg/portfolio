@@ -15,7 +15,7 @@ import { seriesBannerBase } from "@/lib/effects/banner/assets";
 
 export async function getStaticPaths() {
   await assertSeriesIntegrity();
-  const entries = await getRootLevelSeries();
+  const entries = await getRootLevelSeries("es");
   return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
@@ -24,7 +24,7 @@ const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 
 const { title, description } = localizedSeries(entry.data, lang);
-const posts = await getSeriesPosts(entry.id);
+const posts = await getSeriesPosts(entry.id, lang);
 const roadmap = await getSeriesRoadmap(entry.id, lang);
 const meta = seriesLandingMeta(posts.length, entry.data.status, totalReadingMinutes(roadmap), t);
 const notesHref = getLocalizedPath("/notes", lang);

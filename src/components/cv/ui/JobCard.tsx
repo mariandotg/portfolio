@@ -1,5 +1,6 @@
 import React from 'react'
 import { Card, CardContent, CardHeader } from './Card'
+import { EntryTitle } from './EntryTitle'
 import { Badge } from './Badge'
 import type { Work } from '@/models/resume.data.models'
 import { CORE_SKILL_BADGE_CLASS, isCoreSkill } from '@/data/skill-categories'
@@ -13,8 +14,8 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
   return (
     <Card key={work.company} className="print-avoid-break bg-transparent">
       <CardHeader>
-        <div className="flex items-center justify-between gap-x-2 text-base">
-          <h3 className="inline-flex items-center gap-x-2 font-semibold leading-none">
+        <div className="flex items-center justify-between gap-x-2">
+          <EntryTitle className="inline-flex items-center gap-x-2">
             {work.logo && (
               <img
                 src={work.logo}
@@ -23,8 +24,8 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
               />
             )}
             {work.company}
-          </h3>
-          <div className="text-sm tabular-nums text-gray-400">
+          </EntryTitle>
+          <div className="text-sm tabular-nums text-muted-foreground">
             {work.start} - {work.end ?? 'Present'}
           </div>
         </div>
@@ -83,7 +84,7 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
                     )}
                   </div>
                   {client.start != null && (
-                    <div className="text-xs tabular-nums text-gray-400 whitespace-nowrap print:text-[8px]">
+                    <div className="text-xs tabular-nums text-muted-foreground whitespace-nowrap print:text-[8px]">
                       {client.start} - {client.end ?? 'Present'}
                     </div>
                   )}

@@ -9,12 +9,13 @@ import Notes from './sections/Notes.astro'
 const lang = getLangFromUrl(Astro.url)
 ---
 
-<div class="container relative mx-auto scroll-my-12 overflow-auto p-4 md:p-16">
-  <div class="mx-auto w-full max-w-2xl space-y-8">
+<div
+  class="relative mx-auto w-full scroll-my-12 space-y-8 overflow-auto px-4 py-12 sm:px-6 lg:px-12"
+  style="max-width: var(--width-shell);"
+>
     <Social lang={lang} />
     <About lang={lang} />
     <Projects lang={lang} />
     <Series />
     <Notes />
-  </div>
 </div>

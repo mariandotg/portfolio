@@ -1,11 +1,6 @@
 import React from 'react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from './Card'
+import { Card, CardContent, CardDescription, CardHeader } from './Card'
+import { EntryTitle } from './EntryTitle'
 import type { Project } from '@/models/resume.data.models'
 import { Badge } from './Badge'
 
@@ -18,7 +13,7 @@ const ProjectCard: React.FunctionComponent<Props> = ({ project }) => {
     <Card className="flex flex-col overflow-hidden bg-transparent">
       <CardHeader className="">
         <div className="space-y-1">
-          <CardTitle className="text-title underline-offset-2 mb-1 tracking-normal	">
+          <EntryTitle className="mb-1 underline-offset-2">
             {project.link ? (
               <a
                 href={project.link.href}
@@ -31,8 +26,8 @@ const ProjectCard: React.FunctionComponent<Props> = ({ project }) => {
             ) : (
               project.title
             )}
-          </CardTitle>
-          <div className="hidden font-mono text-xs underline print:visible">
+          </EntryTitle>
+          <div className="hidden font-mono text-xs underline print:block">
             {project.link?.href
               .replace('https://', '')
               .replace('www.', '')

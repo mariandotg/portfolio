@@ -22,7 +22,7 @@ const CertificateCard: React.FunctionComponent<Props> = ({ certificate }) => {
               </span>
             )}
           </p>
-          <span className="text-sm tabular-nums text-gray-400 shrink-0 print:text-[10px]">
+          <span className="text-sm tabular-nums text-muted-foreground shrink-0 print:text-[10px]">
             {certificate.date}
           </span>
         </div>

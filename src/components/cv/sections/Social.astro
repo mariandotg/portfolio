@@ -33,7 +33,7 @@ const DICTIONARY = DICTIONARIES[lang]
                 {DATA.location}
                 </a>
             </p>
-            <div class="gap-x-1 pt-1 text-muted-foreground print:hidden hidden smx:flex">
+            <div class="hidden gap-x-1 pt-1 text-muted-foreground print:hidden sm:flex">
                 <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang} />
             </div>
             <!-- <div class=" flex-col gap-x-1 text-muted-foreground print:flex print:text-[12px]"></div> -->
@@ -46,7 +46,7 @@ const DICTIONARY = DICTIONARIES[lang]
             client:load
         />
     </div>
-    <div class="gap-x-1 pt-1 font-mono text-sm text-muted-foreground print:hidden flex smx:hidden">
+    <div class="flex gap-x-1 pt-1 font-mono text-sm text-muted-foreground print:hidden sm:hidden">
         <SocialMediaList email={DATA.contact.email} socials={DATA.contact.social} resume={DATA.resumeUrl} locale={lang} />
     </div>
 </div>

@@ -2,6 +2,7 @@
 import { DICTIONARIES } from '@/data/dictionaries'
 import { PUBLIC_RESUME_DATA } from '@/data/resume'
 import { CertificateCard } from '../ui/CertificateCard'
+import { entryTitleClassName } from '../ui/EntryTitle'
 
 interface Props {
   lang: 'en' | 'es'
@@ -23,10 +24,10 @@ const hasCertificates = DATA.certificates.length > 0
         {DATA.education.map((edu) => (
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-semibold text-sm leading-none">{edu.institution}</p>
+              <p class={entryTitleClassName}>{edu.institution}</p>
               <p class="text-sm text-muted-foreground mt-1">{edu.degree}</p>
             </div>
-            <span class="text-sm tabular-nums text-gray-400 shrink-0">
+            <span class="text-sm tabular-nums text-muted-foreground shrink-0">
               {edu.start} — {edu.end ?? DICTIONARY.IN_PROGRESS}
             </span>
           </div>

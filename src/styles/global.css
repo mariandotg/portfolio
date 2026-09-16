@@ -461,10 +461,6 @@ html.dark .astro-code span {
     display: none !important;
   }
 
-  .card {
-    border: 1px solid #ccc !important;
-  }
-
   .print-avoid-break {
     page-break-inside: avoid;
   }

@@ -7,10 +7,14 @@ table after it is the plan that brief refers to.
 merged (PR #7). That merge matters — `src/components/notes/agent-loop` did not
 exist on `main` before it, and MDG-130, MDG-131 and MDG-132 all operate on it.
 
-**Still unresolved:** `worktree-skills-badges-sober` rewrites the skill-badge
-palette in `global.css` and touches `src/components/cv/`. It collides head-on
-with MDG-125 and MDG-136. Merge it before wave 1 or park it — do not run the
-batch with it in flight.
+Two other branches landed first so the batch starts on final ground:
+`content/cca-series` (PR #7) and `worktree-skills-badges-sober` (PR #5, the
+skill-badge palette). Nothing is in flight against `global.css` any more.
+
+**One consequence to know:** PR #5 switched `Skills.astro` off
+`PUBLIC_RESUME_DATA` and onto a fixed `WEB_SKILL_GROUPS` list. The site's Skills
+section no longer follows the CV variant system, so MDG-136 must not try to
+re-wire it.
 
 ---
 
@@ -141,7 +145,7 @@ series components. Disjoint files, overlapping declared scope.
 | Implementer — the 11 mechanical tickets | **Composer 2.5** | Ties the frontier on coding benchmarks at roughly a tenth of the cost, and it is editor-native. These tickets have closed specs; this is the right call. |
 | Implementer — **MDG-130** | **Claude Opus (top tier)** | Designs the API of eight primitives that thirteen files then depend on. Architecture-level, not mechanical. Do not run this one on Composer. |
 | Implementer — **MDG-132** | **Claude Opus** or **Gemini 3.1 Pro** | Classifies each figure as measured / calculated / assumed by reading the prose and the simulation engine. Judgment over long context. |
-| Reviewer | **GPT-5.5** | Leads Terminal-Bench by a wide margin, and review here means running the dev server and driving the headless-Chrome capture script. |
+| Reviewer | **Claude Opus 5** (pinned in `ui-reviewer.md`) | Strongest at catching what a cheaper implementer glossed over. GPT-5.5 is the alternate if terminal work turns out to be the bottleneck — it leads Terminal-Bench by a wide margin. |
 
 **The catch with Composer 2.5.** Its one clear weakness against the frontier is
 terminal and shell workflow — roughly thirteen points behind GPT-5.5 on

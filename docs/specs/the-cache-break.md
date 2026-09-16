@@ -88,7 +88,7 @@ Cada sección abre con lo que la anterior no resolvió.
 | 7 | Palanca: context editing | Reduce el tamaño rompiendo el cache a propósito; sin `clear_at_least` sale más caro que no editar | `ClearingCost` (existente) |
 | 8 | Palanca: compaction | Reduce más, pero su costo se esconde si no se suma `usage.iterations[]` | `CompactionSawtooth` (existente, sin props) |
 | 9 | Medirlo en producción | Ninguna palanca sirve si no se mide el hit rate real | fórmula derivada + snippet de código |
-| 10 | Qué me llevo | — | `Callout type="takeaway"` + límites |
+| 10 | Qué me llevo | — | `Callout type="rule"` + límites |
 
 ## 6. Componentes nuevos
 

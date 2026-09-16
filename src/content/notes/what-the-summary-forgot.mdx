@@ -106,7 +106,7 @@ Note 1 measured the exam guide's 40-field lookup: trimming it to the 5 fields th
 - **A scratchpad file survives a context boundary because it was never only inside the context.** Useful for findings you can't template in advance; a case facts block still wins for facts you can.
 - **Position is a second, independent risk.** A fact can survive compaction and still get missed because it's buried in the middle of a long aggregated input.
 
-<Callout type="takeaway" title="The rule">
+<Callout type="rule" title="The rule">
 Decide, per fact, whether it must be exact. If it must, don't let it live only in text a summarization pass might touch — extract it, or write it somewhere the compaction can't reach.
 </Callout>
 

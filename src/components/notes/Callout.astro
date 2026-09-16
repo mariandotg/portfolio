@@ -1,5 +1,5 @@
 ---
-type CalloutType = "note" | "tip" | "insight" | "warning" | "takeaway";
+type CalloutType = "note" | "rule" | "warning";
 
 interface Props {
   type?: CalloutType;
@@ -8,22 +8,17 @@ interface Props {
 
 const { type = "note", title } = Astro.props;
 
-const META: Record<CalloutType, { icon: string; label: string }> = {
-  note: { icon: "ℹ", label: "Note" },
-  tip: { icon: "✦", label: "Tip" },
-  insight: { icon: "💡", label: "Insight" },
-  warning: { icon: "⚠", label: "Warning" },
-  takeaway: { icon: "📌", label: "Key takeaway" },
+const DEFAULT_LABEL: Record<CalloutType, string> = {
+  note: "Note",
+  rule: "Rule",
+  warning: "Warning",
 };
 
-const meta = META[type];
+const label = title ?? DEFAULT_LABEL[type];
 ---
 
 <aside class={`callout callout-${type} not-prose`}>
-  <div class="callout-head">
-    <span class="callout-icon" aria-hidden="true">{meta.icon}</span>
-    <span class="callout-label">{title ?? meta.label}</span>
-  </div>
+  <div class="callout-head">{label}</div>
   <div class="callout-body"><slot /></div>
 </aside>
 
@@ -40,35 +35,20 @@ const meta = META[type];
   .callout-note {
     --accent: hsl(var(--data-inert));
   }
-  .callout-tip {
-    --accent: hsl(var(--data-gain));
-  }
-  .callout-insight {
-    --accent: hsl(var(--data-write));
+  .callout-rule {
+    --accent: hsl(var(--data-new));
   }
   .callout-warning {
     --accent: hsl(var(--data-loss));
   }
-  .callout-takeaway {
-    --accent: hsl(var(--data-new));
-  }
 
   .callout-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     margin-bottom: 6px;
     font-family: var(--font-family-mono);
     font-size: var(--text-meta);
     line-height: var(--text-meta--line-height);
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
     color: var(--accent);
-  }
-  .callout-icon {
-    font-size: var(--text-ui);
-    line-height: 1;
   }
 
   .callout-body {

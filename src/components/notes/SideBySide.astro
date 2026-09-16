@@ -2,14 +2,21 @@
 interface Props {
   leftLabel?: string;
   rightLabel?: string;
-  /** "diff" tints left as before/removed and right as after/added. */
+  /** "diff" tints left as wrong/removed and right as right/added. */
   variant?: "neutral" | "diff";
+  /** When variant is neutral, tint the right column with --data-new (not a verdict). */
+  accentRight?: boolean;
 }
 
-const { leftLabel = "Before", rightLabel = "After", variant = "neutral" } = Astro.props;
+const {
+  leftLabel = "Before",
+  rightLabel = "After",
+  variant = "neutral",
+  accentRight = false,
+} = Astro.props;
 ---
 
-<div class={`sxs sxs-${variant} not-prose`}>
+<div class={`sxs sxs-${variant}${accentRight ? " sxs-accent-right" : ""} not-prose`}>
   <div class="sxs-col sxs-left">
     <div class="sxs-label">
       {variant === "diff" && <span class="sxs-sign" aria-hidden="true">−</span>}
@@ -53,6 +60,9 @@ const { leftLabel = "Before", rightLabel = "After", variant = "neutral" } = Astr
   }
   .sxs-diff .sxs-right {
     --tone: hsl(var(--data-gain));
+  }
+  .sxs-accent-right.sxs-neutral .sxs-right {
+    --tone: hsl(var(--data-new));
   }
 
   .sxs-label {

@@ -185,7 +185,7 @@ One more multiplier worth knowing about, separate from all of this: the Batch AP
 - **Every lever that shrinks the context also breaks the cache, and the break can cost more than the shrink saves.** Context editing without `clear_at_least` cost 40% more than doing nothing on this workload; with it set, 27% less.
 - **Compaction's own bill hides in a separate array.** On an 80-request workload that compacts twice, the real cost is 6% higher, and the real output 22% higher, than the top-level `usage` fields report.
 
-<Callout type="takeaway" title="The rule">
+<Callout type="rule" title="The rule">
 Before you reach for a lever that shrinks the context, price what it does to the cache first. The shrink is usually real. Whether it's cheaper depends on how much of the prefix survives it.
 </Callout>
 

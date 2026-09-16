@@ -17,7 +17,7 @@ import RetrySimulatorIsland from "../../components/notes/RetrySimulatorIsland.as
 
 Payment systems fail in interesting ways. Network timeouts, pod restarts, load balancer retries — any of these can cause a payment operation to be attempted more than once. Without idempotency, retries become double charges.
 
-<Callout type="insight" title="The core idea">
+<Callout type="rule" title="The core idea">
 Retrying a failed request is only dangerous if the operation isn't **idempotent**. Make the operation idempotent and retries become free — the same call, repeated, produces the same single effect.
 </Callout>
 
@@ -84,7 +84,7 @@ RETURNING id;
 
 If the insert returns nothing, another request is already processing (or has processed) this key. The duplicate waits and polls until the first completes, then returns its result.
 
-<Callout type="tip">
+<Callout type="rule">
 This pattern — **claim via DB insert, then process, then settle** — is what we use at Interbanking for every payment mutation. It adds ~2ms of latency and eliminates the duplicate-processing class of bugs entirely.
 </Callout>
 
@@ -123,7 +123,7 @@ Idempotency keys should be:
 2. **Operation-scoped**, not request-scoped. A key tied to a specific payment attempt, not to the HTTP request.
 3. **Short-lived**. 24 hours is the industry standard (Stripe uses 24h, most banking APIs use 48h).
 
-<Callout type="takeaway">
+<Callout type="rule">
 Don't reuse request IDs, session IDs, or trace IDs as idempotency keys. Use a value the client generated *specifically for this operation* — otherwise a legitimately new payment can collide with an old one.
 </Callout>
 
@@ -219,6 +219,6 @@ public class PaymentService {
 
 **Result schema changes**: if you deploy a breaking change to the response format, old cached results may not deserialize correctly. Version your idempotency cache entries.
 
-<Callout type="takeaway">
+<Callout type="rule">
 The implementation is straightforward. The discipline of applying it consistently to *every* state-mutating endpoint is where most teams fall short.
 </Callout>

@@ -55,6 +55,64 @@ function metaLabel(count: number, status: "ongoing" | "complete", t: Translation
   return `${statusLabel(status, t)} · ${count} ${unit}`;
 }
 
+export function seriesLandingMeta(
+  count: number,
+  status: "ongoing" | "complete",
+  totalReadingMinutes: number,
+  t: Translations,
+): string {
+  if (count === 0) return t.notes.series.comingSoon;
+  const unit = count === 1 ? t.notes.series.partsCountOne : t.notes.series.partsCount;
+  const time = `${totalReadingMinutes} ${t.notes.readingTime}`;
+  return `${statusLabel(status, t)} · ${count} ${unit} · ${time}`;
+}
+
+export function totalReadingMinutes(items: RoadmapItem[]): number {
+  return items.reduce((sum, item) => sum + (item.readingTime ?? 0), 0);
+}
+
+let seriesIntegrityChecked = false;
+
+export async function assertSeriesIntegrity(): Promise<void> {
+  if (seriesIntegrityChecked) return;
+  seriesIntegrityChecked = true;
+
+  const [seriesEntries, posts] = await Promise.all([
+    getCollection("series"),
+    getCollection("notes", ({ data }) => !data.draft),
+  ]);
+  const seriesIds = new Set(seriesEntries.map((s) => s.id));
+
+  for (const post of posts) {
+    const seriesId = post.data.series;
+    if (!seriesId) continue;
+    if (!seriesIds.has(seriesId)) {
+      throw new Error(
+        `Note "${post.id}" references series "${seriesId}" which does not exist. Add a series JSON file or remove the series field from the post.`,
+      );
+    }
+  }
+
+  for (const series of seriesEntries) {
+    const inSeries = posts.filter((p) => p.data.series === series.id);
+    const byOrder = new Map<number, string[]>();
+    for (const post of inSeries) {
+      const order = post.data.seriesOrder;
+      if (order === undefined) continue;
+      const ids = byOrder.get(order) ?? [];
+      ids.push(post.id);
+      byOrder.set(order, ids);
+    }
+    for (const [order, ids] of byOrder) {
+      if (ids.length > 1) {
+        throw new Error(
+          `Series "${series.id}" has duplicate seriesOrder ${order} on posts "${ids[0]}" and "${ids[1]}".`,
+        );
+      }
+    }
+  }
+}
+
 function postsInSeries(
   posts: CollectionEntry<"notes">[],
   slug: string,

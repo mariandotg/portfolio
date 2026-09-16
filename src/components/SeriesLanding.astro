@@ -1,0 +1,101 @@
+---
+import SeriesRoadmap from "./SeriesRoadmap.astro";
+import BackLink from "./BackLink.astro";
+import SeriesBanner from "@/components/effects/SeriesBanner.astro";
+import type { RoadmapItem } from "@/lib/series";
+
+interface Props {
+  title: string;
+  description: string;
+  bannerBase: string;
+  meta: string;
+  comingSoon: boolean;
+  roadmap: RoadmapItem[];
+  notesHref: string;
+  backLabel: string;
+  emptyState: string;
+}
+
+const {
+  title,
+  description,
+  bannerBase,
+  meta,
+  comingSoon,
+  roadmap,
+  notesHref,
+  backLabel,
+  emptyState,
+} = Astro.props;
+---
+
+<div class="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+  <BackLink href={notesHref} label={backLabel} />
+
+  <header class="series-header">
+    <span class:list={["series-meta", { "series-meta-soon": comingSoon }]}>{meta}</span>
+    <h1 class="series-title">{title}</h1>
+    <p class="series-description">{description}</p>
+  </header>
+
+  <SeriesBanner
+    base={bannerBase}
+    variant="hero"
+    class="series-strip w-full"
+  />
+
+  {comingSoon ? (
+    <p class="empty-state">{emptyState}</p>
+  ) : (
+    <SeriesRoadmap items={roadmap} />
+  )}
+</div>
+
+<style>
+  .series-header {
+    margin-bottom: 2rem;
+  }
+
+  .series-title {
+    margin: 0.75rem 0 0.75rem;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .series-description {
+    margin: 0;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Hero assets at 6/1 — decorative strip under the title, not the page focal point. */
+  :global(.series-strip) {
+    --sb-ratio: 6 / 1;
+    margin-bottom: 2.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .series-meta {
+    display: inline-block;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    letter-spacing: 0.02em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .series-meta-soon {
+    color: hsl(var(--primary));
+  }
+
+  .empty-state {
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+    color: hsl(var(--muted-foreground));
+    padding: 2rem 0;
+  }
+</style>

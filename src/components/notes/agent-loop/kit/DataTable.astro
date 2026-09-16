@@ -10,7 +10,9 @@ interface Props {
 const { caption, columns, rows } = Astro.props;
 ---
 
-<table class="sr-only">
+<!-- A table ignores `width: 1px`, so `sr-only` goes on a wrapper that can clip it. -->
+<div class="sr-only">
+<table>
   <caption>{caption}</caption>
   <thead>
     <tr>{columns.map((c) => <th scope="col">{c}</th>)}</tr>
@@ -23,3 +25,4 @@ const { caption, columns, rows } = Astro.props;
     }
   </tbody>
 </table>
+</div>

@@ -7,7 +7,6 @@ import Source from "./agent-loop/kit/Source.astro";
 import DataTable from "./agent-loop/kit/DataTable.astro";
 import { plotFrame } from "./agent-loop/kit/plot";
 
-const unit = 44;
 const rows = [
   { label: "Request 1", blocks: ["tools", "system", "task"] },
   { label: "Request 2", blocks: ["tools", "system", "task", "call 1", "result 1"] },
@@ -15,8 +14,14 @@ const rows = [
 ];
 const isNew = (row: number, i: number) => (row === 0 ? true : i >= rows[row - 1].blocks.length);
 const kind = (name: string) => (name === "tools" || name === "system" || name === "task" ? "prefix" : "history");
+// Blocks size to their label: bold 12px mono runs ~7.5 units per character.
+const gap = 4;
+const blockWidth = (name: string) => Math.ceil(name.length * 7.5) + 14;
+const blockX = (blocks: string[], i: number) =>
+  blocks.slice(0, i).reduce((x, b) => x + blockWidth(b) + gap, 0);
 const labelWidth = 92;
-const width = labelWidth + unit * 7 + 8;
+const longest = rows[rows.length - 1].blocks;
+const width = labelWidth + blockX(longest, longest.length) + 8;
 const rowHeight = 44;
 const height = rows.length * rowHeight + 30;
 
@@ -35,16 +40,22 @@ const ariaLabel =
             {row.label}
           </text>
           {row.blocks.map((b, i) => (
-            <g transform={`translate(${labelWidth + i * unit} 6)`}>
+            <g transform={`translate(${labelWidth + blockX(row.blocks, i)} 6)`}>
               <rect
                 class={`${kind(b) === "prefix" ? "alc-fill-resent" : "alc-fill-new"} ${isNew(r, i) ? "" : "opacity-[0.55]"}`}
-                width={unit - 4}
+                width={blockWidth(b)}
                 height="30"
                 rx="4"
                 stroke={kind(b) === "history" && isNew(r, i) ? "hsl(var(--primary))" : "hsl(var(--border))"}
                 stroke-width={kind(b) === "history" && isNew(r, i) ? "1.5" : "1"}
               />
-              <text class="alc-text-strong" x={(unit - 4) / 2} y="19" text-anchor="middle">
+              <text
+                class="alc-text-strong"
+                x={blockWidth(b) / 2}
+                y="19"
+                text-anchor="middle"
+                style={kind(b) === "history" && isNew(r, i) ? "fill: hsl(var(--primary-foreground))" : undefined}
+              >
                 {b.replace(" ", "\u00a0")}
               </text>
             </g>

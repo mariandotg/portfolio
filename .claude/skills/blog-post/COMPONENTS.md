@@ -64,13 +64,28 @@ Todos en `src/components/notes/`. Precedente de uso:
 | `Tabs.astro` + `Tab.astro` | `Tab`: `label` | Variantes paralelas |
 | `RetrySimulatorIsland.astro` | — | Precedente de simulador: toggle + contador + veredicto |
 | `RequestAnatomy.astro` | — | SVG estático: qué reenvía cada request. Precedente de diagrama estático |
-| `agent-loop/AlcFigure.astro` | `question`, `options?`, `initial?`; slot `caption` | Marco de visual calculado: pregunta, toggle de 2–3 estados (paneles `data-alc-panel` renderizados en el servidor, sin React) y línea de fuentes. Estilos en `agent-loop/agent-loop.css` |
+| `agent-loop/kit/Figure.astro` | `question`, `basis` (obligatorio), `n?`, `options?`, `initial?`; slots `caption` y `a11y` | Marco de visual calculado: pregunta, toggle de 2–3 estados (paneles `data-alc-panel` renderizados en el servidor, sin React), y una línea final con el marcador de base epistémica más las fuentes. Estilos en `agent-loop/agent-loop.css` |
 | `agent-loop/LoopTriangleIsland.astro` | — | Héroe con un slider: el loop dibuja un triángulo y el área es lo que se factura. Ejes fijos |
 | `agent-loop/TrimCost.astro` | — | Toggle 40 / 5 campos: el tamaño del tool result multiplica el total. Nota 1 de la serie |
 | `agent-loop/SubagentTriangles.astro`, `ContextIsolation.astro`, `TeamTimeline.astro` | — | Subagentes: triángulos a la misma escala, qué sabe un subagente al empezar, paralelo vs secuencial. Nota 2 de la serie |
 | `agent-loop/CompactionSawtooth.astro` | `variant?`: `cost` \| `context` | Serrucho de compaction. `context` (solo tokens) para la serie, `cost` para la nota de ingeniería |
 | `agent-loop/FactsSurvival.astro` | — | Qué hechos siguen literales después de cada compaction, con y sin bloque de case facts. Nota 3 de la serie (la posición de los hallazgos va con `SideBySide`) |
 | `agent-loop/CacheCost.astro`, `CacheBreakEven.astro`, `InvalidationLadder.astro`, `LookbackWindow.astro`, `FanOutCache.astro`, `ClearingCost.astro` | — | Caching, invalidación, lookback, fan-out y context editing. Nota de ingeniería `the-cache-break` (fuera de la serie) |
+
+**Base epistémica (`basis`, obligatoria en `Figure`):** cada figura declara cómo
+sabe su número, en mono junto al caption. Si mezcla orígenes, gana el más débil.
+
+| `basis` | Cuándo |
+|---|---|
+| `measured` | el número se lee de una fuente citada o de una corrida observada; no se deriva nada |
+| `calculated` | se deriva aplicando reglas y precios documentados a un escenario declarado |
+| `assumed` | depende de una cantidad o un comportamiento que ninguna fuente documenta |
+
+Un workload elegido **no** baja la figura a `assumed`: el escenario es un
+parámetro declarado, no una adivinanza. Lo que la baja es un comportamiento sin
+documentar del que depende el número — la espera de 8 s antes de que empiece la
+respuesta, el tamaño del brief de un subagente, si el pase de compaction lee la
+caché. Criterio completo en `docs/design/design-system.md` §5.
 
 **Regla de alcance de la serie CCA:** la guía del examen excluye caching, cálculo de precios y conteo de tokens. Los visuales de la serie muestran tokens, nunca dólares.
 

@@ -2,7 +2,9 @@
 // Static diagram: compaction resets the context each time it crosses the trigger, so the
 // history draws a sawtooth instead of a straight climb. Two compactions on this workload.
 // variant="cost" (default): dollar headline, unchanged — used by note 1. variant="context":
-// tokens only, no dollars, no compact_20260112 parameter detail — used by note 3.
+// tokens only, no dollars, no compact_20260112 parameter detail — used by note 3. Only the dollar
+// headline rests on an undocumented behaviour (whether the compaction pass reads the cache like a
+// normal request), so the basis differs by variant.
 import Figure from "./kit/Figure.astro";
 import Stat from "./kit/Stat.astro";
 import Plot from "./kit/Plot.astro";
@@ -61,7 +63,7 @@ const ariaLabel =
     : `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)}. With compaction the context is replaced by a summary once it reaches the 150k trigger, resetting twice, and peaks at ${fmtTokens(peakWith)}.`;
 ---
 
-<Figure question="What does compaction do to the context?" basis="calculated">
+<Figure question="What does compaction do to the context?" basis={variant === "cost" ? "assumed" : "calculated"}>
   {
     variant === "cost" ? (
       <Stat value={fmtUsd(costWith)} delta={`${fmtChange(costWith, costWithout)} vs no compaction`} tone="gain">

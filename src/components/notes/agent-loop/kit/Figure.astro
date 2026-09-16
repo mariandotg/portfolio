@@ -24,13 +24,16 @@ const { question, basis, n, options, initial = options?.[0]?.value } = Astro.pro
   {options && <Toggle options={options} initial={initial!} label={question} />}
   <slot />
   <slot name="a11y" />
-  {
-    Astro.slots.has("caption") && (
-      <div class="alc-caption">
-        <slot name="caption" />
-      </div>
-    )
-  }
+  <div class="alc-caption">
+    <span class="alc-basis"><span class="sr-only">Basis: </span>{basis}</span>
+    {
+      Astro.slots.has("caption") && (
+        <span class="alc-caption-text">
+          <slot name="caption" />
+        </span>
+      )
+    }
+  </div>
 </figure>
 
 <script>

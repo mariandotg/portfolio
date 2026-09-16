@@ -111,7 +111,7 @@ const ariaLabel = (key: Key) => {
 };
 ---
 
-<Figure question="Does splitting the work also make it faster?" basis="calculated" options={OPTIONS} initial={INITIAL}>
+<Figure question="Does splitting the work also make it faster?" basis="assumed" options={OPTIONS} initial={INITIAL}>
   {
     (["parallel", "sequential"] as Key[]).map((key) => {
       const p = PANELS[key];

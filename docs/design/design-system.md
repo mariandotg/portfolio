@@ -310,6 +310,31 @@ fold into the same one.
 </Figure>
 ```
 
+### Basis
+
+`Figure` requires `basis`. It renders in mono beside the caption, at
+`--text-micro` and muted — quieter than the caption prose it sits next to, and
+nowhere near the hero stat. When a figure mixes sources, the weakest wins.
+
+| Basis | How the figure knows its number |
+|---|---|
+| `measured` | read from a cited source or an observed run; nothing derived |
+| `calculated` | derived by applying documented rules and prices to a stated scenario |
+| `assumed` | rests on a quantity or behaviour no source documents |
+
+A stated workload does **not** demote a figure to `assumed`. If it did, all 14
+figures would read `assumed` and the marker would carry no information. The test
+is narrower: does the number rest on a behaviour or quantity nobody documents —
+the 8-second wait before a response begins, the size of a subagent's brief,
+whether the compaction pass reads the cache like a normal request?
+`the-quadratic-loop` draws the same line in prose: "every number in this note is
+calculated, and every workload size is an assumption stated under the visual
+that uses it."
+
+`basis` follows the figure the reader sees, not the component. `CompactionSawtooth`
+switches on its own `variant` prop, because only the dollar headline depends on
+the undocumented billing of the compaction pass.
+
 ### Primitives
 
 | Primitive | Replaces | Found in |
@@ -320,7 +345,7 @@ fold into the same one.
 | `Axis` | the copied 3-4 line SVG block | 6 files |
 | `Legend` + `Swatch` | two implementations (`<span style="background:var(--alc-X)">` vs `<svg><rect class="alc-fill-X"/></svg>`) | 6 files |
 | `Toggle` | the `Record<Key,T>` + `panelData()` + `hidden={key!==initial}` pattern | 7 files |
-| `Source` | ad-hoc caption markup; now carries the `basis` marker | 13 files |
+| `Source` | ad-hoc caption markup | 13 files |
 | `DataTable` | nothing — new | all |
 
 Move `nudgeLabels()` from `CacheBreakEven.astro:59` and `CacheCost.astro:44`

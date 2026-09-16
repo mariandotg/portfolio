@@ -3,6 +3,15 @@
 Paste the section below into a fresh agent in Cursor's Agents Window. The wave
 table after it is the plan that brief refers to.
 
+**Base:** `cursor-dispatch-setup`, branched from `main` after the CCA series
+merged (PR #7). That merge matters — `src/components/notes/agent-loop` did not
+exist on `main` before it, and MDG-130, MDG-131 and MDG-132 all operate on it.
+
+**Still unresolved:** `worktree-skills-badges-sober` rewrites the skill-badge
+palette in `global.css` and touches `src/components/cv/`. It collides head-on
+with MDG-125 and MDG-136. Merge it before wave 1 or park it — do not run the
+batch with it in flight.
+
 ---
 
 ## The prompt
@@ -18,9 +27,14 @@ table after it is the plan that brief refers to.
 > Each one carries a `Dispatch contract` block naming the directories it may
 > touch. Read a ticket before dispatching it — do not work from its title.
 >
+> **The integration branch is `cursor-dispatch-setup`.** Every ticket branches
+> from it and merges back into it. `main` stays untouched until the whole batch
+> is verified; that final merge is mine, not yours.
+>
 > **Run the waves in `.cursor/ORCHESTRATOR.md`, in order.** Inside a wave, run
 > the tickets in parallel, each in its own git worktree. Never start a wave
-> until every ticket in the previous one is merged to `main`. The waves encode
+> until every ticket in the previous one is merged into the integration branch.
+> The waves encode
 > two constraints at once: the blocker graph in Linear, and which tickets write
 > to the same directories. Reordering them will make two agents fight over
 > `src/styles`.
@@ -31,11 +45,11 @@ table after it is the plan that brief refers to.
 > 3. Read both reports. If the reviewer found something that blocks, send it
 >    back to the implementer with the specific finding — do not fix it yourself
 >    and do not merge past it.
-> 4. When it is clean, open a PR and merge it to `main`.
+> 4. When it is clean, merge it into `cursor-dispatch-setup`.
 > 5. Move the Linear ticket to Done and comment the merge commit on it.
 >
-> **Between waves**, pull `main` into every live worktree before starting the
-> next one. Wave N+1 assumes wave N's tokens exist.
+> **Between waves**, pull `cursor-dispatch-setup` into every live worktree
+> before starting the next one. Wave N+1 assumes wave N's tokens exist.
 >
 > **Stop and ask me** — do not decide alone — when:
 > - a ticket's premise is wrong, or the fix would break something it did not
@@ -118,6 +132,26 @@ series components. Disjoint files, overlapping declared scope.
 | **MDG-135** | Four product decisions about the series model. No dispatch contract on purpose. |
 
 ---
+
+## Models
+
+| Role | Model | Why |
+|---|---|---|
+| Orchestrator | **Claude Opus (top tier)** | Holds the 15-ticket graph, reads two reports per ticket, decides what goes back. Planning, not throughput. Alternate: GPT-5.5. |
+| Implementer — the 11 mechanical tickets | **Composer 2.5** | Ties the frontier on coding benchmarks at roughly a tenth of the cost, and it is editor-native. These tickets have closed specs; this is the right call. |
+| Implementer — **MDG-130** | **Claude Opus (top tier)** | Designs the API of eight primitives that thirteen files then depend on. Architecture-level, not mechanical. Do not run this one on Composer. |
+| Implementer — **MDG-132** | **Claude Opus** or **Gemini 3.1 Pro** | Classifies each figure as measured / calculated / assumed by reading the prose and the simulation engine. Judgment over long context. |
+| Reviewer | **GPT-5.5** | Leads Terminal-Bench by a wide margin, and review here means running the dev server and driving the headless-Chrome capture script. |
+
+**The catch with Composer 2.5.** Its one clear weakness against the frontier is
+terminal and shell workflow — roughly thirteen points behind GPT-5.5 on
+Terminal-Bench 2.0. That is exactly what these acceptance criteria lean on:
+start the dev server, drive `screenshot.mjs` through the DevTools Protocol, read
+the overflow warnings.
+
+So **move the visual burden to the reviewer.** Let the Composer implementers
+write the code and attempt the captures; treat the reviewer's screenshots as the
+ones that count. Do not accept an implementer's "looks right" without them.
 
 ## Why this order and not the Linear graph
 

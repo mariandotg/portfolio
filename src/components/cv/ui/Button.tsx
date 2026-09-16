@@ -1,3 +1,10 @@
+/**
+ * CV-only Button fork — not deletable in favour of `@/components/ui/button`.
+ * `SocialMediaList` uses `asChild` with Astro-authored anchors; Astro passes
+ * those slots as `SlotString` (serialized HTML, no React `children`), so Radix
+ * `Slot` cannot merge `className`. `injectClassOnSlotString` patches the slot
+ * markup instead.
+ */
 import { type SlotProps } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
@@ -6,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { SlotString } from 'astro/runtime/server/render/slot.js'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {

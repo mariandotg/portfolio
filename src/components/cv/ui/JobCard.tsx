@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, CardContent, CardHeader } from './Card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { EntryTitle } from './EntryTitle'
 import { Badge } from './Badge'
 import type { Work } from '@/models/resume.data.models'
@@ -12,8 +12,11 @@ interface Props {
 
 const JobCard: React.FunctionComponent<Props> = ({ work }) => {
   return (
-    <Card key={work.company} className="print-avoid-break bg-transparent">
-      <CardHeader>
+    <Card
+      key={work.company}
+      className="gap-0 rounded-sm border-0 bg-transparent py-0 shadow-none print-avoid-break"
+    >
+      <CardHeader className="flex flex-col gap-0 space-y-1.5 px-0">
         <div className="flex items-center justify-between gap-x-2">
           <EntryTitle className="inline-flex items-center gap-x-2">
             {work.logo && (
@@ -34,7 +37,7 @@ const JobCard: React.FunctionComponent<Props> = ({ work }) => {
           {work.title}
         </h4>
       </CardHeader>
-      <CardContent className="mt-2 text-base print:text-[10px]">
+      <CardContent className="mt-2 px-0 text-pretty text-base text-muted-foreground print:text-[10px]">
         {work.bullets && work.bullets.length > 0 ? (
           <ul className="ml-4 list-disc flex flex-col gap-1">
             {work.bullets.map((bullet, i) => (

@@ -1,0 +1,266 @@
+---
+// Diagram version of InvalidationLadder: the four changes at request 20 as rows of one table, so the
+// reader compares them at once instead of toggling. Each row is the request as a bar sized by tokens:
+// tools → system → messages, read from cache or written to it. The width is the argument — messages
+// is 93% of the request, so any change that reaches it costs about the same as rewriting everything.
+import { simulate, CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { BASE_WORKLOAD } from "./workloads";
+import { fmtTokens, fmtUsd } from "./format";
+import Figure from "./kit/Figure.astro";
+import Source from "./kit/Source.astro";
+
+const cached = simulate({ ...BASE_WORKLOAD, turns: 20, cache: "5m" });
+const req20 = cached.requests[19];
+
+const sonnet = MODELS["sonnet-5"];
+const perIn = sonnet.inputPerMTok / 1_000_000;
+const perOut = sonnet.outputPerMTok / 1_000_000;
+
+const LEVELS = [
+  { key: "tools", tokens: BASE_WORKLOAD.toolsTokens },
+  { key: "system", tokens: BASE_WORKLOAD.systemTokens },
+  { key: "messages", tokens: req20.contextTokens - BASE_WORKLOAD.toolsTokens - BASE_WORKLOAD.systemTokens },
+] as const;
+const totalTok = LEVELS.reduce((sum, l) => sum + l.tokens, 0);
+
+interface Row {
+  change: string;
+  /** Rendered in mono: a parameter name, not prose. */
+  code?: boolean;
+  /** The first level this change invalidates; every later level is rewritten too. */
+  from: number | null;
+  focal?: boolean;
+}
+
+// Order is the hierarchy: each row invalidates one level earlier than the row above.
+const ROWS: Row[] = [
+  { change: "append a tool result", from: null },
+  { change: "tool_choice", code: true, from: 2, focal: true },
+  { change: "system prompt", from: 1 },
+  { change: "a tool definition", from: 0 },
+];
+
+function priced(row: Row) {
+  const cells = LEVELS.map((level, i) => {
+    const invalidated = row.from !== null && i >= row.from;
+    // The normal case still writes the newest tail of messages: the engine's own request-20 write.
+    const write = invalidated ? level.tokens : level.key === "messages" ? req20.cacheWriteTokens : 0;
+    return { ...level, invalidated, write, read: level.tokens - write };
+  });
+  const usd = cells.reduce(
+    (sum, c) => sum + (c.read * CACHE.readMultiplier + c.write * CACHE.write5mMultiplier) * perIn,
+    BASE_WORKLOAD.assistantTokens * perOut,
+  );
+  return { ...row, cells, usd };
+}
+
+const priced0 = ROWS.map(priced);
+const normalUsd = priced0[0].usd;
+const rows = priced0.map((r) => ({ ...r, multiple: r.usd / normalUsd }));
+
+const pct = (tokens: number) => `${((tokens / totalTok) * 100).toFixed(2)}%`;
+const smallLevels = LEVELS.slice(0, 2).reduce((sum, l) => sum + l.tokens, 0);
+---
+
+<Figure question="Which change at request 20 costs the least, and which the most?" basis="calculated">
+  <table class="ic">
+    <caption class="sr-only">
+      Request 20 of a 30-request loop with a warm 5-minute cache: which blocks each change forces the cache to rewrite, and
+      what the request costs.
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="ic-change">change at request 20</th>
+        <th scope="col" class="ic-scale">
+          <span class="ic-cascade" aria-hidden="true">
+            <span style={`width: ${pct(smallLevels)}`}>tools · system {fmtTokens(smallLevels)}</span>
+            <span>messages {fmtTokens(LEVELS[2].tokens)} →</span>
+          </span>
+          <span class="sr-only">what the request sends, by block</span>
+        </th>
+        <th scope="col" class="ic-cost">cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr class:list={["ic-row", { "ic-focal": r.focal }]}>
+            <th scope="row" class="ic-change">
+              {r.code ? <code>{r.change}</code> : r.change}
+            </th>
+            <td class="ic-scale">
+              <span class="ic-bar">
+                {r.cells.map((c) => (
+                  <span class="ic-seg" style={`width: ${pct(c.tokens)}`}>
+                    <span class="ic-read" style={`width: ${((c.read / c.tokens) * 100).toFixed(2)}%`} />
+                    <span class="ic-write" />
+                    <span class="sr-only">
+                      {c.key}: {c.invalidated ? "rewritten" : c.write > 0 ? "mostly read, newest tail written" : "read from cache"}.
+                    </span>
+                  </span>
+                ))}
+              </span>
+            </td>
+            <td class="ic-cost">
+              <span class="ic-usd">{fmtUsd(r.usd)}</span>
+              <span class:list={["ic-mult", { bad: r.multiple > 1.01 }]}>{r.multiple.toFixed(1)}×</span>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+
+  <ul class="alc-legend" aria-hidden="true">
+    <li><span class="ic-swatch ic-read" />read from cache (0.1×)</li>
+    <li><span class="ic-swatch ic-write" />written to cache (1.25×)</li>
+    <li class="ic-rule">a change rewrites its block and every block to its right</li>
+  </ul>
+
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }]} asOf={FACTS_AS_OF}>
+    Cache hierarchy: <code>tools</code> → <code>system</code> → <code>messages</code>. Bar width is each block's share of
+    the {fmtTokens(totalTok)}-token request. Claude Sonnet 5 prices from the engine's request-20 context.
+  </Source>
+</Figure>
+
+<style>
+  .ic {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+  }
+  .ic th,
+  .ic td {
+    padding: 10px 0;
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 400;
+  }
+  .ic thead th {
+    padding-top: 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .ic tbody tr + tr {
+    border-top: 1px solid hsl(var(--border));
+  }
+  .ic-change {
+    width: 11rem;
+    padding-right: 16px !important;
+    color: hsl(var(--foreground));
+  }
+  .ic-change code {
+    font-size: 0.92em;
+  }
+  .ic-cost {
+    width: 7.5rem;
+    padding-left: 16px !important;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+
+  .ic-cascade {
+    display: flex;
+    white-space: nowrap;
+  }
+  .ic-cascade > span:first-child {
+    /* The two small blocks share one label; it may overhang into messages. */
+    min-width: max-content;
+    padding-right: 12px;
+  }
+
+  .ic-bar {
+    display: flex;
+    height: 28px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .ic-seg {
+    display: flex;
+    min-width: 3px;
+  }
+  .ic-seg + .ic-seg {
+    border-left: 1px solid hsl(var(--background));
+  }
+  .ic-read {
+    background: var(--alc-read);
+  }
+  .ic-write {
+    flex: 1;
+    background: var(--alc-write);
+  }
+
+  .ic-usd {
+    font-family: var(--font-family-mono);
+    color: hsl(var(--foreground));
+  }
+  .ic-mult {
+    display: inline-block;
+    min-width: 3.2em;
+    margin-left: 8px;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    color: hsl(var(--muted-foreground));
+  }
+  .ic-mult.bad {
+    color: var(--alc-bad);
+  }
+
+  /* One focal row: the change that touches nothing in messages and still rewrites all of it. */
+  .ic-focal .ic-change {
+    font-weight: 600;
+  }
+  .ic-focal .ic-bar {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+
+  .ic-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: -1px;
+  }
+  .ic-rule {
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 560px) {
+    .ic thead .ic-change,
+    .ic thead .ic-cost {
+      display: none;
+    }
+    .ic,
+    .ic tbody,
+    .ic tr {
+      display: block;
+    }
+    .ic thead tr {
+      display: block;
+    }
+    .ic thead .ic-scale {
+      display: block;
+    }
+    .ic tbody tr {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "change cost" "bar bar";
+      row-gap: 6px;
+      padding: 10px 0;
+    }
+    .ic tbody th,
+    .ic tbody td {
+      padding: 0 !important;
+      width: auto;
+    }
+    .ic tbody .ic-change { grid-area: change; }
+    .ic tbody .ic-cost { grid-area: cost; }
+    .ic tbody .ic-scale { grid-area: bar; }
+  }
+</style>

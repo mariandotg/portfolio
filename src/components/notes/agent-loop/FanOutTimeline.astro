@@ -1,0 +1,259 @@
+---
+// Diagram version of FanOutCache: both dispatch modes on one time axis instead of a toggle. The
+// mechanism is a moment — the cache entry exists only after the first response begins — so the
+// diagram puts that moment on the axis and shows which requests start before it and which after.
+import { CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { fmtTokens, fmtUsd, fmtChange } from "./format";
+import Figure from "./kit/Figure.astro";
+import Source from "./kit/Source.astro";
+
+const COUNT = 8;
+const PREFIX_TOKENS = 40_000; // tools + system + a shared document, an assumed workload
+const ASSUMED_WAIT_SECONDS = 8; // not documented: an assumed time for the first response to begin
+const AXIS_SECONDS = 16; // room after the 8 s marker for the second burst and its label
+
+const perIn = MODELS["sonnet-5"].inputPerMTok / 1_000_000;
+const usdOf = (writes: number, reads: number) =>
+  (writes * PREFIX_TOKENS * CACHE.write5mMultiplier + reads * PREFIX_TOKENS * CACHE.readMultiplier) * perIn;
+const tokEqOf = (writes: number, reads: number) =>
+  writes * PREFIX_TOKENS * CACHE.write5mMultiplier + reads * PREFIX_TOKENS * CACHE.readMultiplier;
+
+type Mode = "write" | "read";
+interface Burst {
+  atSeconds: number;
+  mode: Mode;
+  count: number;
+}
+
+const LANES = [
+  {
+    key: "together",
+    label: "all at once",
+    bursts: [{ atSeconds: 0, mode: "write", count: COUNT }] as Burst[],
+    usd: usdOf(COUNT, 0),
+    tokEq: tokEqOf(COUNT, 0),
+  },
+  {
+    key: "staggered",
+    label: "first, then the rest",
+    bursts: [
+      { atSeconds: 0, mode: "write", count: 1 },
+      { atSeconds: ASSUMED_WAIT_SECONDS, mode: "read", count: COUNT - 1 },
+    ] as Burst[],
+    usd: usdOf(1, COUNT - 1),
+    tokEq: tokEqOf(1, COUNT - 1),
+  },
+];
+
+const at = (seconds: number) => `${((seconds / AXIS_SECONDS) * 100).toFixed(2)}%`;
+const saving = fmtChange(LANES[1].usd, LANES[0].usd);
+---
+
+<Figure question="Does firing 8 parallel requests cache 8 times?" basis="assumed">
+  <div class="fo">
+    <div class="fo-axis" aria-hidden="true">
+      <span class="fo-tick" style={`left: ${at(0)}`}>0 s</span>
+      <span class="fo-tick fo-tick-focal" style={`left: ${at(ASSUMED_WAIT_SECONDS)}`}>
+        {ASSUMED_WAIT_SECONDS} s<span class="fo-tick-sep"> · </span><span class="fo-tick-note">first response begins</span>
+      </span>
+    </div>
+
+    <ol class="fo-lanes">
+      {
+        LANES.map((lane) => (
+          <li class="fo-lane">
+            <span class="fo-label">{lane.label}</span>
+            <span class="fo-track">
+              <span class="fo-marker" style={`left: ${at(ASSUMED_WAIT_SECONDS)}`} aria-hidden="true" />
+              {lane.bursts.map((b) => (
+                <span class:list={["fo-burst", b.mode]} style={`left: ${at(b.atSeconds)}`}>
+                  <span class="fo-grid" aria-hidden="true">
+                    {Array.from({ length: b.count }, () => (
+                      <span class="fo-req" />
+                    ))}
+                  </span>
+                  <span class="fo-burst-label" aria-hidden="true">
+                    {b.count} × {b.mode === "write" ? "1.25×" : "0.1×"}
+                  </span>
+                  <span class="sr-only">
+                    {b.count === 1 ? "1 request" : `${b.count} requests`} at {b.atSeconds} s{" "}
+                    {b.mode === "write" ? "write the prefix at 1.25×" : "read the prefix at 0.1×"}.
+                  </span>
+                </span>
+              ))}
+            </span>
+            <span class="fo-cost">
+              <span class="fo-usd">{fmtUsd(lane.usd)}</span>
+              <span class="fo-tok">{fmtTokens(lane.tokEq)} tok-eq</span>
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <ul class="alc-legend" aria-hidden="true">
+    <li><span class="fo-swatch write" />writes the {fmtTokens(PREFIX_TOKENS)} prefix (1.25×)</li>
+    <li><span class="fo-swatch read" />reads it from cache (0.1×)</li>
+    <li class="fo-note">staggering: {saving}</li>
+  </ul>
+
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }, { href: SOURCES.pricing, label: "pricing" }]} asOf={FACTS_AS_OF}>
+    Assumption: 8 requests sharing a 40,000-token prefix (tools, system, and a shared document); the
+    8-second wait for the first response to begin is illustrative, not documented. Rule: a cache
+    entry becomes available only after the first response begins.
+  </Source>
+</Figure>
+
+<style>
+  .fo {
+    --label-w: 10rem;
+    --cost-w: 7.5rem;
+    --req: 12px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+  }
+
+  .fo-axis {
+    position: relative;
+    height: 20px;
+    margin: 0 var(--cost-w) 4px var(--label-w);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .fo-tick {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+  }
+  .fo-tick-focal {
+    color: hsl(var(--primary));
+    padding-left: 6px;
+  }
+
+  .fo-lanes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .fo-lane {
+    display: grid;
+    grid-template-columns: var(--label-w) 1fr var(--cost-w);
+    align-items: center;
+    min-height: 64px;
+    margin: 0;
+  }
+  .fo-lane + .fo-lane {
+    border-top: 1px solid hsl(var(--border));
+  }
+  .fo-label {
+    padding-right: 16px;
+    color: hsl(var(--foreground));
+  }
+
+  .fo-track {
+    position: relative;
+    align-self: stretch;
+    border-left: 1px solid hsl(var(--border));
+  }
+  /* The focal moment: the only point after which a cache entry exists. */
+  .fo-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 2px dashed hsl(var(--primary));
+  }
+  .fo-burst {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform: translate(8px, -50%);
+  }
+  .fo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--req));
+    gap: 3px;
+  }
+  .fo-req {
+    width: var(--req);
+    height: var(--req);
+    border-radius: 2px;
+  }
+  .fo-burst.write .fo-req {
+    background: var(--alc-write);
+  }
+  .fo-burst.read .fo-req {
+    background: var(--alc-read);
+  }
+  .fo-burst-label {
+    white-space: nowrap;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .fo-cost {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-left: 16px;
+  }
+  .fo-usd {
+    font-family: var(--font-family-mono);
+    color: hsl(var(--foreground));
+  }
+  .fo-tok {
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .fo-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: -1px;
+  }
+  .fo-swatch.write { background: var(--alc-write); }
+  .fo-swatch.read { background: var(--alc-read); }
+  .fo-note {
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 560px) {
+    .fo {
+      --label-w: 0px;
+      --cost-w: 0px;
+    }
+    .fo-lane {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "label cost" "track track";
+      row-gap: 6px;
+      padding: 10px 0;
+    }
+    .fo-axis {
+      height: 36px;
+    }
+    .fo-tick-sep {
+      display: none;
+    }
+    .fo-tick-note {
+      display: block;
+    }
+    .fo-label { grid-area: label; }
+    .fo-cost { grid-area: cost; }
+    .fo-track {
+      grid-area: track;
+      min-height: 44px;
+    }
+    .fo-burst-label {
+      display: none;
+    }
+  }
+</style>

@@ -374,7 +374,7 @@ blockquote {
   font-variant-numeric: tabular-nums;
 }
 
-.note.prose :where(table) {
+.note.prose :where(table):not(:where(.not-prose, .not-prose *)) {
   width: 100%;
   min-width: min(100%, max-content);
   border-collapse: collapse;
@@ -383,7 +383,7 @@ blockquote {
   line-height: var(--text-meta--line-height);
 }
 
-.note.prose :where(thead th) {
+.note.prose :where(thead th):not(:where(.not-prose, .not-prose *)) {
   padding: 0.625rem 0.75rem;
   font-weight: 600;
   text-align: left;
@@ -392,7 +392,7 @@ blockquote {
   border-bottom: 1px solid hsl(var(--border));
 }
 
-.note.prose :where(tbody td) {
+.note.prose :where(tbody td):not(:where(.not-prose, .not-prose *)) {
   padding: 0.625rem 0.75rem;
   text-align: left;
   vertical-align: top;
@@ -400,7 +400,7 @@ blockquote {
   border-bottom: 1px solid hsl(var(--border));
 }
 
-.note.prose :where(tbody tr:last-child td) {
+.note.prose :where(tbody tr:last-child td):not(:where(.not-prose, .not-prose *)) {
   border-bottom: none;
 }
 

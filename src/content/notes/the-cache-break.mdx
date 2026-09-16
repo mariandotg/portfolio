@@ -10,9 +10,9 @@ collection: "engineering-notes"
 import Callout from "../../components/notes/Callout.astro";
 import CacheCost from "../../components/notes/agent-loop/CacheCost.astro";
 import CacheBreakEven from "../../components/notes/agent-loop/CacheBreakEven.astro";
-import InvalidationLadder from "../../components/notes/agent-loop/InvalidationLadder.astro";
+import InvalidationCascade from "../../components/notes/agent-loop/InvalidationCascade.astro";
 import LookbackWindow from "../../components/notes/agent-loop/LookbackWindow.astro";
-import FanOutCache from "../../components/notes/agent-loop/FanOutCache.astro";
+import FanOutTimeline from "../../components/notes/agent-loop/FanOutTimeline.astro";
 import ClearingCost from "../../components/notes/agent-loop/ClearingCost.astro";
 import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
 
@@ -64,7 +64,7 @@ The three-block stack — `tools`, `system`, `messages` — is also a dependency
 
 I priced what that means at request 20 of the 30-request loop, with a 5-minute cache already warm:
 
-<InvalidationLadder />
+<InvalidationCascade />
 
 Appending a tool result — the normal case, every turn of the loop — reads almost everything from cache and writes only the newest tail: $0.026. Changing `tool_choice` invalidates every message block, so the entire 65,000-token messages segment gets rewritten at 1.25× even though nothing in it changed: $0.168, 6.5× the normal request. Editing the system prompt invalidates system and everything after it, leaving only the 3,000-token tools block cached: $0.172, 6.7×. Editing a tool definition invalidates the whole prefix — nothing is read from cache at all: $0.179, 6.9×.
 
@@ -101,7 +101,7 @@ The fix when a conversation does grow past 20 positions between cache writes is 
 
 Assume 8 parallel requests sharing a 40,000-token prefix — tools, system prompt, and a shared reference document, the kind of setup a coordinator handing the same context to 8 subagents would produce:
 
-<FanOutCache />
+<FanOutTimeline />
 
 Fire them together and all 8 write the prefix at 1.25×: 400,000 token-equivalents, $0.80. Wait for the first response to begin — I'm assuming 8 seconds, since the docs don't say how long that takes — and only that first request writes; the other 7 read at 0.1×: 78,000 token-equivalents, $0.156. That's 80% less, for an 8-second delay before the other 7 fire.
 

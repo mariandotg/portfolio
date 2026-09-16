@@ -1,5 +1,11 @@
 ---
 // Static diagram: the Messages API is stateless, so request N resends everything before it.
+import Figure from "./agent-loop/kit/Figure.astro";
+import Plot from "./agent-loop/kit/Plot.astro";
+import Legend from "./agent-loop/kit/Legend.astro";
+import DataTable from "./agent-loop/kit/DataTable.astro";
+import { plotFrame } from "./agent-loop/kit/plot";
+
 const unit = 44;
 const rows = [
   { label: "Request 1", blocks: ["tools", "system", "task"] },
@@ -12,87 +18,52 @@ const labelWidth = 92;
 const width = labelWidth + unit * 7 + 8;
 const rowHeight = 44;
 const height = rows.length * rowHeight + 30;
+
+const frame = plotFrame({ w: width, h: height });
+
+const ariaLabel =
+  "Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call and tool result. Only the last blocks are new.";
 ---
 
-<figure class="anatomy not-prose">
-  <svg
-    viewBox={`0 0 ${width} ${height}`}
-    role="img"
-    aria-label="Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call and tool result. Only the last blocks are new."
-  >
+<Figure question="What does each request send when the API keeps no state?" basis="assumed">
+  <Plot frame={frame} label={ariaLabel}>
     {
       rows.map((row, r) => (
         <g transform={`translate(0 ${r * rowHeight})`}>
-          <text class="anatomy-row" x="0" y="26">
+          <text class="alc-text" x="0" y="26">
             {row.label}
           </text>
           {row.blocks.map((b, i) => (
             <g transform={`translate(${labelWidth + i * unit} 6)`}>
               <rect
-                class={`anatomy-block ${kind(b)} ${isNew(r, i) ? "new" : "resent"}`}
+                class={`${kind(b) === "prefix" ? "alc-fill-resent" : "alc-fill-new"} ${isNew(r, i) ? "" : "opacity-[0.55]"}`}
                 width={unit - 4}
                 height="30"
                 rx="4"
+                stroke={kind(b) === "history" && isNew(r, i) ? "hsl(var(--primary))" : "hsl(var(--border))"}
+                stroke-width={kind(b) === "history" && isNew(r, i) ? "1.5" : "1"}
               />
-              <text class="anatomy-text" x={(unit - 4) / 2} y="19" text-anchor="middle">
-                {b.replace(" ", " ")}
+              <text class="alc-text-strong" x={(unit - 4) / 2} y="19" text-anchor="middle">
+                {b.replace(" ", "\u00a0")}
               </text>
             </g>
           ))}
         </g>
       ))
     }
-    <g transform={`translate(${labelWidth} ${rows.length * rowHeight + 6})`}>
-      <rect class="anatomy-block prefix resent" width="12" height="12" rx="2" />
-      <text class="anatomy-row" x="18" y="10">sent again</text>
-      <rect class="anatomy-block history new" x="110" width="12" height="12" rx="2" />
-      <text class="anatomy-row" x="128" y="10">new this request</text>
-    </g>
-  </svg>
-</figure>
+  </Plot>
 
-<style>
-  .anatomy {
-    margin: 1.6rem 0;
-    padding: 12px;
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius-md);
-    overflow-x: auto;
-  }
-  .anatomy svg {
-    display: block;
-    width: 100%;
-    min-width: 380px;
-    height: auto;
-  }
-  .anatomy-row {
-    font-family: var(--font-family-mono);
-    font-size: var(--text-micro);
-    line-height: var(--text-micro--line-height);
-    fill: hsl(var(--muted-foreground));
-  }
-  .anatomy-text {
-    font-family: var(--font-family-mono);
-    font-size: var(--text-micro);
-    line-height: var(--text-micro--line-height);
-    fill: hsl(var(--foreground));
-  }
-  .anatomy-block {
-    stroke-width: 1;
-  }
-  .anatomy-block.prefix {
-    fill: color-mix(in srgb, hsl(var(--muted-foreground)) 22%, transparent);
-    stroke: hsl(var(--border));
-  }
-  .anatomy-block.history {
-    fill: color-mix(in srgb, hsl(var(--primary)) 18%, transparent);
-    stroke: color-mix(in srgb, hsl(var(--primary)) 40%, transparent);
-  }
-  .anatomy-block.resent {
-    opacity: 0.55;
-  }
-  .anatomy-block.new {
-    stroke: hsl(var(--primary));
-    stroke-width: 1.5;
-  }
-</style>
+  <Legend
+    items={[
+      { tone: "resent", label: "sent again" },
+      { tone: "new", label: "new this request" },
+    ]}
+  />
+
+  <DataTable
+    slot="a11y"
+    caption="Three consecutive stateless requests and which blocks repeat."
+    columns={["request", "blocks sent"]}
+    rows={rows.map((r) => [r.label, r.blocks.join(", ")])}
+  />
+</Figure>

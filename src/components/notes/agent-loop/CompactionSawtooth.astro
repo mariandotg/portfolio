@@ -3,10 +3,16 @@
 // history draws a sawtooth instead of a straight climb. Two compactions on this workload.
 // variant="cost" (default): dollar headline, unchanged — used by note 1. variant="context":
 // tokens only, no dollars, no compact_20260112 parameter detail — used by note 3.
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Axis from "./kit/Axis.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
-import { fmtTokens, fmtUsd, fmtChange, scale, points } from "./format";
+import { fmtTokens, fmtUsd, fmtChange, points } from "./format";
 
 interface Props {
   variant?: "cost" | "context";
@@ -20,15 +26,15 @@ const N = COMPACTION_WORKLOAD.turns;
 const maxWithout = Math.max(...without.requests.map((r) => r.contextTokens));
 const yDomainMax = maxWithout * 1.1;
 
-const W = 480;
-const H = 280;
-const plotX0 = 14;
-const plotX1 = 468;
-const plotY0 = 44;
-const plotY1 = 250;
-
-const x = scale(1, N, plotX0, plotX1);
-const y = scale(0, yDomainMax, plotY1, plotY0);
+const frame = plotFrame({
+  w: 480,
+  h: 280,
+  inset: { l: 14, r: 12, t: 44, b: 30 },
+  x: [1, N],
+  y: [0, yDomainMax],
+});
+const x = frame.x;
+const y = frame.y;
 
 const ghostPoints = points(
   without.requests.map((r) => r.contextTokens),
@@ -55,41 +61,26 @@ const ariaLabel =
     : `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)}. With compaction the context is replaced by a summary once it reaches the 150k trigger, resetting twice, and peaks at ${fmtTokens(peakWith)}.`;
 ---
 
-<AlcFigure question="What does compaction do to the context?">
+<Figure question="What does compaction do to the context?" basis="calculated">
   {
     variant === "cost" ? (
-      <div class="alc-headline">
-        <span class="alc-big">{fmtUsd(costWith)}</span>
-        <span class="alc-delta good">{fmtChange(costWith, costWithout)} vs no compaction</span>
-      </div>
-    ) : (
-      <div class="alc-headline">
-        <span class="alc-big">{fmtTokens(peakWith)} peak context</span>
-        <span class="alc-delta good">{fmtChange(peakWith, peakWithout)} vs no compaction</span>
-      </div>
-    )
-  }
-  {
-    variant === "cost" ? (
-      <p class="alc-sub">
+      <Stat value={fmtUsd(costWith)} delta={`${fmtChange(costWith, costWithout)} vs no compaction`} tone="gain">
         Peak context <strong>{fmtTokens(peakWith)}</strong> instead of <strong>{fmtTokens(peakWithout)}</strong>. Each
         compaction pass reads the whole context once, and that pass is billed.
-      </p>
+      </Stat>
     ) : (
-      <p class="alc-sub">
+      <Stat value={fmtTokens(peakWith)} unit="peak context" delta={`${fmtChange(peakWith, peakWithout)} vs no compaction`} tone="gain">
         Without compaction the context climbs to <strong>{fmtTokens(peakWithout)}</strong>. With it, the context is
         replaced by a summary once it reaches the trigger, and it never passes <strong>{fmtTokens(peakWith)}</strong>.
-      </p>
+      </Stat>
     )
   }
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaLabel}>
-    <line class="alc-axis" x1={plotX0} y1={plotY1} x2={plotX1} y2={plotY1} />
-    <text class="alc-text" x={plotX0} y={plotY1 + 16}>request 1</text>
-    <text class="alc-text" x={plotX1} y={plotY1 + 16} text-anchor="end">request 80</text>
+  <Plot frame={frame} label={ariaLabel}>
+    <Axis frame={frame} x={["request 1", "request 80"]} rule />
 
-    <line class="alc-marker" x1={plotX0} y1={triggerY} x2={plotX1} y2={triggerY} />
-    <text class="alc-text" x={plotX0 + 2} y={triggerY + 14}>trigger 150k</text>
+    <line class="alc-marker" x1={frame.left} y1={triggerY} x2={frame.right} y2={triggerY} />
+    <text class="alc-text" x={frame.left + 2} y={triggerY + 14}>trigger 150k</text>
 
     <polyline class="alc-ghost" points={ghostPoints} />
     <text class="alc-text" x={x(N) - 4} y={y(maxWithout) - 14} text-anchor="end">without compaction</text>
@@ -107,22 +98,28 @@ const ariaLabel =
         </g>
       ))
     }
-  </svg>
+  </Plot>
 
-  <Fragment slot="caption">
+  <DataTable
+    slot="a11y"
+    caption={`Compaction across ${N} requests, variant ${variant}.`}
+    columns={["mode", "peak context", variant === "cost" ? "total cost" : "notes"]}
+    rows={[
+      ["without compaction", fmtTokens(peakWithout), variant === "cost" ? fmtUsd(costWithout) : "—"],
+      ["with compaction", fmtTokens(peakWith), variant === "cost" ? fmtUsd(costWith) : `${compactions.length} compactions`],
+    ]}
+  />
+
+  <Source slot="caption" links={[{ href: SOURCES.compaction, label: "compaction docs" }]} asOf={FACTS_AS_OF}>
     {
       variant === "cost" ? (
         <>
           <code>compact_20260112</code> triggers at 150k tokens (minimum 50k) and bills the summarization pass. Not
-          available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request. Source:{" "}
-          <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
+          available on Haiku 4.5. Assumption: the compaction pass reads the cache like a normal request.
         </>
       ) : (
-        <>
-          The context is replaced by a summary once it reaches the trigger (150k tokens, minimum 50k). Source:{" "}
-          <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
-        </>
+        <>The context is replaced by a summary once it reaches the trigger (150k tokens, minimum 50k).</>
       )
     }
-  </Fragment>
-</AlcFigure>
+  </Source>
+</Figure>

@@ -3,7 +3,14 @@
 // last request — raw history vs a case facts block. Compaction drops every block before the
 // summary, so a fact survives raw only until the next compaction after it was introduced, unless
 // it lives in the case facts block (sent in every prompt, immune to compaction).
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Legend from "./kit/Legend.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 import { simulate, COMPACTION_LIMITS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { COMPACTION_WORKLOAD, compactionWith } from "./workloads";
 import { fmtTokens } from "./format";
@@ -12,15 +19,11 @@ const run = simulate(compactionWith(COMPACTION_LIMITS.minTrigger));
 const N = COMPACTION_WORKLOAD.turns;
 const compactionIndices = run.requests.filter((r) => r.compaction).map((r) => r.index);
 
-// Segments: the requests between one compaction and the next. Column i is segment i.
 const segStarts = [1, ...compactionIndices];
 const segEnds = [...compactionIndices.map((c) => c - 1), N];
 const segments = segStarts.map((start, i) => ({ start, end: segEnds[i] }));
 const lastSeg = segments.length - 1;
 
-// Illustrative support-case facts. Each is introduced by the tool result of one request.
-// Assumption: the case, the requests, and which fact each one carries are illustrative, not from
-// a real transcript. Their survival is computed from the compaction indices above.
 const FACTS = [
   { key: "order", label: "order number", introducedAt: 2 },
   { key: "amount", label: "amount charged", introducedAt: 15 },
@@ -34,22 +37,19 @@ const segmentOf = (requestIndex: number) => segments.findIndex((s) => requestInd
 const facts = FACTS.map((f) => ({ ...f, introSeg: segmentOf(f.introducedAt) }));
 
 type CellState = "unknown" | "verbatim" | "maybe" | "kept";
-type Panel = "history" | "casefacts";
-const cellState = (panel: Panel, introSeg: number, seg: number): CellState => {
+type PanelKey = "history" | "casefacts";
+const cellState = (panel: PanelKey, introSeg: number, seg: number): CellState => {
   if (seg < introSeg) return "unknown";
   if (panel === "casefacts") return "kept";
   return seg === introSeg ? "verbatim" : "maybe";
 };
 
-const verbatimAtLast = (panel: Panel) => facts.filter((f) => cellState(panel, f.introSeg, lastSeg) !== "unknown" && cellState(panel, f.introSeg, lastSeg) !== "maybe").length;
+const verbatimAtLast = (panel: PanelKey) => facts.filter((f) => cellState(panel, f.introSeg, lastSeg) !== "unknown" && cellState(panel, f.introSeg, lastSeg) !== "maybe").length;
 const historyCount = verbatimAtLast("history");
 const casefactsCount = verbatimAtLast("casefacts");
 
-// Assumption: a six-fact case facts block is short — about 30 tokens per fact including its label.
 const CASE_FACTS_BLOCK_TOKENS = 30 * FACTS.length;
 
-// Layout: viewBox 480 wide. Row labels on the left, one column per segment.
-const W = 480;
 const labelW = 112;
 const plotX0 = labelW + 6;
 const plotX1 = 472;
@@ -64,33 +64,39 @@ const rowY = (i: number) => headerH + i * (rowH + rowGap);
 const colX = (i: number) => plotX0 + i * colW;
 const H = headerH + facts.length * (rowH + rowGap) + 20;
 
-const panels: { key: Panel; label: string }[] = [
+const panels: { key: PanelKey; label: string }[] = [
   { key: "history", label: "facts only in the history" },
   { key: "casefacts", label: "case facts block" },
 ];
 
-const ariaFor = (panel: Panel) => {
+const frame = plotFrame({ w: 480, h: H });
+
+const ariaFor = (panel: PanelKey) => {
   const count = panel === "history" ? historyCount : casefactsCount;
   const grid = facts
     .map((f) => `${f.label}: ${cellState(panel, f.introSeg, lastSeg) === "unknown" ? "never introduced" : cellState(panel, f.introSeg, lastSeg) === "verbatim" || cellState(panel, f.introSeg, lastSeg) === "kept" ? "verbatim" : "only in the summary, not guaranteed"}`)
     .join("; ");
   return `${count} of ${facts.length} facts verbatim in context at request ${N}, ${panel === "history" ? "with facts only in the conversation history" : "with a case facts block in every prompt"}. ${grid}.`;
 };
+
+const OPTIONS = panels.map((p) => ({ value: p.key, label: p.label }));
+const INITIAL: PanelKey = "history";
 ---
 
-<AlcFigure
+<Figure
   question="How many of a support case's facts survive to the last request?"
-  options={panels.map((p) => ({ value: p.key, label: p.label }))}
-  initial="history"
+  basis="assumed"
+  options={OPTIONS}
+  initial={INITIAL}
 >
   {
     panels.map((p) => (
-      <div data-alc-panel={p.key} hidden={p.key !== "history"}>
-        <div class="alc-headline">
-          <span class="alc-big">{p.key === "history" ? historyCount : casefactsCount} of {facts.length} facts</span>
-          <span class={`alc-delta ${p.key === "history" ? "bad" : "good"}`}>verbatim at request {N}</span>
-        </div>
-        <p class="alc-sub">
+      <Panel value={p.key} initial={INITIAL}>
+        <Stat
+          value={`${p.key === "history" ? historyCount : casefactsCount} of ${facts.length} facts`}
+          delta={`verbatim at request ${N}`}
+          tone={p.key === "history" ? "loss" : "gain"}
+        >
           {p.key === "history" ? (
             <>
               Only <strong>{facts.find((f) => f.introSeg === lastSeg)?.label}</strong>, introduced at request{" "}
@@ -104,9 +110,9 @@ const ariaFor = (panel: Panel) => {
               facts.
             </>
           )}
-        </p>
+        </Stat>
 
-        <svg viewBox={`0 0 ${W} ${H}`} class="alc-svg" role="img" aria-label={ariaFor(p.key)}>
+        <Plot frame={frame} label={ariaFor(p.key)}>
           <text class="alc-text" x={plotX0} y={14}>request 1</text>
           <text class="alc-text" x={plotX1} y={14} text-anchor="end">request {N}</text>
 
@@ -138,22 +144,44 @@ const ariaFor = (panel: Panel) => {
 
           <text class="alc-text" x={plotX0} y={H - 4}>compacted every ~8 requests</text>
           <text class="alc-text" x={plotX1} y={H - 4} text-anchor="end">{compactionIndices.length} compactions</text>
-        </svg>
-      </div>
+        </Plot>
+      </Panel>
     ))
   }
 
-  <ul class="alc-legend">
-    <li><span class="alc-swatch" style="background: var(--alc-new)"></span> verbatim in context</li>
-    <li><span class="alc-swatch" style="background: var(--alc-resent)"></span> only in the summary, not guaranteed</li>
-    <li><span class="alc-swatch" style="border: 1px dashed hsl(var(--muted-foreground)); background: transparent"></span> not yet known</li>
-  </ul>
+  <Legend
+    items={[
+      { tone: "new", label: "verbatim in context" },
+      { tone: "resent", label: "only in the summary, not guaranteed" },
+      { tone: "ghost", label: "not yet known" },
+    ]}
+  />
 
-  <Fragment slot="caption">
+  <Fragment slot="a11y">
+    {
+      panels.map((p) => (
+        <DataTable
+          caption={ariaFor(p.key)}
+          columns={["fact", "state at request " + N]}
+          rows={facts.map((f) => {
+            const state = cellState(p.key, f.introSeg, lastSeg);
+            const label =
+              state === "unknown"
+                ? "never introduced"
+                : state === "verbatim" || state === "kept"
+                  ? "verbatim"
+                  : "only in summary";
+            return [f.label, label];
+          })}
+        />
+      ))
+    }
+  </Fragment>
+
+  <Source slot="caption" links={[{ href: SOURCES.compaction, label: "compaction docs" }]} asOf={FACTS_AS_OF}>
     {facts.length} illustrative facts of one support case, placed at the request that introduces them. Compaction
     trigger lowered to the documented minimum ({fmtTokens(COMPACTION_LIMITS.minTrigger)}) so the {N}-request loop
     compacts {compactionIndices.length} times instead of 2. The grid tracks what compaction drops, never a
-    probability that the summary kept a fact. Source:{" "}
-    <a href={SOURCES.compaction} target="_blank" rel="noreferrer">compaction docs</a>, as of {FACTS_AS_OF}.
-  </Fragment>
-</AlcFigure>
+    probability that the summary kept a fact.
+  </Source>
+</Figure>

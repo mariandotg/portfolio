@@ -4,8 +4,16 @@
 // Clearing every step invalidates the cache on every clear; batching the clears mostly avoids that.
 import { simulate, SOURCES, FACTS_AS_OF, CONTEXT_EDITING_DEFAULTS } from "@/lib/sim/agent-loop";
 import { EDITING_WORKLOAD, editingWith, BATCHED_CLEAR_AT_LEAST } from "./workloads";
-import { fmtTokens, fmtUsd, fmtChange, scale } from "./format";
-import AlcFigure from "./AlcFigure.astro";
+import { fmtTokens, fmtUsd, fmtChange } from "./format";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Axis from "./kit/Axis.astro";
+import Legend from "./kit/Legend.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
 
 type StateKey = "each" | "batched";
 
@@ -23,19 +31,20 @@ const yMax = Math.max(
   ...RUNS.batched.requests.map((r) => r.historyTokens),
 );
 
-const VB_W = 480;
-const VB_H = 250;
-const PLOT_LEFT = 6;
-const PLOT_RIGHT = VB_W - 130;
-const PLOT_TOP = 34;
-const PLOT_BOTTOM = 196;
+const frame = plotFrame({
+  w: 480,
+  h: 250,
+  inset: { l: 6, r: 130, t: 34, b: 54 },
+  x: [0, N],
+  y: [0, yMax],
+  bands: N,
+  bandGap: Math.min(1, ((480 - 6 - 130) / N) * 0.15),
+});
 
-const barWidth = (PLOT_RIGHT - PLOT_LEFT) / N;
-const barGap = Math.min(1, barWidth * 0.15);
-const barX = (i: number) => PLOT_LEFT + i * barWidth;
-const barCenter = (i: number) => barX(i) + (barWidth - barGap) / 2;
-
-const yAt = scale(0, yMax, PLOT_BOTTOM, PLOT_TOP);
+const yAt = frame.y;
+const barWidth = frame.bandWidth;
+const barX = (i: number) => frame.band(i);
+const barCenter = (i: number) => frame.bandCenter(i);
 
 function panelData(key: StateKey) {
   const r = RUNS[key];
@@ -65,64 +74,75 @@ const OPTIONS = [
   { value: "batched", label: "clear_at_least: 20k" },
 ];
 
-const lastHistory = yMax;
-const historyLabelY = yAt(lastHistory);
+const historyLabelY = yAt(yMax);
 const triggerY = yAt(trigger);
+const INITIAL: StateKey = "each";
+
+const ariaLabel = (key: StateKey) => {
+  const p = PANELS[key];
+  return `Tokens sent per request over ${N} requests, clear_at_least ${key === "each" ? "0" : fmtTokens(BATCHED_CLEAR_AT_LEAST)}. ${p.clears} of ${N} requests clear something. Total cost ${fmtUsd(p.editedTotal)}, ${fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing. The full client history reaches ${fmtTokens(yMax)}; clearing keeps the prompt near the ${fmtTokens(trigger)} trigger.`;
+};
 ---
 
-<AlcFigure question="Why can clearing old tool results cost more than keeping them?" options={OPTIONS} initial="each">
+<Figure question="Why can clearing old tool results cost more than keeping them?" basis="calculated" options={OPTIONS} initial={INITIAL}>
   {
     (["each", "batched"] as StateKey[]).map((key) => {
       const p = PANELS[key];
-      const deltaClass = p.editedTotal < baseline.totals.costUsd ? "good" : "bad";
+      const deltaTone = p.editedTotal < baseline.totals.costUsd ? "gain" : "loss";
       return (
-        <div data-alc-panel={key} hidden={key !== "each"}>
-          <div class="alc-headline">
-            <span class="alc-big">{fmtUsd(p.editedTotal)}</span>
-            <span class={`alc-delta ${deltaClass}`}>{fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing</span>
-          </div>
-          <p class="alc-sub">{SUB[key]}</p>
-          <svg
-            viewBox={`0 0 ${VB_W} ${VB_H}`}
-            class="alc-svg"
-            role="img"
-            aria-label={`Tokens sent per request over ${N} requests, clear_at_least ${key === "each" ? "0" : fmtTokens(BATCHED_CLEAR_AT_LEAST)}. ${p.clears} of ${N} requests clear something. Total cost ${fmtUsd(p.editedTotal)}, ${fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing. The full client history reaches ${fmtTokens(yMax)}; clearing keeps the prompt near the ${fmtTokens(trigger)} trigger.`}
-          >
-            <text x={PLOT_LEFT} y={PLOT_TOP - 10} class="alc-text">{fmtTokens(yMax)} tokens sent</text>
-            <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="alc-axis" />
-            <text x={PLOT_LEFT} y={PLOT_BOTTOM + 16} class="alc-text">1</text>
-            <text x={PLOT_RIGHT} y={PLOT_BOTTOM + 16} class="alc-text" text-anchor="end">{N}</text>
-            <text x={(PLOT_LEFT + PLOT_RIGHT) / 2} y={PLOT_BOTTOM + 28} class="alc-text" text-anchor="middle">request →</text>
-
-            <line x1={PLOT_LEFT} y1={triggerY} x2={PLOT_RIGHT} y2={triggerY} class="alc-marker" />
-            <text x={PLOT_RIGHT + 6} y={triggerY + 4} class="alc-text">trigger {fmtTokens(trigger)}</text>
+        <Panel value={key} initial={INITIAL}>
+          <Stat value={fmtUsd(p.editedTotal)} delta={`${fmtChange(p.editedTotal, baseline.totals.costUsd)} vs no clearing`} tone={deltaTone}>
+            {SUB[key]}
+          </Stat>
+          <Plot frame={frame} label={ariaLabel(key)}>
+            <Axis frame={frame} y={`${fmtTokens(yMax)} tokens sent`} x={["1", String(N)]} title="request →" />
+            <line x1={frame.left} y1={triggerY} x2={frame.right} y2={triggerY} class="alc-marker" />
+            <text x={frame.right + 6} y={triggerY + 4} class="alc-text">trigger {fmtTokens(trigger)}</text>
 
             {p.bars.map((b) => (
               <>
-                <rect x={b.x} y={b.y1} width={barWidth - barGap} height={Math.max(0, PLOT_BOTTOM - b.y1)} class="alc-fill-read" />
-                <rect x={b.x} y={b.y2} width={barWidth - barGap} height={Math.max(0, b.y1 - b.y2)} class="alc-fill-write" />
-                <rect x={b.x} y={b.y3} width={barWidth - barGap} height={Math.max(0, b.y2 - b.y3)} class="alc-fill-uncached" />
+                <rect x={b.x} y={b.y1} width={barWidth} height={Math.max(0, frame.bottom - b.y1)} class="alc-fill-read" />
+                <rect x={b.x} y={b.y2} width={barWidth} height={Math.max(0, b.y1 - b.y2)} class="alc-fill-write" />
+                <rect x={b.x} y={b.y3} width={barWidth} height={Math.max(0, b.y2 - b.y3)} class="alc-fill-uncached" />
               </>
             ))}
 
             <polyline points={p.ghostPoints} class="alc-ghost" />
-            <text x={PLOT_RIGHT + 6} y={historyLabelY + 4} class="alc-text">
-              <tspan x={PLOT_RIGHT + 6} dy="0">history without</tspan>
-              <tspan x={PLOT_RIGHT + 6} dy="13">clearing</tspan>
+            <text x={frame.right + 6} y={historyLabelY + 4} class="alc-text">
+              <tspan x={frame.right + 6} dy="0">history without</tspan>
+              <tspan x={frame.right + 6} dy="13">clearing</tspan>
             </text>
-          </svg>
-          <ul class="alc-legend">
-            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-read" /></svg>read from cache (0.1×)</li>
-            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-write" /></svg>written to cache (1.25×)</li>
-          </ul>
-        </div>
+          </Plot>
+          <Legend
+            items={[
+              { tone: "read", label: "read from cache (0.1×)" },
+              { tone: "write", label: "written to cache (1.25×)" },
+            ]}
+          />
+        </Panel>
       );
     })
   }
-  <Fragment slot="caption">
-    <code>clear_tool_uses_20250919</code> defaults: 100k-token trigger, keep the last 3 results.
-    Clearing invalidates the cached prefix (<a href={SOURCES.contextEditing}>context editing</a>), as of {FACTS_AS_OF}.
-    Assumption: a cleared result leaves a 10-token placeholder, and only the cleared blocks change, so a
-    request still reads the last cache entry written before the first of them.
+
+  <Fragment slot="a11y">
+    {
+      (["each", "batched"] as StateKey[]).map((key) => (
+        <DataTable
+          caption={ariaLabel(key)}
+          columns={["metric", "value"]}
+          rows={[
+            ["total cost", fmtUsd(PANELS[key].editedTotal)],
+            ["requests that clear", String(PANELS[key].clears)],
+            ["vs no clearing", fmtChange(PANELS[key].editedTotal, baseline.totals.costUsd)],
+          ]}
+        />
+      ))
+    }
   </Fragment>
-</AlcFigure>
+
+  <Source slot="caption" links={[{ href: SOURCES.contextEditing, label: "context editing" }]} asOf={FACTS_AS_OF}>
+    <code>clear_tool_uses_20250919</code> defaults: 100k-token trigger, keep the last 3 results.
+    Clearing invalidates the cached prefix. Assumption: a cleared result leaves a 10-token placeholder, and only the cleared blocks change, so a
+    request still reads the last cache entry written before the first of them.
+  </Source>
+</Figure>

@@ -1,0 +1,94 @@
+---
+title: "The Quadratic Loop"
+description: "An agent resends its whole history on every request, so the tokens it sends grow with the square of the loop. A 30-request loop with a 104K-token final context sends 1.64 million input tokens, and the tool result is the multiplier."
+pubDate: 2026-09-15
+tags: ["ai-agents", "claude", "agentic-loop", "context-engineering", "claude-certified-architect"]
+draft: true
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 1
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import RequestAnatomy from "../../components/notes/RequestAnatomy.astro";
+import LoopTriangleIsland from "../../components/notes/agent-loop/LoopTriangleIsland.astro";
+import TrimCost from "../../components/notes/agent-loop/TrimCost.astro";
+
+The Claude Messages API doesn't remember anything. Every request carries the whole conversation: the tool definitions, the system prompt, the task, and every tool call and tool result so far. In a chat, that's a detail. In an agent loop, it's the shape of everything the agent sends.
+
+I'm preparing for Anthropic's Claude Certified Architect exam. Two of its domains, agentic architecture and context management, start from this one fact. I didn't want it as a rule to memorize, so I built a small engine that counts what each request sends. It makes no API calls. Every number in this note is calculated, and every workload size is an assumption stated under the visual that uses it.
+
+<Callout type="note" title="On the exam">
+This note covers two task statements. **1.1**: the agentic loop continues while `stop_reason` is `"tool_use"`, stops at `"end_turn"`, and appends each tool result to the conversation history. **5.1**: every request passes the complete history, tool results accumulate in context and consume tokens out of proportion to their relevance, and you trim verbose tool outputs before they pile up.
+</Callout>
+
+## One request
+
+A request is a stack of blocks in a fixed order: `tools`, then `system`, then `messages`. The model reads it top to bottom, and it answers with a `stop_reason`. If the reason is `"tool_use"`, your code runs the tool, appends the result, and sends the whole stack again. If it's `"end_turn"`, the loop is over.
+
+<RequestAnatomy />
+
+Request 3 sends seven blocks. Two of them are new. The other five were already sent, and they go again anyway.
+
+The workload in this note is a 5,500-token prompt (3,000 tokens of tool definitions, a 2,000-token system prompt, a 500-token task), 400 tokens of output per request, and a 3,000-token tool result per call. The first request sends 5,500 tokens.
+
+That number is the last one in this note that grows in a straight line.
+
+## The loop
+
+Every request except the last ends in a tool call, and the tool result joins the history. So request *t* sends the prompt plus everything the loop produced before it:
+
+```
+input(t) = P + (t − 1) · (A + R)
+```
+
+Add it up over *N* requests:
+
+```
+total input = N · P + (A + R) · N(N − 1) / 2
+```
+
+The context grows in a straight line. The total grows with *N*².
+
+Draw one bar per request, as tall as the context it sends. The bars form a triangle, and the total is its area. Make the loop twice as long and the triangle gets twice as wide *and* twice as tall.
+
+<LoopTriangleIsland />
+
+A 30-request loop ends with a 104,100-token context, but sends 1,644,000 input tokens: 15.8 times the final context. At 60 requests the total is 3.9× larger, not 2×. At 120 requests it reaches 24,936,000 tokens.
+
+The window is a hard wall on the same curve. Claude Haiku 4.5 has a 200K-token window. With this workload, request 59 would need 202,700 tokens, so the loop can't reach 60 requests on that model at all.
+
+## The multiplier
+
+Two terms control the triangle: *N*, the number of requests, and *A + R*, what each request adds. You don't always control *N*. The agent decides when it's done. You do control *R*, because you write the tool.
+
+The exam guide has its own example of the problem: an order lookup that returns 40 fields when the agent needs 5. The extra 35 fields don't cost their size once. They cost their size on every request that follows.
+
+<TrimCost />
+
+Trimming the lookup to the 5 relevant fields cuts the loop from 1.64 million input tokens to 502,125, 69% less, and the last request sends 27,975 tokens instead of 104,100. Nothing else changed: same prompt, same number of requests, same agent.
+
+Where you trim matters. If the tool returns 40 fields and a later step ignores 35 of them, those 35 fields are already in the history. Trim in the tool, or between the tool and the history, before the result is appended.
+
+## Why size matters beyond the count
+
+A long context isn't only a big number. Chroma's [Context Rot](https://www.trychroma.com/research/context-rot) report found that all 18 models it tested get less reliable as input grows. A bigger window doesn't fix that: it only moves the wall.
+
+So there are two ways to fight the triangle once trimming isn't enough. You can split the work so no single context grows that far, which is [note 2](/notes/four-short-loops). Or you can replace the history with a summary when it gets too long, and decide what the summary must not lose, which is [note 3](/notes/what-the-summary-forgot).
+
+## What I take from this
+
+- **The API is stateless, so the history is the input.** Every request sends everything before it.
+- **The loop is quadratic.** Twice the requests send about four times the tokens.
+- **The tool result is the multiplier.** A field the agent doesn't need is sent on every request that follows.
+- **Trim before the result enters the history.** Once it's appended, every later request carries it.
+
+<Callout type="takeaway" title="The rule">
+Every token a tool returns is sent again on every request after it. Decide what the agent needs before the result joins the history.
+</Callout>
+
+This model counts tokens. It doesn't model answer quality, tokenization, or variance between tool calls, and it treats every field as the same size. It also leaves out price: caching, cache lifetimes and the API levers that shrink the context aren't on the exam, so they have their own engineering note, [The Cache Break](/notes/the-cache-break).
+
+---
+
+For the exam, this is the fact under half of the context-management questions. The rule is one sentence. The curve it draws is not.

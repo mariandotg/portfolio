@@ -1,0 +1,117 @@
+---
+title: "What the Summary Forgot"
+description: "Compaction drops every context block before the summary it writes. I traced a 6-fact support case through the engine from note 1: 1 of 6 facts survives raw in plain history, 6 of 6 survive in a case facts block outside it."
+pubDate: 2026-09-15
+tags: ["ai-agents", "claude", "context-engineering", "summarization", "claude-certified-architect"]
+draft: true
+collection: "engineering-notes"
+series: "claude-certified-architect"
+seriesOrder: 3
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import SideBySide from "../../components/notes/SideBySide.astro";
+import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
+import FactsSurvival from "../../components/notes/agent-loop/FactsSurvival.astro";
+
+A long enough agent loop crosses a size the model can't keep whole. Something replaces the history with a summary. A summary keeps the story. It drops the numbers.
+
+[Note 1](/notes/the-quadratic-loop) showed why the context grows in the first place: every tool result joins the history, and every later request resends it. This note picks up after that growth becomes a problem — what a summary can and can't keep, and where a fact has to live to survive it.
+
+<Callout type="note" title="On the exam">
+This is exam task statement 5.1, domain 5 (context management and reliability, 15% of the exam): progressive summarization risk, the "lost in the middle" effect, extracting facts into a persistent block, and scratchpad files.
+</Callout>
+
+## The context gets replaced
+
+Note 1's loop grows without bound until something intervenes. [Compaction](https://platform.claude.com/docs/en/build-with-claude/compaction) is one such intervention: once the prompt reaches a trigger token count, Claude writes a summary and the API drops every block before it.
+
+<CompactionSawtooth variant="context" />
+
+Without compaction, an 80-request loop with 5,000-token tool results reaches 432,100 tokens of context. With compaction at the default 150,000-token trigger, it never passes 154,300. The context is smaller. What's inside it changed shape: most of the history is now a paragraph.
+
+## What a summary drops
+
+A summary is a model call like any other, and it optimizes for the same thing a person retelling a story does: the narrative, not the ledger. The exam guide names what goes first — numerical values, percentages, dates, and customer-stated expectations condense into vague summaries.
+
+Take a support case. The customer's order shipped late. Somewhere in the transcript: an order number, an amount, a purchase date, a status, a refund the agent promised, and a deadline for that refund. A good summary keeps "the customer was frustrated about a late shipment and a refund was discussed." It has no obligation to keep "$340, due 2026-09-20." Nothing tells the model which sentence you'll need to enforce later.
+
+Tool results make this worse before it starts. They accumulate in context and consume tokens disproportionately to their relevance — the exam guide's example is a lookup that returns 40+ fields when only 5 matter. Every one of those 40 fields is candidate material for the summary to compress away, including the 5 you needed.
+
+## The case facts block
+
+The documented fix isn't a better summary. It's not summarizing the fact at all. Extract transactional facts — amounts, dates, order numbers, statuses — into a persistent case facts block, and put that block in every prompt, outside the history compaction touches.
+
+I built a small support case: 6 facts, each introduced by the tool result of one request in an 80-request loop. I lowered the compaction trigger to the documented minimum, 50,000 tokens, so the loop compacts 9 times instead of 2 — enough to show the pattern instead of one lucky escape.
+
+<FactsSurvival />
+
+Compaction drops every block before the summary. A fact is verbatim in context only if it was introduced after the last compaction — everything older survives only if the summary happened to keep it, and the grid never claims to know that it did. At request 80, only the refund deadline (introduced at request 76, after the 9th and last compaction) is still raw: 1 of 6. Put the same 6 facts in a case facts block instead, and all 6 are still there: 6 of 6, at an assumed cost of about 180 tokens for six short facts, paid on every single prompt.
+
+That's the trade. A case facts block is tokens you send on every request, for facts you're certain you'll need. A history you don't curate keeps a fact only until the next compaction.
+
+## Scratchpad files
+
+A case facts block works for facts you can name in advance: amounts, dates, statuses. Long exploration — reading a dozen files to find one pattern — produces findings you can't template ahead of time, and there can be too many to keep resending in every prompt.
+
+The documented pattern for that is a scratchpad file. The agent writes what it found to disk as it goes, instead of only in its own context. When the context boundary comes anyway — a subagent returns, a `/compact` empties the conversation — the finding isn't gone, because it was never only inside the context. It's a file the next turn, or the next agent, can go read. Claude Code's `/compact` does the same kind of replacement as the API's compaction, in a long exploration session inside the CLI rather than over the API; neither one should be trusted to keep a detail it didn't write down somewhere else first.
+
+## Where a fact sits matters too
+
+A case facts block and a scratchpad both answer "does the fact still exist somewhere." Neither answers "will the model actually use it if it's buried."
+
+Liu et al., ["Lost in the Middle: How Language Models Use Long Contexts"](https://arxiv.org/abs/2307.03172) (arXiv:2307.03172), found that model performance is highest when the relevant information sits at the beginning or the end of a long input, and drops when it has to be found in the middle — even in models built for long context windows.
+
+Put the same aggregated tool output two ways. One lists sections in the order the tools happened to return them, so the one that matters can land anywhere. The other pulls it to the top and labels every section after it.
+
+<SideBySide variant="diff" leftLabel="Key finding buried in the middle" rightLabel="Key finding on top, with headers">
+<Fragment slot="left">
+
+```text
+Section: order history (12 orders)
+Section: shipping address log
+Section: KEY FINDING — refund of $340
+  approved, due 2026-09-20
+Section: payment methods on file
+Section: support ticket notes
+```
+
+</Fragment>
+<Fragment slot="right">
+
+```text
+KEY FINDINGS
+- Refund of $340 approved,
+  due 2026-09-20
+
+## Order history (12 orders)
+## Shipping address log
+## Payment methods on file
+## Support ticket notes
+```
+
+</Fragment>
+</SideBySide>
+
+No accuracy number belongs on that diagram — I didn't run either layout through a model, and the paper's numbers are for its own benchmark, not this one. What the exam guide gives you is the move: put a key-findings summary first, and organize the rest under explicit section headers. The corollary is mine, and I kept coming back to it while studying: a bigger context window doesn't fix where attention goes. It just gives the middle more room to get lost in.
+
+## Trim before it accumulates
+
+Note 1 measured the exam guide's 40-field lookup: trimming it to the 5 fields that matter cuts a 30-request loop from 1,644,000 to 502,125 input tokens, 69% less. Here that trim pays off twice more. It leaves less for the next summary to condense, and less middle for a fact to get lost in.
+
+## What I take from this
+
+- **A summary keeps the narrative, not the ledger.** Numbers, dates, percentages, and stated expectations are exactly what progressive summarization drops first.
+- **A case fact costs tokens on every prompt to guarantee it survives every compaction.** In this case, about 180 tokens for 6 facts — small next to losing the one with a deadline attached.
+- **A scratchpad file survives a context boundary because it was never only inside the context.** Useful for findings you can't template in advance; a case facts block still wins for facts you can.
+- **Position is a second, independent risk.** A fact can survive compaction and still get missed because it's buried in the middle of a long aggregated input.
+
+<Callout type="takeaway" title="The rule">
+Decide, per fact, whether it must be exact. If it must, don't let it live only in text a summarization pass might touch — extract it, or write it somewhere the compaction can't reach.
+</Callout>
+
+The grid in this note tracks what's verbatim in the context sent to the model, not what the model recalls from what it reads. A model can still misread a fact that's sitting right there, and the 6 facts and their request numbers are an illustrative case, not a transcript. Both are real risks. This note only measures the first one.
+
+---
+
+For the exam, the useful reframe wasn't "summarize less." It was noticing that a summary and a fact serve different jobs, so nothing forces you to pick one storage for both.

@@ -1,0 +1,17 @@
+---
+import AlcFigure from "./AlcFigure.astro";
+import LoopTriangle from "./LoopTriangle.tsx";
+import { BASE_WORKLOAD } from "./workloads";
+import { fmtTokens } from "./format";
+
+const w = BASE_WORKLOAD;
+---
+
+<AlcFigure question="Why does twice the loop send about four times the tokens?">
+  <LoopTriangle client:visible />
+  <Fragment slot="caption">
+    {fmtTokens(w.toolsTokens)} of tools, a {fmtTokens(w.systemTokens)} system prompt, a {fmtTokens(w.taskTokens)} task, then
+    {fmtTokens(w.assistantTokens)} output and a {fmtTokens(w.toolResultTokens)} tool result per request. Every request sends the whole
+    history, because the Messages API keeps no state between requests.
+  </Fragment>
+</AlcFigure>

@@ -1,0 +1,194 @@
+---
+title: "The Cache Break"
+description: "A tool 5 seconds slower than Claude's 5-minute cache lifetime turns an 80% discount into a 24% penalty. I priced that break and four others — the token floor, the invalidation hierarchy, the 20-block lookback, and parallel fan-out — from Anthropic's documented rules, not from guessing."
+pubDate: 2026-09-15
+tags: ["claude", "prompt-caching", "context-engineering", "ai-agents", "cost"]
+draft: true
+collection: "engineering-notes"
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import CacheCost from "../../components/notes/agent-loop/CacheCost.astro";
+import CacheBreakEven from "../../components/notes/agent-loop/CacheBreakEven.astro";
+import InvalidationLadder from "../../components/notes/agent-loop/InvalidationLadder.astro";
+import LookbackWindow from "../../components/notes/agent-loop/LookbackWindow.astro";
+import FanOutCache from "../../components/notes/agent-loop/FanOutCache.astro";
+import ClearingCost from "../../components/notes/agent-loop/ClearingCost.astro";
+import CompactionSawtooth from "../../components/notes/agent-loop/CompactionSawtooth.astro";
+
+Claude's prompt cache reads a repeated prefix at a tenth of its price. [The Quadratic Loop](/notes/the-quadratic-loop) already showed why an agent's history grows with the square of the number of requests. This note takes that growth as given and asks a narrower question: what does the cache actually do to the price of it, and where does it quietly stop helping?
+
+<Callout type="note" title="How to read the numbers">
+**Calculated** means a formula applied to documented values, using the same engine as The Quadratic Loop. **Documented** values link to Anthropic's docs, as of 2026-09-15. **Assumption** means a workload I chose, or a behavior the docs don't specify. Nothing here models answer quality.
+</Callout>
+
+## The discount
+
+A cached request is a stack of blocks — `tools`, then `system`, then `messages` — and the [prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) price each one three ways: read from cache at 0.1× the base input price, write at 1.25× (5-minute cache) or 2× (1-hour cache), or pay the full 1× if it was never cached. You don't place these markers by hand on every block: one top-level `cache_control` field on the request, and the system places the breakpoint on the last cacheable block.
+
+On the 30-request loop from note 1, that discount takes the bill from $3.41 with no cache to $0.69 with a 5-minute cache — 80% less, for the exact same 1.64 million input tokens. The cache doesn't make the quadratic curve linear. It makes each point on it cheaper.
+
+<CacheCost />
+
+That's the case where the cache behaves the way you'd hope. The rest of this note is about the five documented ways it doesn't.
+
+## Trap 1: the clock starts at the wrong end
+
+The 5-minute lifetime doesn't start when your last response finished. It starts "from the start of the request that writes or reads the cache entry," and generation time counts against it: the docs give a concrete example where a response takes 4 minutes to stream, leaving the caller about a minute to send the next request before the entry expires. If your tool is slow, or your model's own output is long, you can burn the TTL before you ever see the result.
+
+The toggle above already shows the shape of the trap: at 20 seconds between requests, the 5-minute cache is the cheap option. At 5 minutes 5 seconds, it's the expensive one, because the entry is always gone by the time the next request needs it. Every request writes its whole history again at 1.25×.
+
+<CacheBreakEven />
+
+Because every request in the loop waits the same number of seconds, this isn't a slope you can nudge — it's a step. Below the TTL, the cache hits every single time and the loop costs $0.69. One second past it, the cache misses every single time and the loop costs $4.23: 24% more than never caching at all. There's no partial credit for being close.
+
+The 1-hour cache sidesteps the whole question: $0.84 regardless of how slow the tool is, because 15 minutes doesn't come close to exhausting a 1-hour lifetime. That's the trade. You pay a flat 2× write instead of a conditional 1.25×, in exchange for not needing to know how slow your tools will be.
+
+## Trap 2: short prefixes silently don't cache
+
+Below a minimum length, a prefix isn't cached, and the API doesn't tell you:
+
+| Model | Minimum cacheable prefix |
+|---|---|
+| Claude Opus 5 | 512 tokens |
+| Claude Sonnet 5 | 1,024 tokens |
+| Claude Haiku 4.5 | 4,096 tokens |
+
+"Any requests to cache fewer than this number of tokens will be processed without caching, and no error is returned," per the [caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching). The same docs name the only signal: if `cache_creation_input_tokens` and `cache_read_input_tokens` are both 0, the prompt wasn't cached. A 500-token prefix on Sonnet 5, whose floor is 1,024, is exactly that case.
+
+The ordering here is backwards from what I expected. Haiku 4.5 is the model you'd reach for when you want cheap and fast, and it has the highest floor of the three — 4× Sonnet's and 8× Opus's. A short system prompt and a couple of small tool definitions that would cache fine on Opus 5 might silently never cache at all on Haiku 4.5.
+
+## Trap 3: the hierarchy invalidates downstream
+
+The three-block stack — `tools`, `system`, `messages` — is also a dependency order. "The cache hierarchy follows `tools` → `system` → `messages`. Changes at each level invalidate that level and all subsequent levels," per the docs. A few changes are scoped narrower: `tool_choice` and adding or removing images only ever touch message blocks, never tools or system, no matter when they happen.
+
+I priced what that means at request 20 of the 30-request loop, with a 5-minute cache already warm:
+
+<InvalidationLadder />
+
+Appending a tool result — the normal case, every turn of the loop — reads almost everything from cache and writes only the newest tail: $0.026. Changing `tool_choice` invalidates every message block, so the entire 65,000-token messages segment gets rewritten at 1.25× even though nothing in it changed: $0.168, 6.5× the normal request. Editing the system prompt invalidates system and everything after it, leaving only the 3,000-token tools block cached: $0.172, 6.7×. Editing a tool definition invalidates the whole prefix — nothing is read from cache at all: $0.179, 6.9×.
+
+None of these are exotic operations. A feature flag that swaps `tool_choice` between turns, or a system prompt built by string-concatenating a value that changes per session, pays this multiple on every request downstream of the change, for as long as the cache stays warm on the new version.
+
+| What changed | Tools cache | System cache | Messages cache |
+|---|---|---|---|
+| Tool definitions | invalidated | invalidated | invalidated |
+| Web search toggle | valid | invalidated | invalidated |
+| Citations toggle | valid | invalidated | invalidated |
+| Speed setting (`fast` / standard) | valid | invalidated | invalidated |
+| `tool_choice` | valid | valid | invalidated |
+| Images added or removed | valid | valid | invalidated |
+| Thinking parameters | model-specific | model-specific | invalidated |
+| `effort` setting | model-specific | model-specific | invalidated |
+
+Source: [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), as of 2026-09-15.
+
+## Trap 4: the lookback only checks 20 positions
+
+Even an untouched cache entry can miss. The system doesn't scan the whole history for a matching entry — it checks "at most 20 positions per breakpoint, counting the breakpoint itself as the first," and stops if it finds nothing. The docs' own example: a turn with 35 blocks checks positions 35 down to 16; an entry written at block 15 is one position outside that window, so it's a miss, even though it's still alive.
+
+There's one thing that buys you room inside that budget: "a run of consecutive `tool_use` blocks counts as one position, and so does a run of consecutive `tool_result` blocks." A turn that fires five tool calls in parallel spends the same one position as a turn that fires one.
+
+<LookbackWindow />
+
+Redraw the docs' example as parallel tool calls instead of sequential ones (my reconstruction, not a docs example), and the entry that was one position too far away in the sequential case sits at position 5 of 20 in the parallel case — comfortably inside the window, with room to spare. Sequential tool calls burn the lookback budget one position per call. Parallel ones burn it one position per turn, no matter how many calls are in it.
+
+The fix when a conversation does grow past 20 positions between cache writes is an explicit breakpoint, placed often enough that no gap exceeds the window. You get up to 4 per request — and that budget is shared with automatic caching: "if 4 explicit block-level breakpoints already exist, the API returns a 400 error," because there's no fifth slot reserved for the automatic one.
+
+## Trap 5: parallel requests don't parallelize the cache
+
+"A cache entry only becomes available after the first response begins," the docs say, and then tell you what to do about it: "if you need cache hits for parallel requests, wait for the first response before sending subsequent requests." Firing a fan-out of identical-prefix requests at once means none of them can read an entry another one is still writing — they all raced past the only request that could have created it.
+
+Assume 8 parallel requests sharing a 40,000-token prefix — tools, system prompt, and a shared reference document, the kind of setup a coordinator handing the same context to 8 subagents would produce:
+
+<FanOutCache />
+
+Fire them together and all 8 write the prefix at 1.25×: 400,000 token-equivalents, $0.80. Wait for the first response to begin — I'm assuming 8 seconds, since the docs don't say how long that takes — and only that first request writes; the other 7 read at 0.1×: 78,000 token-equivalents, $0.156. That's 80% less, for an 8-second delay before the other 7 fire.
+
+This is the subagent fan-out from [Four Short Loops](/notes/four-short-loops), looked at from the cache's side instead of the token-count side. Splitting the work cheapens it either way. Staggering the start cheapens the shared prefix on top of that.
+
+## Lever 1: context editing breaks the cache on purpose
+
+Every trap so far cost you the discount by accident. [Context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing) spends it on purpose, to keep the context itself from growing without bound. The `clear_tool_uses_20250919` strategy activates once the prompt passes a `trigger` (100,000 input tokens by default), replaces older tool results with a placeholder, and keeps the most recent `keep` pairs intact (3 by default). `exclude_tools` can protect specific tools from ever being cleared; `clear_tool_inputs` (off by default) additionally clears the tool call's parameters, not just its result.
+
+The docs are direct about the cost: "Tool result clearing invalidates cached prompt prefixes when content is cleared. To account for this, clear enough tokens to make the cache invalidation worthwhile." That's what `clear_at_least` is for — it skips a clearing pass unless it would free at least that many tokens.
+
+I ran the 60-request, 4,000-token-result workload from note 1 with a 5-minute cache, and the `keep` parameter alone moves the bill from $2.69 to $4.59: `keep: 1` costs $2.69, the default `keep: 3` costs $3.45, `keep: 6` costs $4.59. Keeping more recent results intact sounds strictly safer for the model. It isn't free: a clearing request rewrites everything after the prompt, and every kept result makes that rewrite bigger.
+
+<ClearingCost />
+
+With `clear_at_least` unset, clearing something happens on 38 of the 60 requests — a small amount every time — and each of those 38 requests can only read the 5,500-token prompt from the cache; the rest of the context, 21,000 to 36,000 tokens depending on how far the loop has grown, gets written again at 1.25×. The total, $3.45, is 40% more than doing no editing at all ($2.47). Setting `clear_at_least` to 20,000 tokens drops that to 7 batched clearing passes instead of 38 small ones, and most requests go back to reading the cache: $1.79, 27% less than no editing.
+
+Two things here are my assumptions, not the docs': a cleared result leaves a 10-token placeholder, and clearing invalidates only from the first cleared block onward, so a request still reads the cache entry written before that point. If real invalidation reaches further back than that, the default settings look worse than this note shows, not better.
+
+One more strategy exists for the same purpose on thinking blocks: `clear_thinking_20251015` clears earlier thinking turns with a `keep` default that varies by model — Opus 4.5+ and Sonnet 4.6+ keep all prior thinking by default, older Opus and Sonnet and every Haiku keep only the last turn's. Either strategy reports what it did in the response: `context_management.applied_edits[]` lists `cleared_tool_uses`, `cleared_thinking_turns`, and `cleared_input_tokens` per edit, so you don't have to infer it from the bill.
+
+## Lever 2: compaction breaks more, and hides the cost
+
+Context editing thins the tool results but leaves everything else standing. [Compaction](https://platform.claude.com/docs/en/build-with-claude/compaction) replaces the whole history with a summary. `compact_20260112` triggers once the prompt reaches 150,000 tokens by default (you can lower this, but not below a 50,000-token minimum), writes a summary, and the API drops everything before it. It is not available on Haiku 4.5.
+
+On the 80-request, 5,000-token-result workload, uncompacted history reaches 432,100 tokens and costs $4.81. With compaction at the default trigger, the loop compacts twice, never exceeds 154,300 tokens, and costs $2.68.
+
+<CompactionSawtooth />
+
+The docs recommend a `cache_control` breakpoint at the end of the system prompt specifically so it "remains valid and is read from cache" across a compaction event, leaving only the summary to write fresh. On this workload the breakpoint is worth $2.68 against $2.71 without it — a small gap, because the shared prefix here is only 5,500 tokens and compaction only fires twice. A larger system prompt, or a workload that compacts more often, would widen it.
+
+The trap is in how compaction gets billed. The summarization pass is billed like any other work, reported as its own entry in a separate `usage.iterations[]` array — and the top-level `usage.input_tokens` and `usage.output_tokens` fields deliberately exclude it: they "reflect the sum of all non-compaction iterations." On that 80-request workload, the two compaction passes account for 305,600 input tokens, 7,000 output tokens, and $0.15 of the $2.68 total. A cost tracker that reads only the top-level fields misses them: the real totals are 5% higher for input tokens, 22% higher for output tokens and 6% higher for cost than what it reports. The number isn't wrong. It's the wrong number to sum.
+
+## Measuring it for real
+
+Every number above comes from a simulation of documented rules, not from a live account. In production, the request's `usage` object is the source of truth: `cache_creation_input_tokens` (written this request), `cache_read_input_tokens` (read this request), and `input_tokens` (neither — new, uncached content), with a per-TTL breakdown available under `cache_creation.ephemeral_5m_input_tokens` and `cache_creation.ephemeral_1h_input_tokens`.
+
+The docs don't give a single named formula for a hit rate, so this is derived, not quoted: the fraction of processed input tokens that came from the cache is
+
+```
+hit_rate =
+  cache_read_input_tokens /
+  (cache_read_input_tokens + cache_creation_input_tokens + input_tokens)
+```
+
+and — per the trap above — a request using compaction needs that same sum computed once per entry in `usage.iterations[]`, not just from the top-level fields:
+
+```ts
+interface Iteration {
+  type: string;
+  input_tokens: number;
+}
+interface Usage {
+  input_tokens: number;
+  cache_read_input_tokens: number;
+  cache_creation_input_tokens: number;
+  iterations?: Iteration[];
+}
+
+function logUsage(usage: Usage) {
+  const { cache_read_input_tokens: read, cache_creation_input_tokens: write } = usage;
+  const total = read + write + usage.input_tokens;
+  const hitRate = total ? read / total : 0;
+
+  const compactionInput = (usage.iterations ?? [])
+    .filter((it) => it.type === "compaction")
+    .reduce((sum, it) => sum + it.input_tokens, 0);
+
+  console.log({ total, hitRate, compactionInput });
+}
+```
+
+One more multiplier worth knowing about, separate from all of this: the Batch API charges 50% less on both input and output tokens, and that discount "can be combined" with prompt caching. It doesn't remove any of the traps above: a batched request still has a floor, a hierarchy and a lookback window. It's a discount for work that can wait, not a fix for the loop.
+
+## What I take from this
+
+- **The cache is a step function, not a dial.** A tool that's 5 seconds under the TTL and one that's 5 seconds over it are worlds apart in price — $0.69 against $4.23 on the 30-request loop — even though nothing about the workload changed.
+- **The floor fails silently.** Below the minimum — 4,096 tokens on Haiku 4.5, the highest of the three models — a request isn't cached and the API says nothing. `cache_creation_input_tokens` and `cache_read_input_tokens` both at 0 is the only tell.
+- **The hierarchy means the cheapest change and the most expensive one can look identical from the call site.** Changing `tool_choice` (6.5×) and editing a tool definition (6.9×) are both one-line diffs; only one of them invalidates everything.
+- **Parallel isn't free, even when the work is.** Firing a fan-out at once costs 5× more on the shared prefix than waiting for the first response to begin. The 80% saving only exists if you wait for it.
+- **Every lever that shrinks the context also breaks the cache, and the break can cost more than the shrink saves.** Context editing without `clear_at_least` cost 40% more than doing nothing on this workload; with it set, 27% less.
+- **Compaction's own bill hides in a separate array.** On an 80-request workload that compacts twice, the real cost is 6% higher, and the real output 22% higher, than the top-level `usage` fields report.
+
+<Callout type="takeaway" title="The rule">
+Before you reach for a lever that shrinks the context, price what it does to the cache first. The shrink is usually real. Whether it's cheaper depends on how much of the prefix survives it.
+</Callout>
+
+This model prices documented rules against workloads I chose, not a live account. It ignores thinking tokens, real tokenization, rate limits, and batching's interaction with the 5 traps above. Prices are Claude Sonnet 5's, as of 2026-09-15, and Anthropic can change any of the beta features here — context editing and compaction both ship with dated strategy names for a reason. Run your own workload through the same engine before trusting a number from this one.
+
+The cache is the cheapest lever in this whole system, until one of five documented rules turns it off without telling you. Check which one applies before you assume it's on.

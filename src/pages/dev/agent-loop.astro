@@ -1,0 +1,30 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import RequestAnatomy from "@/components/notes/RequestAnatomy.astro";
+
+// Dev-only gallery of the agent-loop visuals, so they can be checked while the note is a draft.
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+
+const ORDER = ["LoopTriangleIsland", "CacheCost", "ClearingCost", "CompactionSawtooth", "SubagentTriangles"];
+const modules = import.meta.glob<{ default: any }>("/src/components/notes/agent-loop/*.astro", { eager: true });
+const visuals = Object.entries(modules)
+  .map(([path, mod]) => ({ name: path.split("/").pop()!.replace(".astro", ""), Component: mod.default }))
+  .filter((v) => v.name !== "AlcFigure")
+  .sort((a, b) => (ORDER.indexOf(a.name) + 1 || 99) - (ORDER.indexOf(b.name) + 1 || 99));
+---
+
+<BaseLayout title="Agent loop visuals · dev" noindex>
+  <main class="max-w-[800px] w-full mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <section data-dev-name="RequestAnatomy">
+      <RequestAnatomy />
+    </section>
+    {
+      visuals.map(({ name, Component }) => (
+        <section data-dev-name={name}>
+          <h2 class="font-mono text-xs text-muted-foreground mt-10">{name}</h2>
+          <Component />
+        </section>
+      ))
+    }
+  </main>
+</BaseLayout>

@@ -1,0 +1,219 @@
+/* Shared styles for the agent-loop visuals (.alc-*). Global on purpose: Astro and React share them. */
+
+.alc {
+  /* One meaning per color. */
+  --alc-new: hsl(var(--primary));
+  --alc-resent: color-mix(in srgb, hsl(var(--muted-foreground)) 38%, transparent);
+  --alc-read: color-mix(in srgb, hsl(var(--primary)) 55%, transparent);
+  --alc-write: hsl(38 90% 55%);
+  --alc-uncached: color-mix(in srgb, hsl(var(--muted-foreground)) 45%, transparent);
+  --alc-bad: hsl(8 75% 57%);
+  --alc-good: hsl(150 55% 42%);
+  margin: 1.6rem 0;
+  padding: 18px 18px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, hsl(var(--muted-foreground)) 5%, transparent);
+  color: hsl(var(--foreground));
+  font-family: var(--font-family-display);
+}
+
+.alc-question {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Segmented toggle */
+.alc-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+.alc-seg button {
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.alc-seg button[aria-pressed="true"] {
+  background: hsl(var(--primary));
+  color: #fff;
+}
+.alc-seg button:focus-visible,
+.alc input:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Headline: the one number the visual is about */
+.alc-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+.alc-big {
+  font-family: var(--font-family-mono);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.alc-delta {
+  font-family: var(--font-family-mono);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.alc-delta.bad {
+  color: var(--alc-bad);
+  background: color-mix(in srgb, var(--alc-bad) 12%, transparent);
+}
+.alc-delta.good {
+  color: var(--alc-good);
+  background: color-mix(in srgb, var(--alc-good) 12%, transparent);
+}
+.alc-sub {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+.alc-sub strong {
+  color: hsl(var(--foreground));
+}
+
+/* Slider */
+.alc-range {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+  color: hsl(var(--muted-foreground));
+}
+.alc-range input[type="range"] {
+  width: 100%;
+  accent-color: hsl(var(--primary));
+}
+.alc-range output {
+  min-width: 3ch;
+  text-align: right;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+/* SVG. Draw on a 480-unit-wide viewBox with text at 12+ units so it stays legible at 390px. */
+.alc-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.alc-axis {
+  stroke: hsl(var(--border));
+  stroke-width: 1;
+}
+.alc-text {
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+  fill: hsl(var(--muted-foreground));
+}
+.alc-text-strong {
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+  font-weight: 700;
+  fill: hsl(var(--foreground));
+}
+.alc-fill-new { fill: var(--alc-new); }
+.alc-fill-resent { fill: var(--alc-resent); }
+.alc-fill-read { fill: var(--alc-read); }
+.alc-fill-write { fill: var(--alc-write); }
+.alc-fill-uncached { fill: var(--alc-uncached); }
+.alc-fill-bad { fill: var(--alc-bad); }
+.alc-ghost {
+  fill: none;
+  stroke: hsl(var(--muted-foreground));
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+}
+.alc-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.alc-line.neutral { stroke: hsl(var(--muted-foreground)); stroke-dasharray: 5 4; }
+.alc-line.new { stroke: var(--alc-new); }
+.alc-line.write { stroke: var(--alc-write); }
+.alc-line.bad { stroke: var(--alc-bad); }
+.alc-line.good { stroke: var(--alc-good); }
+.alc-marker {
+  stroke: hsl(var(--foreground));
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+/* Inline legend */
+.alc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-family-mono);
+  font-size: 11.5px;
+  color: hsl(var(--muted-foreground));
+}
+.alc-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.alc-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* Sources and assumptions, one short line */
+.alc-caption {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 12px;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+.alc-caption a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.alc-caption code {
+  font-family: var(--font-family-mono);
+  font-size: 0.92em;
+}
+
+@media (max-width: 480px) {
+  .alc {
+    padding: 14px 12px 12px;
+  }
+  .alc-big {
+    font-size: 22px;
+  }
+}

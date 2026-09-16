@@ -1,0 +1,166 @@
+---
+// "Which change at request 20 costs the least, and which costs the most?" Toggle over one change
+// made at request 20 of the 30-request loop with a 5-minute cache. The hierarchy is tools → system
+// → messages: a change invalidates its own level and every level after it. tool_choice invalidates
+// message blocks only, same as the docs' rule for images.
+import { simulate, CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
+import { BASE_WORKLOAD } from "./workloads";
+import { fmtTokens, fmtUsd } from "./format";
+import AlcFigure from "./AlcFigure.astro";
+
+type StateKey = "message" | "tool_choice" | "system" | "tools";
+
+const cached = simulate({ ...BASE_WORKLOAD, turns: 20, cache: "5m" });
+const req20 = cached.requests[19];
+
+const sonnet = MODELS["sonnet-5"];
+const perIn = sonnet.inputPerMTok / 1_000_000;
+const perOut = sonnet.outputPerMTok / 1_000_000;
+const writeMult = CACHE.write5mMultiplier;
+const readMult = CACHE.readMultiplier;
+
+const toolsTok = BASE_WORKLOAD.toolsTokens;
+const systemTok = BASE_WORKLOAD.systemTokens;
+const messagesTok = req20.contextTokens - toolsTok - systemTok;
+const outputTok = BASE_WORKLOAD.assistantTokens;
+
+type Mode = "read" | "write";
+interface Segment {
+  label: string;
+  tokens: number;
+  mode: Mode;
+  /** Only set when the segment is split (the "message" case: mostly read, a small new write). */
+  writeTokens?: number;
+}
+
+function costOf(segments: Segment[]): number {
+  let usd = outputTok * perOut;
+  for (const s of segments) {
+    const write = s.writeTokens ?? (s.mode === "write" ? s.tokens : 0);
+    const read = s.tokens - write;
+    usd += (read * readMult + write * writeMult) * perIn;
+  }
+  return usd;
+}
+
+// The "message" case is the engine's own ground truth for request 20: most of the history reads
+// from the cache entry the previous request wrote; only the newest tail is written.
+const messageSegments: Segment[] = [
+  { label: "tools", tokens: toolsTok, mode: "read" },
+  { label: "system", tokens: systemTok, mode: "read" },
+  { label: "messages", tokens: messagesTok, mode: "read", writeTokens: req20.cacheWriteTokens },
+];
+
+const STATE_SEGMENTS: Record<StateKey, Segment[]> = {
+  message: messageSegments,
+  tool_choice: [
+    { label: "tools", tokens: toolsTok, mode: "read" },
+    { label: "system", tokens: systemTok, mode: "read" },
+    { label: "messages", tokens: messagesTok, mode: "write" },
+  ],
+  system: [
+    { label: "tools", tokens: toolsTok, mode: "read" },
+    { label: "system", tokens: systemTok, mode: "write" },
+    { label: "messages", tokens: messagesTok, mode: "write" },
+  ],
+  tools: [
+    { label: "tools", tokens: toolsTok, mode: "write" },
+    { label: "system", tokens: systemTok, mode: "write" },
+    { label: "messages", tokens: messagesTok, mode: "write" },
+  ],
+};
+
+const normalCost = costOf(messageSegments);
+
+function panelData(key: StateKey) {
+  const segments = STATE_SEGMENTS[key];
+  const cost = costOf(segments);
+  const multiple = cost / normalCost;
+  return { segments, cost, multiple };
+}
+
+const PANELS: Record<StateKey, ReturnType<typeof panelData>> = {
+  message: panelData("message"),
+  tool_choice: panelData("tool_choice"),
+  system: panelData("system"),
+  tools: panelData("tools"),
+};
+
+const OPTIONS = [
+  { value: "message", label: "append a tool result" },
+  { value: "tool_choice", label: "change tool_choice" },
+  { value: "system", label: "edit the system prompt" },
+  { value: "tools", label: "edit a tool definition" },
+];
+
+const SUB: Record<StateKey, string> = {
+  message: "The normal case. Tools and system read from cache; only the newest tail is written.",
+  tool_choice: "tool_choice only affects message blocks. Tools and system stay cached; every message block is rewritten.",
+  system: "Editing the system prompt invalidates system and everything after it. Only tools stays cached.",
+  tools: "Editing a tool definition invalidates the entire prefix. Nothing is read from cache.",
+};
+
+const VB_W = 480;
+const BAR_X = 6;
+const BAR_W = 400;
+const BAR_H = 30;
+const BAR_Y = 54;
+const totalTok = toolsTok + systemTok + messagesTok;
+const segW = (tokens: number) => (tokens / totalTok) * BAR_W;
+
+function segmentRects(segments: Segment[]) {
+  let x = BAR_X;
+  return segments.map((s) => {
+    const write = s.writeTokens ?? (s.mode === "write" ? s.tokens : 0);
+    const read = s.tokens - write;
+    const readW = segW(read);
+    const writeW = segW(write);
+    const rect = { x, readW, writeW, w: segW(s.tokens), label: s.label, tokens: s.tokens };
+    x += segW(s.tokens);
+    return rect;
+  });
+}
+---
+
+<AlcFigure question="Which change at request 20 costs the least, and which the most?" options={OPTIONS} initial="message">
+  {
+    (["message", "tool_choice", "system", "tools"] as StateKey[]).map((key) => {
+      const p = PANELS[key];
+      const rects = segmentRects(p.segments);
+      const deltaClass = p.multiple < 1.01 ? "good" : "bad";
+      const ariaLabel = `Request 20 with a 5-minute cache, ${OPTIONS.find((o) => o.value === key)!.label}. Tools ${fmtTokens(toolsTok)}, system ${fmtTokens(systemTok)}, messages ${fmtTokens(messagesTok)}. Cost ${fmtUsd(p.cost)}, ${p.multiple.toFixed(1)}× the normal request cost of ${fmtUsd(normalCost)}.`;
+      return (
+        <div data-alc-panel={key} hidden={key !== "message"}>
+          <div class="alc-headline">
+            <span class="alc-big">{fmtUsd(p.cost)}</span>
+            <span class={`alc-delta ${deltaClass}`}>{p.multiple.toFixed(1)}× the normal request</span>
+          </div>
+          <p class="alc-sub">{SUB[key]}</p>
+          <svg viewBox={`0 0 ${VB_W} 110`} class="alc-svg" role="img" aria-label={ariaLabel}>
+            {rects.map((r) => (
+              <>
+                <rect x={r.x} y={BAR_Y} width={r.readW} height={BAR_H} class="alc-fill-read" />
+                <rect x={r.x + r.readW} y={BAR_Y} width={r.writeW} height={BAR_H} class="alc-fill-write" />
+                <rect x={r.x} y={BAR_Y} width={r.w} height={BAR_H} fill="none" stroke="hsl(var(--border))" stroke-width="1" />
+              </>
+            ))}
+            <text x={BAR_X} y={BAR_Y - 8} class="alc-text">tools {fmtTokens(toolsTok)}, system {fmtTokens(systemTok)} ·</text>
+            <text x={rects[2].x + rects[2].w / 2} y={BAR_Y - 8} class="alc-text" text-anchor="middle">messages {fmtTokens(messagesTok)}</text>
+            <line x1={BAR_X + 20} y1={BAR_Y - 4} x2={BAR_X + 20} y2={BAR_Y} class="alc-marker" />
+            <text x={BAR_X} y={BAR_Y + BAR_H + 20} class="alc-text">request 20, {fmtTokens(totalTok)} total</text>
+          </svg>
+          <ul class="alc-legend">
+            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-read" /></svg>read from cache (0.1×)</li>
+            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-write" /></svg>written to cache (1.25×)</li>
+          </ul>
+        </div>
+      );
+    })
+  }
+  <Fragment slot="caption">
+    Cache hierarchy: <code>tools</code> → <code>system</code> → <code>messages</code>. A change
+    invalidates its level and every later level; <code>tool_choice</code> and images invalidate
+    message blocks only. Claude Sonnet 5 prices from the engine's request-20 context. Source:{" "}
+    <a href={SOURCES.caching}>prompt caching</a>, as of {FACTS_AS_OF}.
+  </Fragment>
+</AlcFigure>

@@ -12,7 +12,7 @@
   .tabs {
     margin: 1.6rem 0;
     border: 1px solid hsl(var(--border));
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     overflow: hidden;
   }
   .tab-bar {
@@ -25,7 +25,8 @@
   }
   .tab-btn {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
@@ -33,7 +34,7 @@
     border: none;
     background: transparent;
     color: hsl(var(--muted-foreground));
-    border-radius: 6px 6px 0 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     transition: color 150ms ease, background 150ms ease;

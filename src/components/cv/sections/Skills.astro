@@ -1,7 +1,6 @@
 ---
 import { DICTIONARIES } from '@/data/dictionaries'
-import { PUBLIC_RESUME_DATA } from '@/data/resume'
-import { getSkillCategoryClassName } from '@/data/skill-categories'
+import { CORE_SKILL_BADGE_CLASS, WEB_SKILL_GROUPS, isCoreSkill } from '@/data/skill-categories'
 import { cn } from '@/lib/utils'
 import { Badge } from '../ui/Badge'
 
@@ -10,16 +9,30 @@ interface Props {
 }
 
 const { lang } = Astro.props
-const DATA = PUBLIC_RESUME_DATA[lang]
 const DICTIONARY = DICTIONARIES[lang]
 ---
 <section class="flex flex-col gap-y-3">
     <h2 class="text-lg font-bold">{DICTIONARY.SKILLS}</h2>
-    <div class="flex flex-wrap gap-1">
-        {DATA.skills.map((skill) =>
-            <Badge className={cn("print:text-[10px]", getSkillCategoryClassName(skill))} variant={"secondary"}>
-                {skill}
-            </Badge>
-        )}
-    </div>
+    <dl class="grid grid-cols-1 gap-y-1 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-baseline sm:gap-x-4 sm:gap-y-2">
+        {WEB_SKILL_GROUPS.map(({ category, skills }) => (
+            <Fragment>
+                <dt class="font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                    {DICTIONARY.SKILL_CATEGORIES[category]}
+                </dt>
+                <dd class="mb-2 flex flex-wrap gap-1 sm:mb-0">
+                    {skills.map((skill) =>
+                        <Badge
+                          className={cn(
+                            "print:text-[10px]",
+                            isCoreSkill(skill) && CORE_SKILL_BADGE_CLASS,
+                          )}
+                          variant={"secondary"}
+                        >
+                            {skill}
+                        </Badge>
+                    )}
+                </dd>
+            </Fragment>
+        ))}
+    </dl>
 </section>

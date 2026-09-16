@@ -38,18 +38,9 @@
      para no quedar tapados al saltar a un heading. */
   --nav-height: 3.5rem;
 
-  /* Categorical accent palette — additive, harmonizes with the purple `--primary` (247°).
-     6 hues, fixed order, low-saturation ("sober") so they sit quietly next to the site's
-     mostly-grayscale palette — text-only accent, no tinted background (see
-     docs/design/palette.md). Each value here is tuned for >=4.5:1 text contrast against
-     `--background` in this mode — do not reuse `--primary`'s hue (247) or `--destructive`'s
-     (0) for a 7th accent without re-checking contrast. */
-  --accent-blue: 213 38% 49%;
-  --accent-orange: 17 38% 47%;
-  --accent-teal: 159 38% 37%;
-  --accent-amber: 41 38% 39%;
-  --accent-pink: 337 38% 50%;
-  --accent-green: 120 38% 37%;
+  /* Core skill accent — the only colored skill badges (docs/design/palette.md).
+     Same value as `--primary`; used as text over an 8% tint of itself. */
+  --skill-core: 247 76% 61%;
 }
 
 .dark {
@@ -81,13 +72,8 @@
   --input: 0 0% 20%;
   --ring: 247 76% 66%;
 
-  /* Same 6 hues, re-stepped for the dark surface (>=4.5:1 against dark `--background`). */
-  --accent-blue: 213 45% 51%;
-  --accent-orange: 17 45% 49%;
-  --accent-teal: 159 45% 40%;
-  --accent-amber: 41 45% 40%;
-  --accent-pink: 337 45% 54%;
-  --accent-green: 120 45% 40%;
+  /* Lighter than dark `--primary`, which falls under AA on dark badge fills. */
+  --skill-core: 247 84% 80%;
 }
 
 @theme inline {
@@ -111,13 +97,7 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Categorical accents — see the `:root`/`.dark` definitions above and docs/design/palette.md. */
-  --color-accent-blue: hsl(var(--accent-blue));
-  --color-accent-orange: hsl(var(--accent-orange));
-  --color-accent-teal: hsl(var(--accent-teal));
-  --color-accent-amber: hsl(var(--accent-amber));
-  --color-accent-pink: hsl(var(--accent-pink));
-  --color-accent-green: hsl(var(--accent-green));
+  --color-skill-core: hsl(var(--skill-core));
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);

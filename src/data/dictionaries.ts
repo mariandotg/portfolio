@@ -11,6 +11,14 @@ const EN_DICTIONARY: Dictionary = {
   EDUCATION: 'Education',
   EDUCATION_AND_CERTIFICATIONS: 'Education & Certifications',
   IN_PROGRESS: 'In Progress',
+  SKILL_CATEGORIES: {
+    languages: 'Languages',
+    backend: 'Backend',
+    'data-messaging': 'Data & Messaging',
+    'cloud-devops': 'Cloud & DevOps',
+    frontend: 'Frontend',
+    'ai-tooling': 'AI Tooling',
+  },
 }
 
 const ES_DICTIONARY: Dictionary = {
@@ -24,6 +32,14 @@ const ES_DICTIONARY: Dictionary = {
   EDUCATION: 'Educación',
   EDUCATION_AND_CERTIFICATIONS: 'Formación y certificaciones',
   IN_PROGRESS: 'En curso',
+  SKILL_CATEGORIES: {
+    languages: 'Lenguajes',
+    backend: 'Backend',
+    'data-messaging': 'Datos y mensajería',
+    'cloud-devops': 'Cloud y DevOps',
+    frontend: 'Frontend',
+    'ai-tooling': 'Herramientas de IA',
+  },
 }
 
 const DICTIONARIES = {

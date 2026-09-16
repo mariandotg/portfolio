@@ -1,0 +1,12 @@
+---
+// The caption: what the figure assumes, where its numbers come from, and when they were checked.
+interface Props {
+  /** Rendered as "Source: prompt caching, pricing". */
+  links?: { href: string; label: string }[];
+  /** The date the sources were last read. */
+  asOf?: string;
+}
+const { links = [], asOf } = Astro.props;
+---
+
+<slot />{links.length > 0 && (<>{" Source: "}{links.map((l, i) => (<>{i > 0 ? ", " : ""}<a href={l.href}>{l.label}</a></>))}</>)}{asOf ? `, as of ${asOf}.` : ""}

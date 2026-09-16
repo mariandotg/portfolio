@@ -1,0 +1,21 @@
+---
+// A tone, 10 units square. One implementation: the same fill classes the plot draws with, so a
+// swatch can never drift from the shape it stands for.
+import { TONE_FILL, type SwatchTone } from "./tones";
+
+interface Props {
+  tone: SwatchTone;
+}
+const { tone } = Astro.props;
+const S = 10;
+---
+
+<svg class="alc-swatch" width={S} height={S} aria-hidden="true" focusable="false">
+  {
+    tone === "ghost" ? (
+      <rect class="alc-ghost" x="0.5" y="0.5" width={S - 1} height={S - 1} />
+    ) : (
+      <rect class={TONE_FILL[tone]} width={S} height={S} />
+    )
+  }
+</svg>

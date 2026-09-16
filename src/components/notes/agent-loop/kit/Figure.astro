@@ -1,0 +1,38 @@
+---
+// The shell every note figure shares: the question it answers, an optional toggle over states, the
+// panels, a screen-reader equivalent, and the caption. docs/design/design-system.md §5.
+import "../agent-loop.css";
+import Toggle from "./Toggle.astro";
+
+export type Basis = "measured" | "calculated" | "assumed";
+
+interface Props {
+  /** The question the figure answers. Not a label — the figure is the answer. */
+  question: string;
+  /** How the numbers were arrived at. When a figure mixes sources, the weakest one wins. */
+  basis: Basis;
+  /** Figure number, when the prose refers to it. */
+  n?: number;
+  options?: { value: string; label: string }[];
+  initial?: string;
+}
+const { question, basis, n, options, initial = options?.[0]?.value } = Astro.props;
+---
+
+<figure class="alc not-prose" data-alc data-alc-initial={initial} data-basis={basis}>
+  <figcaption class="alc-question">{n === undefined ? question : `Fig ${n} — ${question}`}</figcaption>
+  {options && <Toggle options={options} initial={initial!} label={question} />}
+  <slot />
+  <slot name="a11y" />
+  {
+    Astro.slots.has("caption") && (
+      <div class="alc-caption">
+        <slot name="caption" />
+      </div>
+    )
+  }
+</figure>
+
+<script>
+  import "./toggle";
+</script>

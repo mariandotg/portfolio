@@ -6,7 +6,15 @@
 import { simulate, CACHE, MODELS, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
 import { fmtTokens, fmtUsd } from "./format";
-import AlcFigure from "./AlcFigure.astro";
+import Figure from "./kit/Figure.astro";
+import Panel from "./kit/Panel.astro";
+import Stat from "./kit/Stat.astro";
+import Plot from "./kit/Plot.astro";
+import Legend from "./kit/Legend.astro";
+import Source from "./kit/Source.astro";
+import DataTable from "./kit/DataTable.astro";
+import { plotFrame } from "./kit/plot";
+import { TONE_FILL } from "./kit/tones";
 
 type StateKey = "message" | "tool_choice" | "system" | "tools";
 
@@ -23,6 +31,7 @@ const toolsTok = BASE_WORKLOAD.toolsTokens;
 const systemTok = BASE_WORKLOAD.systemTokens;
 const messagesTok = req20.contextTokens - toolsTok - systemTok;
 const outputTok = BASE_WORKLOAD.assistantTokens;
+const totalTok = toolsTok + systemTok + messagesTok;
 
 type Mode = "read" | "write";
 interface Segment {
@@ -33,15 +42,21 @@ interface Segment {
   writeTokens?: number;
 }
 
-function costOf(segments: Segment[]): number {
-  let usd = outputTok * perOut;
-  for (const s of segments) {
-    const write = s.writeTokens ?? (s.mode === "write" ? s.tokens : 0);
-    const read = s.tokens - write;
-    usd += (read * readMult + write * writeMult) * perIn;
-  }
-  return usd;
+interface Slice {
+  label: string;
+  tokens: number;
+  read: number;
+  write: number;
 }
+
+const slicesOf = (segments: Segment[]): Slice[] =>
+  segments.map((s) => {
+    const write = s.writeTokens ?? (s.mode === "write" ? s.tokens : 0);
+    return { label: s.label, tokens: s.tokens, read: s.tokens - write, write };
+  });
+
+const costOf = (slices: Slice[]) =>
+  slices.reduce((usd, s) => usd + (s.read * readMult + s.write * writeMult) * perIn, outputTok * perOut);
 
 // The "message" case is the engine's own ground truth for request 20: most of the history reads
 // from the cache entry the previous request wrote; only the newest tail is written.
@@ -70,13 +85,15 @@ const STATE_SEGMENTS: Record<StateKey, Segment[]> = {
   ],
 };
 
-const normalCost = costOf(messageSegments);
+const normalCost = costOf(slicesOf(messageSegments));
+
+const STATES = ["message", "tool_choice", "system", "tools"] as const;
+const INITIAL: StateKey = "message";
 
 function panelData(key: StateKey) {
-  const segments = STATE_SEGMENTS[key];
-  const cost = costOf(segments);
-  const multiple = cost / normalCost;
-  return { segments, cost, multiple };
+  const slices = slicesOf(STATE_SEGMENTS[key]);
+  const cost = costOf(slices);
+  return { slices, cost, multiple: cost / normalCost };
 }
 
 const PANELS: Record<StateKey, ReturnType<typeof panelData>> = {
@@ -100,67 +117,77 @@ const SUB: Record<StateKey, string> = {
   tools: "Editing a tool definition invalidates the entire prefix. Nothing is read from cache.",
 };
 
-const VB_W = 480;
-const BAR_X = 6;
-const BAR_W = 400;
-const BAR_H = 30;
-const BAR_Y = 54;
-const totalTok = toolsTok + systemTok + messagesTok;
-const segW = (tokens: number) => (tokens / totalTok) * BAR_W;
+// One bar, the whole request. The x domain is the request's tokens, so a block's width is its share.
+const frame = plotFrame({ w: 480, h: 110, inset: { l: 6, r: 74, t: 54, b: 26 }, x: [0, totalTok] });
 
-function segmentRects(segments: Segment[]) {
-  let x = BAR_X;
-  return segments.map((s) => {
-    const write = s.writeTokens ?? (s.mode === "write" ? s.tokens : 0);
-    const read = s.tokens - write;
-    const readW = segW(read);
-    const writeW = segW(write);
-    const rect = { x, readW, writeW, w: segW(s.tokens), label: s.label, tokens: s.tokens };
-    x += segW(s.tokens);
+function layout(slices: Slice[]) {
+  let cursor = 0;
+  return slices.map((s) => {
+    const rect = { ...s, x: frame.x(cursor), readW: frame.spanX(s.read), writeW: frame.spanX(s.write), w: frame.spanX(s.tokens) };
+    cursor += s.tokens;
     return rect;
   });
 }
+
+const labelOf = (key: StateKey) => OPTIONS.find((o) => o.value === key)!.label;
+const ariaLabel = (key: StateKey) =>
+  `Request 20 with a 5-minute cache, ${labelOf(key)}. Tools ${fmtTokens(toolsTok)}, system ${fmtTokens(systemTok)}, messages ${fmtTokens(messagesTok)}. Cost ${fmtUsd(PANELS[key].cost)}, ${PANELS[key].multiple.toFixed(1)}× the normal request cost of ${fmtUsd(normalCost)}.`;
 ---
 
-<AlcFigure question="Which change at request 20 costs the least, and which the most?" options={OPTIONS} initial="message">
+<Figure
+  question="Which change at request 20 costs the least, and which the most?"
+  basis="calculated"
+  options={OPTIONS}
+  initial={INITIAL}
+>
   {
-    (["message", "tool_choice", "system", "tools"] as StateKey[]).map((key) => {
+    STATES.map((key) => {
       const p = PANELS[key];
-      const rects = segmentRects(p.segments);
-      const deltaClass = p.multiple < 1.01 ? "good" : "bad";
-      const ariaLabel = `Request 20 with a 5-minute cache, ${OPTIONS.find((o) => o.value === key)!.label}. Tools ${fmtTokens(toolsTok)}, system ${fmtTokens(systemTok)}, messages ${fmtTokens(messagesTok)}. Cost ${fmtUsd(p.cost)}, ${p.multiple.toFixed(1)}× the normal request cost of ${fmtUsd(normalCost)}.`;
+      const rects = layout(p.slices);
       return (
-        <div data-alc-panel={key} hidden={key !== "message"}>
-          <div class="alc-headline">
-            <span class="alc-big">{fmtUsd(p.cost)}</span>
-            <span class={`alc-delta ${deltaClass}`}>{p.multiple.toFixed(1)}× the normal request</span>
-          </div>
-          <p class="alc-sub">{SUB[key]}</p>
-          <svg viewBox={`0 0 ${VB_W} 110`} class="alc-svg" role="img" aria-label={ariaLabel}>
+        <Panel value={key} initial={INITIAL}>
+          <Stat value={fmtUsd(p.cost)} delta={`${p.multiple.toFixed(1)}× the normal request`} tone={p.multiple < 1.01 ? "gain" : "loss"}>
+            {SUB[key]}
+          </Stat>
+          <Plot frame={frame} label={ariaLabel(key)}>
             {rects.map((r) => (
               <>
-                <rect x={r.x} y={BAR_Y} width={r.readW} height={BAR_H} class="alc-fill-read" />
-                <rect x={r.x + r.readW} y={BAR_Y} width={r.writeW} height={BAR_H} class="alc-fill-write" />
-                <rect x={r.x} y={BAR_Y} width={r.w} height={BAR_H} fill="none" stroke="hsl(var(--border))" stroke-width="1" />
+                <rect x={r.x} y={frame.top} width={r.readW} height={frame.height} class={TONE_FILL.read} />
+                <rect x={r.x + r.readW} y={frame.top} width={r.writeW} height={frame.height} class={TONE_FILL.write} />
+                <rect x={r.x} y={frame.top} width={r.w} height={frame.height} fill="none" stroke="hsl(var(--border))" stroke-width="1" />
               </>
             ))}
-            <text x={BAR_X} y={BAR_Y - 8} class="alc-text">tools {fmtTokens(toolsTok)}, system {fmtTokens(systemTok)} ·</text>
-            <text x={rects[2].x + rects[2].w / 2} y={BAR_Y - 8} class="alc-text" text-anchor="middle">messages {fmtTokens(messagesTok)}</text>
-            <line x1={BAR_X + 20} y1={BAR_Y - 4} x2={BAR_X + 20} y2={BAR_Y} class="alc-marker" />
-            <text x={BAR_X} y={BAR_Y + BAR_H + 20} class="alc-text">request 20, {fmtTokens(totalTok)} total</text>
-          </svg>
-          <ul class="alc-legend">
-            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-read" /></svg>read from cache (0.1×)</li>
-            <li><svg width="10" height="10" class="alc-swatch" aria-hidden="true"><rect width="10" height="10" class="alc-fill-write" /></svg>written to cache (1.25×)</li>
-          </ul>
-        </div>
+            <text x={frame.left} y={frame.top - 8} class="alc-text">tools {fmtTokens(toolsTok)}, system {fmtTokens(systemTok)} ·</text>
+            <text x={rects[2].x + rects[2].w / 2} y={frame.top - 8} class="alc-text" text-anchor="middle">messages {fmtTokens(messagesTok)}</text>
+            <line x1={frame.left + 20} y1={frame.top - 4} x2={frame.left + 20} y2={frame.top} class="alc-marker" />
+            <text x={frame.left} y={frame.bottom + 20} class="alc-text">request 20, {fmtTokens(totalTok)} total</text>
+          </Plot>
+          <Legend
+            items={[
+              { tone: "read", label: "read from cache (0.1×)" },
+              { tone: "write", label: "written to cache (1.25×)" },
+            ]}
+          />
+        </Panel>
       );
     })
   }
-  <Fragment slot="caption">
+
+  <Fragment slot="a11y">
+    {
+      STATES.map((key) => (
+        <DataTable
+          caption={`Request 20, ${labelOf(key)}: ${fmtUsd(PANELS[key].cost)}, ${PANELS[key].multiple.toFixed(1)}× the normal request.`}
+          columns={["block", "tokens", "read from cache", "written to cache"]}
+          rows={PANELS[key].slices.map((s) => [s.label, fmtTokens(s.tokens), fmtTokens(s.read), fmtTokens(s.write)])}
+        />
+      ))
+    }
+  </Fragment>
+
+  <Source slot="caption" links={[{ href: SOURCES.caching, label: "prompt caching" }]} asOf={FACTS_AS_OF}>
     Cache hierarchy: <code>tools</code> → <code>system</code> → <code>messages</code>. A change
     invalidates its level and every later level; <code>tool_choice</code> and images invalidate
-    message blocks only. Claude Sonnet 5 prices from the engine's request-20 context. Source:{" "}
-    <a href={SOURCES.caching}>prompt caching</a>, as of {FACTS_AS_OF}.
-  </Fragment>
-</AlcFigure>
+    message blocks only. Claude Sonnet 5 prices from the engine's request-20 context.
+  </Source>
+</Figure>

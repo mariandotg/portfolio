@@ -1,0 +1,23 @@
+---
+// The number the figure is about, with its delta chip and the one line that reads it out loud.
+interface Props {
+  value: string;
+  /** Sits in the headline at the same size — "2.20M input tokens". */
+  unit?: string;
+  delta?: string;
+  tone?: "gain" | "loss";
+}
+const { value, unit, delta, tone = "gain" } = Astro.props;
+---
+
+<div class="alc-headline">
+  <span class="alc-big">{unit ? `${value} ${unit}` : value}</span>
+  {delta && <span class={`alc-delta ${tone === "gain" ? "good" : "bad"}`}>{delta}</span>}
+</div>
+{
+  Astro.slots.has("default") && (
+    <p class="alc-sub">
+      <slot />
+    </p>
+  )
+}

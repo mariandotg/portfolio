@@ -5,7 +5,7 @@
 import { simulate, CACHE, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import type { CacheMode } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
-import { fmtUsd, fmtSeconds, scale, points } from "./format";
+import { fmtUsd, fmtSeconds, scale, points, nudgeLabels } from "./format";
 import AlcFigure from "./AlcFigure.astro";
 
 const GAP_MIN = 0;
@@ -56,20 +56,15 @@ const afterPts = points(afterVals, (i) => xAt(afterGaps[i]), yAt);
 
 const ttlX = xAt(TTL);
 
-function nudgeLabels<T extends { y: number }>(entries: T[], minGap = 14): T[] {
-  const sorted = [...entries].sort((a, b) => a.y - b.y);
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
-  }
-  return sorted;
-}
-
-const lineLabels = nudgeLabels([
-  { text: "no cache", y: yAt(noCacheCost) },
-  { text: "5-min (miss)", y: yAt(fiveMinMiss) },
-  { text: "1-hour", y: yAt(oneHourCost) },
-  { text: "5-min (hit)", y: yAt(fiveMinHit) },
-]);
+const lineLabels = nudgeLabels(
+  [
+    { text: "no cache", y: yAt(noCacheCost) },
+    { text: "5-min (miss)", y: yAt(fiveMinMiss) },
+    { text: "1-hour", y: yAt(oneHourCost) },
+    { text: "5-min (hit)", y: yAt(fiveMinHit) },
+  ],
+  14,
+);
 
 const ariaLabel = `Total cost of the 30-request loop as a function of seconds between requests, 0 to 15 minutes. No cache stays flat at ${fmtUsd(noCacheCost)}. The 1-hour cache stays flat at ${fmtUsd(oneHourCost)}. The 5-minute cache stays at ${fmtUsd(fiveMinHit)} up to 5 minutes, then jumps to ${fmtUsd(fiveMinMiss)} past 5 minutes, becoming more expensive than no cache.`;
 ---

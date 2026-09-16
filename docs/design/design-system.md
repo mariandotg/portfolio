@@ -365,6 +365,12 @@ Precedents: `InvalidationCascade`, `FanOutTimeline`, `TrimCost`,
 `TeamTimeline`, `ClearingCost`, `FactsSurvival`. `CacheCost` was deleted: it was
 the two-point version of `CacheBreakEven`.
 
+The rule covers every figure, not only the former toggles: a scaled SVG shrinks
+its text with the chart, to about 6px on a 360px phone. All 13 figures are HTML.
+SVG stays only for pure geometry with no `<text>` (`CompactionSawtooth`'s
+sawtooth, via `Plot`), with `vector-effect="non-scaling-stroke"` on strokes and
+every label positioned in HTML. Check figures at 360px, not only 390px.
+
 ### Accessibility
 
 Every SVG already carries `role="img"` and a quantitative `aria-label`. That is

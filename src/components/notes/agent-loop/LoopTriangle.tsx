@@ -1,11 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { simulate } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD, MAX_TURNS } from "./workloads";
-import { fmtTokens, scale } from "./format";
+import { fmtTokens } from "./format";
 
-const W = 480;
-const H = 240;
-const PAD = { left: 6, right: 6, top: 30, bottom: 24 };
 const INITIAL_TURNS = 30;
 const MIN_TURNS = 2;
 
@@ -13,12 +10,24 @@ const prefix = BASE_WORKLOAD.toolsTokens + BASE_WORKLOAD.systemTokens + BASE_WOR
 const perTurn = BASE_WORKLOAD.assistantTokens + BASE_WORKLOAD.toolResultTokens;
 const run = (turns: number) => simulate({ ...BASE_WORKLOAD, turns });
 
-// Axes are fixed to the longest loop, so a longer loop visibly grows in both directions.
+// The vertical axis is fixed to the longest loop, so a shorter loop visibly grows toward the
+// ghost outline instead of rescaling to fill the box.
 const full = run(MAX_TURNS);
 const topTokens = full.requests[full.requests.length - 1].contextTokens;
-const slot = (W - PAD.left - PAD.right) / MAX_TURNS;
-const x = (i: number) => PAD.left + i * slot;
-const y = scale(0, topTokens, H - PAD.bottom, PAD.top);
+const pctNum = (v: number) => (v / topTokens) * 100;
+const pct = (v: number) => `${pctNum(v).toFixed(2)}%`;
+
+// Ghost outline: a thin ribbon from the prefix (request 1) to the full 120-request height. It
+// never depends on the current slider value, so it's computed once, outside the component.
+const GHOST_HALF_THICK = 0.9; // % of chart height
+const ghostTopAtStart = 100 - pctNum(prefix); // % from the top of the box, at x = 0%
+const ghostTopAtEnd = 0; // % from the top of the box, at x = 100% (topTokens is the axis max)
+const ghostPolygon = [
+  `0% ${Math.max(0, ghostTopAtStart - GHOST_HALF_THICK).toFixed(2)}%`,
+  `100% ${Math.max(0, ghostTopAtEnd - GHOST_HALF_THICK).toFixed(2)}%`,
+  `100% ${Math.min(100, ghostTopAtEnd + GHOST_HALF_THICK).toFixed(2)}%`,
+  `0% ${Math.min(100, ghostTopAtStart + GHOST_HALF_THICK).toFixed(2)}%`,
+].join(", ");
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -59,9 +68,11 @@ export default function LoopTriangle() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
 
-  const lastX = x(turns - 1) + slot;
-  const labelRight = lastX > W * 0.6;
-  const ghost = `${x(0)},${y(0)} ${x(0)},${y(prefix)} ${x(MAX_TURNS - 1) + slot},${y(topTokens)} ${x(MAX_TURNS - 1) + slot},${y(0)}`;
+  // The last bar's right edge, as a share of the fixed 120-slot width.
+  const turnsPct = (turns / MAX_TURNS) * 100;
+  // Above-left of the last bar: the ghost diagonal is lower there, so the label never sits on it.
+  const labelLeft = turnsPct > 12;
+  const showGhostLabel = turns < MAX_TURNS * 0.8;
 
   return (
     <div data-alc-shots="15,30,60,120">
@@ -80,44 +91,45 @@ export default function LoopTriangle() {
         )}
       </p>
 
-      <svg
-        className="alc-svg"
-        viewBox={`0 0 ${W} ${H}`}
+      {showGhostLabel && <p className="lt-toplabel">{MAX_TURNS} requests</p>}
+
+      <div
+        className="lt-chart"
         role="img"
         aria-label={`${turns} requests. Each bar is the context one request sends; the last one sends ${fmtTokens(last.contextTokens)} tokens. The total area, ${fmtTokens(t.inputTokens)} input tokens, is what the loop sends in total.`}
       >
-        <polygon className="alc-ghost" points={ghost} />
-        {turns < MAX_TURNS * 0.8 && (
-          <text className="alc-text" x={W - PAD.right} y={y(topTokens) - 8} textAnchor="end">
-            {MAX_TURNS} requests
-          </text>
-        )}
-        {result.requests.map((r, i) => {
-          const fresh = i === 0 ? r.contextTokens : perTurn;
-          const w = Math.max(0.6, slot - (slot > 3 ? 0.6 : 0));
-          return (
-            <g key={r.index}>
-              <rect className="alc-fill-resent" x={x(i)} width={w} y={y(r.contextTokens - fresh)} height={y(0) - y(r.contextTokens - fresh)} />
-              <rect className="alc-fill-new" x={x(i)} width={w} y={y(r.contextTokens)} height={y(r.contextTokens - fresh) - y(r.contextTokens)} />
-            </g>
-          );
-        })}
-        <text
-          className="alc-text-strong"
-          x={labelRight ? lastX - 4 : lastX + 6}
-          y={Math.min(y(last.contextTokens) - 6, y(0) - 20)}
-          textAnchor={labelRight ? "end" : "start"}
+        <div className="lt-ghost" style={{ clipPath: `polygon(${ghostPolygon})` }} aria-hidden="true" />
+        <div
+          className="lt-bars"
+          style={{ gridTemplateColumns: `repeat(${MAX_TURNS}, 1fr)` }}
+          aria-hidden="true"
+        >
+          {result.requests.map((r, i) => {
+            const fresh = i === 0 ? r.contextTokens : perTurn;
+            return (
+              <span className="lt-col" key={r.index}>
+                <span className="lt-seg lt-seg-resent" style={{ height: pct(r.contextTokens - fresh) }} />
+                <span className="lt-seg lt-seg-new" style={{ height: pct(fresh) }} />
+              </span>
+            );
+          })}
+        </div>
+        <span
+          className="lt-last-label"
+          aria-hidden="true"
+          style={{
+            left: `${turnsPct.toFixed(2)}%`,
+            transform: labelLeft ? "translateX(calc(-100% - 2px))" : "translateX(6px)",
+            bottom: `max(min(calc(${pctNum(last.contextTokens).toFixed(2)}% + ${labelLeft ? 8 : 18}px), calc(100% - 14px)), 20px)`,
+          }}
         >
           {fmtTokens(last.contextTokens)}
-        </text>
-        <line className="alc-axis" x1={PAD.left} x2={W - PAD.right} y1={y(0)} y2={y(0)} />
-        <text className="alc-text" x={PAD.left} y={H - 6}>
-          request 1
-        </text>
-        <text className="alc-text" x={W - PAD.right} y={H - 6} textAnchor="end">
-          request →
-        </text>
-      </svg>
+        </span>
+      </div>
+      <div className="lt-axis" aria-hidden="true">
+        <span>request 1</span>
+        <span>request →</span>
+      </div>
 
       <ul className="alc-legend">
         <li>

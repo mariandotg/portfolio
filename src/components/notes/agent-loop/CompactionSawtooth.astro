@@ -4,7 +4,8 @@
 // variant="cost" (default): dollar headline, unchanged — used by note 1. variant="context":
 // tokens only, no dollars, no compact_20260112 parameter detail — used by note 3. Only the dollar
 // headline rests on an undocumented behaviour (whether the compaction pass reads the cache like a
-// normal request), so the basis differs by variant.
+// normal request), so the basis differs by variant. The svg carries geometry only (no <text>);
+// labels are HTML, positioned from the same plot frame, so they stay readable on phones.
 import Figure from "./kit/Figure.astro";
 import Stat from "./kit/Stat.astro";
 import Plot from "./kit/Plot.astro";
@@ -57,6 +58,10 @@ const peakWith = withC.totals.peakContextTokens;
 const costWithout = without.totals.costUsd;
 const costWith = withC.totals.costUsd;
 
+// SVG user units -> % of the plot box, so HTML labels can sit on top of the geometry-only svg.
+const px = (v: number) => ((v / frame.w) * 100).toFixed(2);
+const py = (v: number) => ((v / frame.h) * 100).toFixed(2);
+
 const ariaLabel =
   variant === "cost"
     ? `Context tokens across 80 requests. Without compaction the context climbs to ${fmtTokens(peakWithout)} and costs ${fmtUsd(costWithout)}. With compaction the context resets twice at the 150k trigger and peaks at ${fmtTokens(peakWith)}, costing ${fmtUsd(costWith)}.`
@@ -78,29 +83,69 @@ const ariaLabel =
     )
   }
 
-  <Plot frame={frame} label={ariaLabel}>
-    <Axis frame={frame} x={["request 1", "request 80"]} rule />
+  <div class="sw-plot">
+    <Plot frame={frame} label={ariaLabel}>
+      <Axis frame={frame} rule />
 
-    <line class="alc-marker" x1={frame.left} y1={triggerY} x2={frame.right} y2={triggerY} />
-    <text class="alc-text" x={frame.left + 2} y={triggerY + 14}>trigger 150k</text>
+      <line
+        class="alc-marker"
+        x1={frame.left}
+        y1={triggerY}
+        x2={frame.right}
+        y2={triggerY}
+        vector-effect="non-scaling-stroke"
+      />
+      <polyline class="alc-ghost" points={ghostPoints} vector-effect="non-scaling-stroke" />
 
-    <polyline class="alc-ghost" points={ghostPoints} />
-    <text class="alc-text" x={x(N) - 4} y={y(maxWithout) - 14} text-anchor="end">without compaction</text>
+      <polygon class="alc-fill-read" points={areaPoints} />
+      <polyline class="alc-line new" points={outlinePoints} vector-effect="non-scaling-stroke" />
 
-    <polygon class="alc-fill-read" points={areaPoints} />
-    <polyline class="alc-line new" points={outlinePoints} />
+      {
+        compactions.map((c) => (
+          <line
+            class="alc-marker"
+            x1={x(c.index)}
+            y1={y(0)}
+            x2={x(c.index)}
+            y2={y(c.inputTokens)}
+            vector-effect="non-scaling-stroke"
+          />
+        ))
+      }
+    </Plot>
 
+    <div class="sw-label sw-axis" style={`left: ${px(frame.left)}%; top: ${py(frame.bottom)}%`} aria-hidden="true">
+      request 1
+    </div>
+    <div
+      class="sw-label sw-axis sw-axis-end"
+      style={`left: ${px(frame.right)}%; top: ${py(frame.bottom)}%`}
+      aria-hidden="true"
+    >
+      request {N}
+    </div>
+    <div class="sw-label sw-trigger" style={`left: ${px(frame.right)}%; top: ${py(triggerY)}%`} aria-hidden="true">
+      trigger {fmtTokens(COMPACTION_LIMITS.defaultTrigger)}
+    </div>
+    <div
+      class="sw-label sw-ghost"
+      style={`left: ${px(x(N))}%; top: ${py(y(maxWithout))}%`}
+      aria-hidden="true"
+    >
+      without compaction
+    </div>
     {
-      compactions.map((c) => (
-        <g>
-          <line class="alc-marker" x1={x(c.index)} y1={y(0)} x2={x(c.index)} y2={y(c.inputTokens)} />
-          <text class="alc-text" x={x(c.index) - 8} y={y(c.inputTokens) - 4} text-anchor="end">
-            summary
-          </text>
-        </g>
+      compactions.map((c, i) => (
+        <div
+          class:list={["sw-label sw-summary", { "sw-summary-later": i > 0 }]}
+          style={`left: ${px(x(c.index))}%; top: ${py(y(c.inputTokens))}%`}
+          aria-hidden="true"
+        >
+          summary
+        </div>
       ))
     }
-  </Plot>
+  </div>
 
   <DataTable
     slot="a11y"
@@ -125,3 +170,44 @@ const ariaLabel =
     }
   </Source>
 </Figure>
+
+<style>
+  .sw-plot {
+    position: relative;
+  }
+  .sw-label {
+    position: absolute;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .sw-axis {
+    transform: translateY(6px);
+  }
+  .sw-axis-end {
+    transform: translate(-100%, 6px);
+  }
+  /* Right end, above the line: the ramps fill everything below it, the summary labels sit above it further left. */
+  .sw-trigger {
+    transform: translate(-100%, calc(-100% - 2px));
+  }
+  .sw-ghost {
+    transform: translate(-100%, -100%);
+  }
+  .sw-summary {
+    transform: translate(-100%, -100%);
+  }
+
+  @media (max-width: 400px) {
+    .sw-ghost {
+      display: none;
+    }
+    /* One "summary" names the event; the later ones would run into the trigger label. */
+    .sw-summary-later {
+      display: none;
+    }
+  }
+</style>

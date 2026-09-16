@@ -3,12 +3,9 @@
 // carries its own history plus the summaries that came back. The subagent's first request
 // carries none of that — only its own tools and system prompt, plus the brief it was handed.
 import Figure from "./kit/Figure.astro";
-import Plot from "./kit/Plot.astro";
 import Legend from "./kit/Legend.astro";
 import Source from "./kit/Source.astro";
-import DataTable from "./kit/DataTable.astro";
-import { plotFrame } from "./kit/plot";
-import { TONE_FILL, type Tone } from "./kit/tones";
+import type { Tone } from "./kit/tones";
 import { simulateMultiAgent, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import { SUBAGENT_WORKLOAD, SUBAGENTS } from "./workloads";
 import { fmtTokens } from "./format";
@@ -42,31 +39,10 @@ if (coordinatorTotal !== coordinatorFinal.contextTokens || subagentTotal !== sub
   throw new Error("ContextIsolation: block breakdown doesn't match the engine's own context tokens");
 }
 
-const rowLabelW = 150;
-const trackX0 = rowLabelW;
-const trackX1 = 468;
-const trackWidth = trackX1 - trackX0;
-const scaleMax = coordinatorTotal;
-const pxPerToken = trackWidth / scaleMax;
-
-const row1Y = 32;
-const row2Y = 100;
-const barHeight = 28;
-
-const frame = plotFrame({ w: 480, h: 158 });
-
-function layout(blocks: { label: string; tokens: number; cls: Tone }[]) {
-  let cursor = trackX0;
-  return blocks.map((b) => {
-    const width = Math.max(b.tokens * pxPerToken, 1);
-    const block = { ...b, x: cursor, width };
-    cursor += width;
-    return block;
-  });
-}
-
-const coordinatorLaidOut = layout(coordinatorBlocks);
-const subagentLaidOut = layout(subagentBlocks);
+// Both rows share one scale: the coordinator's total, since it's the wider of the two. A block's
+// width is its share of that scale, so the subagent's bar naturally falls short of the full track.
+const scale = coordinatorTotal;
+const pct = (tokens: number) => (tokens / scale) * 100;
 
 const ariaLabel = `The coordinator's context after every subagent returns is ${fmtTokens(coordinatorTotal)} tokens: its own tools, system prompt and task, the turn that made four Task calls, and the four summaries it read back. A subagent's first request is ${fmtTokens(subagentTotal)} tokens: only its own tools, its own system prompt, and the brief the coordinator wrote. It carries none of the coordinator's history.`;
 ---
@@ -78,60 +54,73 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
     system prompt, plus the brief. None of the coordinator's history is in it.
   </p>
 
-  <Plot frame={frame} label={ariaLabel}>
-    <text class="alc-text-strong" x="0" y={row1Y - 10}>Coordinator's context</text>
-    <text class="alc-text" x={trackX1} y={row1Y - 10} text-anchor="end">{fmtTokens(coordinatorTotal)} tokens</text>
-    {
-      coordinatorLaidOut.map((b) => (
-        <g>
-          <rect class={TONE_FILL[b.cls]} x={b.x} y={row1Y} width={b.width} height={barHeight} />
-          {b.width > 34 && (
-            <text class="alc-text" x={b.x + b.width / 2} y={row1Y + barHeight + 14} text-anchor="middle">
-              {b.label}
-            </text>
-          )}
-        </g>
-      ))
-    }
+  <p class="sr-only">{ariaLabel}</p>
 
-    <text class="alc-text-strong" x="0" y={row2Y - 10}>Subagent's first request</text>
-    <text class="alc-text" x={trackX1} y={row2Y - 10} text-anchor="end">{fmtTokens(subagentTotal)} tokens</text>
-    {
-      subagentLaidOut.map((b) => (
-        <g>
-          <rect class={TONE_FILL[b.cls]} x={b.x} y={row2Y} width={b.width} height={barHeight} />
-          {b.width > 34 && (
-            <text class="alc-text" x={b.x + b.width / 2} y={row2Y + barHeight + 14} text-anchor="middle">
-              {b.label}
-            </text>
-          )}
-        </g>
-      ))
-    }
-    <rect
-      class="alc-ghost"
-      x={trackX0}
-      y={row2Y - 2}
-      width={coordinatorTotal * pxPerToken}
-      height={barHeight + 4}
-    />
-  </Plot>
+  <div class="ci">
+    <div class="ci-row">
+      <div class="ci-row-head">
+        <span class="alc-text-strong">Coordinator's context</span>
+        <span class="alc-text">{fmtTokens(coordinatorTotal)} tokens</span>
+      </div>
+      <div class="ci-track" aria-hidden="true">
+        {
+          coordinatorBlocks.map((b) => (
+            <span class={`ci-seg ci-${b.cls}`} style={`width: ${pct(b.tokens).toFixed(2)}%`} />
+          ))
+        }
+      </div>
+      <ul class="ci-keys" aria-hidden="true">
+        {
+          coordinatorBlocks.map((b) => (
+            <li>
+              <span class={`ci-dot ci-${b.cls}`} />
+              {b.label} {fmtTokens(b.tokens)}
+            </li>
+          ))
+        }
+      </ul>
+      <span class="sr-only">
+        {coordinatorBlocks.map((b) => `${b.label} ${fmtTokens(b.tokens)}`).join(", ")}. Total{" "}
+        {fmtTokens(coordinatorTotal)} tokens.
+      </span>
+    </div>
+
+    <div class="ci-row">
+      <div class="ci-row-head">
+        <span class="alc-text-strong">Subagent's first request</span>
+        <span class="alc-text">{fmtTokens(subagentTotal)} tokens</span>
+      </div>
+      <div class="ci-frame ci-frame-ghost">
+        <div class="ci-track" aria-hidden="true">
+          {
+            subagentBlocks.map((b) => (
+              <span class={`ci-seg ci-${b.cls}`} style={`width: ${pct(b.tokens).toFixed(2)}%`} />
+            ))
+          }
+        </div>
+      </div>
+      <ul class="ci-keys" aria-hidden="true">
+        {
+          subagentBlocks.map((b) => (
+            <li>
+              <span class={`ci-dot ci-${b.cls}`} />
+              {b.label} {fmtTokens(b.tokens)}
+            </li>
+          ))
+        }
+      </ul>
+      <span class="sr-only">
+        {subagentBlocks.map((b) => `${b.label} ${fmtTokens(b.tokens)}`).join(", ")}. Total {fmtTokens(subagentTotal)}
+        tokens. The dashed outline is the coordinator's row, to the same scale.
+      </span>
+    </div>
+  </div>
 
   <Legend
     items={[
       { tone: "resent", label: "its own tools/system/task, every request" },
       { tone: "new", label: "new this turn" },
       { tone: "write", label: "written back from elsewhere" },
-    ]}
-  />
-
-  <DataTable
-    slot="a11y"
-    caption="Coordinator vs subagent context at start."
-    columns={["side", "block", "tokens"]}
-    rows={[
-      ...coordinatorBlocks.map((b) => ["coordinator", b.label, fmtTokens(b.tokens)]),
-      ...subagentBlocks.map((b) => ["subagent", b.label, fmtTokens(b.tokens)]),
     ]}
   />
 
@@ -143,3 +132,73 @@ const ariaLabel = `The coordinator's context after every subagent returns is ${f
     block ({SUBAGENT_WORKLOAD.taskTokens.toLocaleString()} tokens) — the docs don't size a brief.
   </Source>
 </Figure>
+
+<style>
+  .ci-row + .ci-row {
+    margin-top: 20px;
+  }
+  .ci-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .ci-row-head .alc-text-strong {
+    color: hsl(var(--foreground));
+  }
+
+  .ci-frame-ghost {
+    padding: 2px;
+    border: 1px dashed hsl(var(--muted-foreground));
+    border-radius: calc(var(--radius-sm) + 2px);
+  }
+
+  .ci-track {
+    display: flex;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: hsl(var(--background));
+  }
+  .ci-seg {
+    display: block;
+    height: 100%;
+  }
+  .ci-seg + .ci-seg {
+    border-left: 1px solid hsl(var(--background));
+  }
+  .ci-resent {
+    background: var(--alc-resent);
+  }
+  .ci-new {
+    background: var(--alc-new);
+  }
+  .ci-write {
+    background: var(--alc-write);
+  }
+
+  .ci-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .ci-keys li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ci-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    flex: 0 0 auto;
+  }
+</style>

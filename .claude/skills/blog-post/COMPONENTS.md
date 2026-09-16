@@ -22,7 +22,7 @@ Antes de agregar un componente, respondé las tres preguntas. Si alguna es
 | El contenido es… | Usá | Ejemplo |
 |---|---|---|
 | Un flujo con orden en el tiempo (loop, handoff, ciclo de vida) | Flujo reproducible: `Stepper` o isla animada con play/pausa/paso | Loop `tool_use` → `end_turn` |
-| Una relación espacial (arquitectura, jerarquía, quién habla con quién) | Diagrama SVG inline | Hub-and-spoke; capas de `CLAUDE.md` |
+| Una relación espacial (arquitectura, jerarquía, quién habla con quién) | Diagrama en HTML + CSS. SVG solo para geometría sin texto: un SVG escalado achica sus labels a ~6px en un teléfono | Hub-and-spoke; capas de `CLAUDE.md` |
 | Una variable **continua** que cambia un resultado | Simulador con un slider | Segundos entre requests; largo del loop |
 | De 2 a 4 estados **discretos** de un mismo cálculo (con/sin, antes/después, modo A/B) | Diagrama estático en HTML con todos los estados visibles a la misma escala. **Nunca un toggle:** esconde la comparación que es el punto | `InvalidationCascade`, `FanOutTimeline`, `TrimCost` |
 | Dos opciones comparadas (rota/correcta, antes/después) | `SideBySide variant="diff"` | Descripción de tool antes y después |

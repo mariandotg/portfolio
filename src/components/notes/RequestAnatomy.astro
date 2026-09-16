@@ -1,11 +1,8 @@
 ---
 // Static diagram: the Messages API is stateless, so request N resends everything before it.
 import Figure from "./agent-loop/kit/Figure.astro";
-import Plot from "./agent-loop/kit/Plot.astro";
 import Legend from "./agent-loop/kit/Legend.astro";
 import Source from "./agent-loop/kit/Source.astro";
-import DataTable from "./agent-loop/kit/DataTable.astro";
-import { plotFrame } from "./agent-loop/kit/plot";
 
 const rows = [
   { label: "Request 1", blocks: ["tools", "system", "task"] },
@@ -14,56 +11,46 @@ const rows = [
 ];
 const isNew = (row: number, i: number) => (row === 0 ? true : i >= rows[row - 1].blocks.length);
 const kind = (name: string) => (name === "tools" || name === "system" || name === "task" ? "prefix" : "history");
-// Blocks size to their label: bold 12px mono runs ~7.5 units per character.
-const gap = 4;
-const blockWidth = (name: string) => Math.ceil(name.length * 7.5) + 14;
-const blockX = (blocks: string[], i: number) =>
-  blocks.slice(0, i).reduce((x, b) => x + blockWidth(b) + gap, 0);
-const labelWidth = 92;
-const longest = rows[rows.length - 1].blocks;
-const width = labelWidth + blockX(longest, longest.length) + 8;
-const rowHeight = 44;
-const height = rows.length * rowHeight + 30;
 
-const frame = plotFrame({ w: width, h: height });
-
-const ariaLabel =
-  "Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call and tool result. Only the last blocks are new.";
+const rowsWithNew = rows.map((row, r) => ({
+  ...row,
+  newBlocks: row.blocks.filter((b, i) => kind(b) === "history" && isNew(r, i)),
+}));
 ---
 
 <Figure question="What does each request send when the API keeps no state?" basis="measured">
-  <Plot frame={frame} label={ariaLabel}>
-    {
-      rows.map((row, r) => (
-        <g transform={`translate(0 ${r * rowHeight})`}>
-          <text class="alc-text" x="0" y="26">
-            {row.label}
-          </text>
-          {row.blocks.map((b, i) => (
-            <g transform={`translate(${labelWidth + blockX(row.blocks, i)} 6)`}>
-              <rect
-                class={`${kind(b) === "prefix" ? "alc-fill-resent" : "alc-fill-new"} ${isNew(r, i) ? "" : "opacity-[0.55]"}`}
-                width={blockWidth(b)}
-                height="30"
-                rx="4"
-                stroke={kind(b) === "history" && isNew(r, i) ? "hsl(var(--primary))" : "hsl(var(--border))"}
-                stroke-width={kind(b) === "history" && isNew(r, i) ? "1.5" : "1"}
-              />
-              <text
-                class="alc-text-strong"
-                x={blockWidth(b) / 2}
-                y="19"
-                text-anchor="middle"
-                style={kind(b) === "history" && isNew(r, i) ? "fill: hsl(var(--primary-foreground))" : undefined}
-              >
-                {b.replace(" ", "\u00a0")}
-              </text>
-            </g>
-          ))}
-        </g>
-      ))
-    }
-  </Plot>
+  <p class="sr-only">
+    Three consecutive requests. Each one sends the tools, system prompt and task again, plus every earlier tool call
+    and tool result. Only the last blocks are new.
+  </p>
+
+  <table class="ra">
+    <caption class="sr-only">Three consecutive stateless requests and which blocks repeat.</caption>
+    <tbody>
+      {
+        rowsWithNew.map((row, r) => (
+          <tr>
+            <th scope="row" class="ra-label">
+              {row.label}
+            </th>
+            <td class="ra-blocks">
+              <span class="ra-chips" aria-hidden="true">
+                {row.blocks.map((b, i) => (
+                  <span class:list={["ra-chip", kind(b) === "prefix" ? "ra-resent" : isNew(r, i) ? "ra-new" : "ra-old"]}>
+                    {b}
+                  </span>
+                ))}
+              </span>
+              <span class="sr-only">
+                {row.blocks.join(", ")}
+                {row.newBlocks.length > 0 ? `. New this request: ${row.newBlocks.join(", ")}.` : "."}
+              </span>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
 
   <Legend
     items={[
@@ -72,15 +59,84 @@ const ariaLabel =
     ]}
   />
 
-  <DataTable
-    slot="a11y"
-    caption="Three consecutive stateless requests and which blocks repeat."
-    columns={["request", "blocks sent"]}
-    rows={rows.map((r) => [r.label, r.blocks.join(", ")])}
-  />
-
   <Source slot="caption">
     The Messages API keeps no state between requests, so request N carries the tools, the system prompt, the task,
     and every earlier tool call and tool result. No quantities here — three requests of the documented shape.
   </Source>
 </Figure>
+
+<style>
+  .ra {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .ra th,
+  .ra td {
+    padding: 8px 0;
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 400;
+  }
+  .ra tr + tr {
+    border-top: 1px solid hsl(var(--border));
+  }
+  .ra-label {
+    width: 6.5rem;
+    padding-right: 12px !important;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+  .ra-blocks {
+    width: 100%;
+  }
+  .ra-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .ra-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    font-weight: 700;
+    white-space: nowrap;
+    color: hsl(var(--foreground));
+  }
+  .ra-resent {
+    background: var(--alc-resent);
+  }
+  .ra-new {
+    background: var(--alc-new);
+    border-color: hsl(var(--primary));
+    border-width: 1.5px;
+    color: hsl(var(--primary-foreground));
+  }
+  .ra-old {
+    background: color-mix(in srgb, var(--alc-new) 55%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--border)) 55%, transparent);
+  }
+
+  @media (max-width: 480px) {
+    .ra tr {
+      display: block;
+      padding: 10px 0;
+    }
+    .ra-label,
+    .ra-blocks {
+      display: block;
+      width: auto;
+      padding: 0 !important;
+    }
+    .ra-label {
+      margin-bottom: 6px;
+    }
+  }
+</style>

@@ -29,3 +29,85 @@ const w = BASE_WORKLOAD;
     history, because the Messages API keeps no state between requests.
   </Source>
 </Figure>
+
+<style is:global>
+  /* LoopTriangle: 120 fixed slots so a shorter loop only fills part of the width, growing
+     toward the ghost outline as the slider approaches the max. */
+  .lt-toplabel {
+    margin: 0 0 4px;
+    text-align: right;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .lt-chart {
+    --lt-h: 200px;
+    position: relative;
+    height: var(--lt-h);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-sm);
+    background: hsl(var(--background));
+  }
+
+  /* The full 120-request growth outline: a thin filled ribbon, not a scaled SVG stroke. */
+  .lt-ghost {
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--muted-foreground));
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .lt-bars {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: stretch;
+    column-gap: 1px;
+  }
+  .lt-col {
+    display: flex;
+    flex-direction: column-reverse;
+    min-width: 0;
+    height: 100%;
+  }
+  .lt-seg {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+  .lt-seg-resent {
+    background: var(--alc-resent);
+  }
+  .lt-seg-new {
+    background: var(--alc-new);
+  }
+
+  .lt-last-label {
+    position: absolute;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .lt-axis {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 480px) {
+    .lt-chart {
+      --lt-h: 150px;
+    }
+  }
+</style>

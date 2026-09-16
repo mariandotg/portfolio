@@ -5,71 +5,44 @@
 import { simulate, CACHE, SOURCES, FACTS_AS_OF } from "@/lib/sim/agent-loop";
 import type { CacheMode } from "@/lib/sim/agent-loop";
 import { BASE_WORKLOAD } from "./workloads";
-import { fmtUsd, fmtSeconds, points, nudgeLabels } from "./format";
+import { fmtUsd, fmtSeconds, nudgeLabels } from "./format";
 import Figure from "./kit/Figure.astro";
 import Stat from "./kit/Stat.astro";
-import Plot from "./kit/Plot.astro";
-import Axis from "./kit/Axis.astro";
 import Source from "./kit/Source.astro";
 import DataTable from "./kit/DataTable.astro";
-import { plotFrame } from "./kit/plot";
 
-const GAP_MIN = 0;
 const GAP_MAX = 900; // 15 minutes
-const GAP_STEP = 15;
 const TTL = CACHE.ttl5mSeconds;
 
-const gaps: number[] = [];
-for (let g = GAP_MIN; g <= GAP_MAX; g += GAP_STEP) gaps.push(g);
-if (!gaps.includes(TTL)) gaps.push(TTL);
-gaps.push(TTL + 1);
-gaps.sort((a, b) => a - b);
-
+// Every request in the loop waits the same number of seconds, so a cache mode either hits on
+// every request or misses on every request in this range: the flat lines and the one step both
+// come out of the same `simulate` call the slope version used, just sampled at the two gaps that
+// matter (just short of the TTL, and just past it) instead of every 15 seconds.
 const costAt = (gap: number, cache: CacheMode) =>
   simulate({ ...BASE_WORKLOAD, secondsBetweenRequests: gap, cache }).totals.costUsd;
 
-const noCache = gaps.map((g) => costAt(g, "off"));
-const oneHour = gaps.map((g) => costAt(g, "1h"));
-const fiveMin = gaps.map((g) => costAt(g, "5m"));
+const noCacheCost = costAt(0, "off");
+const oneHourCost = costAt(0, "1h");
+const fiveMinHit = costAt(0, "5m");
+const fiveMinMiss = costAt(TTL + 1, "5m");
 
-const breakIdx = gaps.findIndex((g) => g > TTL);
-const beforeGaps = gaps.slice(0, breakIdx);
-const beforeVals = fiveMin.slice(0, breakIdx);
-const afterGaps = gaps.slice(breakIdx);
-const afterVals = fiveMin.slice(breakIdx);
+const yMax = Math.max(noCacheCost, oneHourCost, fiveMinHit, fiveMinMiss) * 1.08;
+const yPct = (cost: number) => ((yMax - cost) / yMax) * 100;
+const ttlPct = (TTL / GAP_MAX) * 100;
 
-const noCacheCost = noCache[0];
-const oneHourCost = oneHour[0];
-const fiveMinHit = beforeVals[0];
-const fiveMinMiss = afterVals[0];
-
-const yMax = Math.max(...noCache, ...oneHour, ...fiveMin) * 1.08;
-
-const frame = plotFrame({
-  w: 480,
-  h: 240,
-  inset: { l: 6, r: 108, t: 30, b: 44 },
-  x: [GAP_MIN, GAP_MAX],
-  y: [0, yMax],
-});
-const xAt = frame.x;
-const yAt = frame.y;
-
-const noCachePts = points(noCache, (i) => xAt(gaps[i]), yAt);
-const oneHourPts = points(oneHour, (i) => xAt(gaps[i]), yAt);
-const beforePts = points(beforeVals, (i) => xAt(beforeGaps[i]), yAt);
-const afterPts = points(afterVals, (i) => xAt(afterGaps[i]), yAt);
-
-const ttlX = xAt(TTL);
+const yNoCache = yPct(noCacheCost);
+const yOneHour = yPct(oneHourCost);
+const yHit = yPct(fiveMinHit);
+const yMiss = yPct(fiveMinMiss);
 
 const lineLabels = nudgeLabels(
   [
-    { text: "no cache", y: yAt(noCacheCost) },
-    { text: "5-min (miss)", y: yAt(fiveMinMiss) },
-    { text: "1-hour", y: yAt(oneHourCost) },
-    { text: "5-min (hit)", y: yAt(fiveMinHit) },
+    { text: "no cache", y: yNoCache, tone: "neutral" as const },
+    { text: "5-min (miss)", y: yMiss, tone: "bad" as const },
+    { text: "1-hour", y: yOneHour, tone: "good" as const },
+    { text: "5-min (hit)", y: yHit, tone: "new" as const },
   ],
-  14,
+  8,
 );
 
 const ariaLabel = `Total cost of the 30-request loop as a function of seconds between requests, 0 to 15 minutes. No cache stays flat at ${fmtUsd(noCacheCost)}. The 1-hour cache stays flat at ${fmtUsd(oneHourCost)}. The 5-minute cache stays at ${fmtUsd(fiveMinHit)} up to 5 minutes, then jumps to ${fmtUsd(fiveMinMiss)} past 5 minutes, becoming more expensive than no cache.`;
@@ -82,24 +55,42 @@ const ariaLabel = `Total cost of the 30-request loop as a function of seconds be
     instead of <strong>{fmtUsd(fiveMinHit)}</strong>. The 1-hour cache costs <strong>{fmtUsd(oneHourCost)}</strong> at any gap in this range.
   </Stat>
 
-  <Plot frame={frame} label={ariaLabel}>
-    <Axis frame={frame} y={`${fmtUsd(yMax)} total cost`} x={["0", "15 min"]} title="seconds between request starts →" />
+  <div class="cb">
+    <p class="cb-scale" aria-hidden="true">0 – {fmtUsd(yMax)} total cost</p>
 
-    <line x1={ttlX} y1={frame.top} x2={ttlX} y2={frame.bottom} class="alc-marker" />
-    <text x={ttlX + 4} y={frame.top + 10} class="alc-text">{fmtSeconds(TTL)}</text>
+    <div class="cb-body">
+      <div class="cb-axis" aria-hidden="true">
+        <span class="cb-tick cb-tick-start">0</span>
+        <span class="cb-tick cb-tick-focal" style={`left: ${ttlPct.toFixed(2)}%`}>{fmtSeconds(TTL)}</span>
+        <span class="cb-tick cb-tick-end">15 min</span>
+      </div>
 
-    <polyline points={noCachePts} class="alc-line neutral" />
-    <polyline points={oneHourPts} class="alc-line good" />
-    <polyline points={beforePts} class="alc-line new" />
-    <polyline points={afterPts} class="alc-line bad" />
-    <line x1={ttlX} y1={yAt(fiveMinHit)} x2={ttlX} y2={yAt(fiveMinMiss)} class="alc-ghost" />
+      <div class="cb-plot" role="img" aria-label={ariaLabel}>
+        <span class="cb-seg cb-seg-nocache" style={`top: ${yNoCache.toFixed(2)}%`} />
+        <span class="cb-seg cb-seg-onehour" style={`top: ${yOneHour.toFixed(2)}%`} />
+        <span class="cb-seg cb-seg-hit" style={`top: ${yHit.toFixed(2)}%; width: ${ttlPct.toFixed(2)}%`} />
+        <span class="cb-seg cb-seg-miss" style={`top: ${yMiss.toFixed(2)}%; left: ${ttlPct.toFixed(2)}%`} />
+        <span
+          class="cb-connector"
+          style={`left: ${ttlPct.toFixed(2)}%; top: ${Math.min(yHit, yMiss).toFixed(2)}%; height: ${Math.abs(yMiss - yHit).toFixed(2)}%`}
+        />
+        <span class="cb-marker" style={`left: ${ttlPct.toFixed(2)}%`} />
+      </div>
 
-    {lineLabels.map((l) => (
-      <text x={frame.right + 6} y={l.y + 4} class={l.text.startsWith("5-min") ? "alc-text-strong" : "alc-text"}>
-        {l.text}
-      </text>
-    ))}
-  </Plot>
+      <p class="cb-xtitle" aria-hidden="true">seconds between request starts →</p>
+    </div>
+
+    <ul class="cb-labels" aria-hidden="true">
+      {
+        lineLabels.map((l) => (
+          <li class="cb-label" style={`top: ${l.y.toFixed(2)}%`}>
+            <span class={`cb-dot cb-dot-${l.tone}`} />
+            <span class:list={["cb-label-text", { strong: l.tone === "bad" || l.tone === "new" }]}>{l.text}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
 
   <DataTable
     slot="a11y"
@@ -118,3 +109,183 @@ const ariaLabel = `Total cost of the 30-request loop as a function of seconds be
     sloping. Claude Sonnet 5, 30-request loop.
   </Source>
 </Figure>
+
+<style>
+  .cb {
+    --cb-h: 190px;
+    --cb-label-w: 8rem;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
+  }
+
+  .cb-scale {
+    margin: 0 0 6px;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cb {
+    display: grid;
+    grid-template-columns: 1fr var(--cb-label-w);
+    column-gap: 14px;
+  }
+  .cb-scale {
+    grid-column: 1 / -1;
+  }
+  .cb-body {
+    grid-column: 1;
+    min-width: 0;
+  }
+  .cb-labels {
+    grid-column: 2;
+    position: relative;
+    height: var(--cb-h);
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cb-axis {
+    position: relative;
+    height: 18px;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .cb-tick {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+  .cb-tick-start {
+    left: 0;
+    transform: none;
+  }
+  .cb-tick-end {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+  .cb-tick-focal {
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+
+  .cb-plot {
+    position: relative;
+    height: var(--cb-h);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  /* Horizontal reference lines: two full-width flat lines (no cache, 1-hour), and the 5-minute
+     step as two segments joined by a vertical connector at the TTL. */
+  .cb-seg {
+    position: absolute;
+    height: 0;
+    border-top-width: 2px;
+  }
+  .cb-seg-nocache {
+    left: 0;
+    right: 0;
+    border-top-style: dashed;
+    border-top-color: hsl(var(--muted-foreground));
+  }
+  .cb-seg-onehour {
+    left: 0;
+    right: 0;
+    border-top-style: solid;
+    border-top-color: var(--alc-good);
+  }
+  .cb-seg-hit {
+    left: 0;
+    border-top-style: solid;
+    border-top-color: var(--alc-new);
+  }
+  .cb-seg-miss {
+    right: 0;
+    border-top-style: solid;
+    border-top-color: var(--alc-bad);
+  }
+  .cb-connector {
+    position: absolute;
+    width: 0;
+    border-left: 1px dashed hsl(var(--muted-foreground));
+    opacity: 0.7;
+  }
+  .cb-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 1px dashed hsl(var(--foreground));
+  }
+
+  .cb-xtitle {
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cb-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+  .cb-label-text.strong {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+  }
+  .cb-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: 1px;
+  }
+  .cb-dot-neutral {
+    background: hsl(var(--muted-foreground));
+  }
+  .cb-dot-good {
+    background: var(--alc-good);
+  }
+  .cb-dot-new {
+    background: var(--alc-new);
+  }
+  .cb-dot-bad {
+    background: var(--alc-bad);
+  }
+
+  @media (max-width: 560px) {
+    .cb {
+      grid-template-columns: 1fr;
+    }
+    .cb-labels {
+      grid-column: 1;
+      position: static;
+      height: auto;
+      margin: 10px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+    }
+    .cb-label {
+      position: static;
+      transform: none;
+      white-space: normal;
+    }
+  }
+</style>

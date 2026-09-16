@@ -68,7 +68,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
     )}
 
     <header class="mb-8">
-      <div class="flex items-center gap-3 mb-3" style="font-family: var(--font-family-mono); font-size: 12px; color: hsl(var(--muted-foreground));">
+      <div class="post-byline flex items-center gap-3 mb-3">
         <time datetime={pubDate.toISOString()}>{formattedDate}</time>
         {readingTime && (
           <>
@@ -123,16 +123,24 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
 </PageLayout>
 
 <style>
+  .post-byline {
+    font-family: var(--font-family-mono);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: hsl(var(--muted-foreground));
+  }
+
   .series-strip {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
     padding: 5px 12px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     border: 1px solid hsl(var(--border));
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     transition: border-color 150ms ease-in-out, color 150ms ease-in-out;
   }
   .series-strip-part {
@@ -165,7 +173,7 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
     flex-direction: column;
     gap: 4px;
     padding: 14px 16px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));
     transition: border-color 150ms ease-in-out, transform 150ms ease-in-out;
   }
@@ -179,13 +187,14 @@ const nextHref = seriesContext?.next ? getLocalizedPath(`/notes/${seriesContext.
   }
   .series-nav-dir {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     color: hsl(var(--muted-foreground));
   }
   .series-nav-title {
-    font-size: 14px;
+    font-size: var(--text-ui);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--foreground));
   }
   @media (max-width: 640px) {

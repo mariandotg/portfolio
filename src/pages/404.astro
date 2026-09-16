@@ -74,9 +74,10 @@ const i18n = { en: en.notFound, es: es.notFound };
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: 1px solid hsl(var(--border));
-    font-size: 14px;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--foreground));
     transition: border-color 150ms ease, background-color 150ms ease;
   }

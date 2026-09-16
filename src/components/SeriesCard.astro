@@ -39,7 +39,7 @@ const href = getLocalizedPath(path, lang);
     display: flex;
     flex-direction: column;
     border: 1px solid hsl(var(--border));
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     background: hsl(var(--card));
     transition:
@@ -70,13 +70,14 @@ const href = getLocalizedPath(path, lang);
     top: 10px;
     left: 10px;
     font-family: var(--font-family-mono);
-    font-size: 10px;
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #fff;
     background: color-mix(in srgb, hsl(var(--primary)) 88%, transparent);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: 2px 8px;
     line-height: 1.5;
     backdrop-filter: blur(4px);
@@ -90,7 +91,8 @@ const href = getLocalizedPath(path, lang);
   }
   .sc-meta {
     font-family: var(--font-family-mono);
-    font-size: 12px;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
     letter-spacing: 0.01em;
     color: hsl(var(--muted-foreground));
     margin-bottom: 6px;
@@ -100,9 +102,9 @@ const href = getLocalizedPath(path, lang);
   }
 
   .sc-title {
-    font-size: 15px;
+    font-size: var(--text-subtitle);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: var(--text-subtitle--line-height);
     color: hsl(var(--foreground));
     margin: 0 0 6px;
     transition: color 150ms ease-in-out;
@@ -124,8 +126,8 @@ const href = getLocalizedPath(path, lang);
   }
 
   .sc-desc {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: var(--text-ui);
+    line-height: var(--text-ui--line-height);
     color: hsl(var(--muted-foreground));
     margin: 0;
     display: -webkit-box;

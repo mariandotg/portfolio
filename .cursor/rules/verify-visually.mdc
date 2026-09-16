@@ -1,0 +1,47 @@
+---
+description: How to prove a UI change works — screenshots, not type-checks
+alwaysApply: true
+---
+
+# Verify visually
+
+There is no test runner in this repo. A clean type-check proves nothing about a
+UI change. **Run the app and look at it.**
+
+## The loop
+
+```bash
+pnpm dev --port <a free port>
+```
+
+Then capture the affected routes at **1280 and 390**, in **light and dark**,
+before and after your change. A change that looks right at 1280 in light and
+breaks at 390 in dark is the normal failure here, not the rare one.
+
+A ready-made capture script lives at
+`.claude/skills/blog-post/scripts/screenshot.mjs`. It drives headless Chrome
+through the DevTools Protocol — plain CLI flags are not enough, because headless
+Chrome clamps the window and follows the OS colour scheme. It also warns on
+horizontal overflow, which is the failure mode this codebase actually hits.
+
+```bash
+node .claude/skills/blog-post/scripts/screenshot.mjs http://localhost:<port>/notes/<slug> <outDir>
+```
+
+Kill the dev server when you are done.
+
+## Routes worth checking
+
+| You touched | Capture |
+|---|---|
+| tokens, `global.css` | `/`, `/notes`, a note, a series landing |
+| note components | the notes that import them, at both widths |
+| series | `/notes/series/agent-vs-cursor` and `/claude-certified-architect` |
+| listings | `/notes`, `/es/notes`, `/notes/archive` |
+| CV | `/`, `/cv`, plus a print preview |
+
+## Report honestly
+
+State what you checked and what you did not. If a criterion is unmet, say so
+with the evidence — do not round it up to done. If something outside your ticket
+is broken, note it and leave it alone.

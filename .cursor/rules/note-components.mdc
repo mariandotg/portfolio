@@ -1,0 +1,71 @@
+---
+description: How to build and use components inside the body of a note
+globs: src/components/notes/**,src/content/notes/**,src/lib/sim/**
+alwaysApply: false
+---
+
+# Note components
+
+Spec: `docs/design/design-system.md` §5 and §6.
+
+The notes are the product. A note answers a question of quantity — how many
+tokens, how many requests, how many facts survive. Every component in a note
+body exists to make one of those countable.
+
+## The figure anatomy
+
+Every figure follows the same seven parts, in this order:
+
+1. **A question as the title.** Not a label — a question the figure answers.
+2. **Controls**, only if the reader has something to compare.
+3. **The stat**: the number, big, in mono, with its delta chip.
+4. **A one-line lede** under the stat.
+5. **The plot**.
+6. **The legend**.
+7. **The caption**, carrying the source and the epistemic basis.
+
+The number is the hero; the plot is the evidence. The stat comes first.
+
+## Use the kit, never hand-roll
+
+`Figure`, `Stat`, `Plot`, `Axis`, `Legend`, `Swatch`, `Toggle`, `Source`,
+`DataTable`. If you find yourself writing SVG axis lines, a coordinate system,
+a 10×10 swatch or a panel-toggle by hand, you are rebuilding a primitive that
+already exists. Use it or extend it.
+
+Number formatting lives in the shared format module. Add to it; do not
+reimplement `fmtTokens` or a local rounding helper.
+
+## Every figure declares how it knows
+
+`basis` is required: `measured`, `calculated` or `assumed`. When a figure mixes
+sources, the weakest one wins. This is the pedagogical contract of the notes —
+the reader must be able to tell a measurement from an assumption.
+
+## Accessibility is not optional
+
+- Every SVG carries `role="img"` and an `aria-label` that states the quantities,
+  not the shape.
+- Every figure ships a `DataTable` equivalent, hidden visually.
+- Toggles are real `<button>` elements with `aria-pressed`, operable by keyboard.
+- Tabs need `role="tab"`, `aria-selected` and `aria-controls`.
+- Respect `prefers-reduced-motion`. Animation that teaches must have a still
+  end state that teaches the same thing.
+
+## Responsive
+
+SVG scales through `viewBox` plus `width: 100%`. **Never set a pixel
+`min-width` on a figure** — that is what forced horizontal scroll on the first
+figure of the series. At 390px nothing may overflow horizontally.
+
+## Callouts
+
+Three variants only: `note`, `rule`, `warning`. Sentence case. No emoji, no
+ALL-CAPS labels. Red and green mean wrong and right — if your pair is not a
+verdict, use neutral and `--data-new` instead.
+
+## Writing
+
+Sentence case everywhere. No tracked-out caps eyebrows. No trailing `→` glued to
+static link text. Active voice; say what a thing does, not how the system is
+built.

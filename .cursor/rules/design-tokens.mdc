@@ -1,0 +1,56 @@
+---
+description: Token discipline — every colour, size, radius and width comes from a token
+globs: src/styles/**,src/components/**,src/layouts/**,src/pages/**
+alwaysApply: false
+---
+
+# Token discipline
+
+Spec: `docs/design/design-system.md` §3. It wins over anything here if the two
+ever disagree.
+
+## The rule
+
+Every colour, font size, radius and container width comes from a token. If you
+are about to type a hex, an `hsl(...)` literal, a `font-size` in pixels or a
+`border-radius` in pixels, stop — find the token or add one to `global.css`.
+
+This repo got audited and found **54 hardcoded hex colours** and **19 literal
+font sizes**. Do not add the 55th.
+
+## Colour
+
+Base is neutral greyscale plus one brand accent, `--primary`. Figures use the
+semantic data palette (`--data-new`, `--data-inert`, `--data-write`,
+`--data-gain`, `--data-loss`). One accent means one thing.
+
+**Dark mode is class-based and the shadcn tokens flip on their own.** Do not
+write `dark:` pairs for foreground, background or muted — use `text-foreground`,
+`bg-background`, `text-muted-foreground` and let the token do it. A `dark:` pair
+is correct only for opacity variants and for `dark:prose-invert`.
+
+The `--color-legacy-*` crimson tokens are **out of bounds** here. They belong to
+the WIP landing and to `about`, `contact` and `work`. Never introduce one into
+notes, series, nav, footer or the CV.
+
+## Type
+
+Use the scale: `--text-display`, `--text-title`, `--text-subtitle`,
+`--text-body`, `--text-ui`, `--text-meta`, `--text-micro`.
+
+**11px is the floor.** No size below it, no half-pixel sizes. If a label does not
+fit at 11px, drop the label — do not shrink it.
+
+## Radius and width
+
+Four radii: `sm` 6px, `md` 10px, `lg` 14px, `pill` 999px. Nothing else.
+
+One page width: `--width-shell` (800px) for nav, footer and listings. Note prose
+sits in `--measure` (66ch); figures may bleed to `--width-bleed` (880px). The CV
+uses the shell width, same as everything else.
+
+## Focus
+
+Interactive elements need a visible focus ring. The global `:focus-visible` rule
+covers links, buttons, inputs and `summary`. Do not set `outline: none` without
+putting something back.

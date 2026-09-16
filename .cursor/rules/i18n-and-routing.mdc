@@ -1,0 +1,60 @@
+---
+description: Bilingual pages, series routing, and the duplication traps that come with them
+globs: src/pages/**,src/i18n/**,src/lib/series.ts,src/content.config.ts
+alwaysApply: false
+---
+
+# i18n and routing
+
+## Two locales, duplicated pages
+
+`en` is the default and unprefixed. `es` is prefixed `/es`. Spanish pages are
+**duplicated files** under `src/pages/es/`, so adding a page usually means adding
+both. In a page:
+
+```ts
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+```
+
+Build cross-locale links with `getLocalizedPath(path, lang)`.
+
+`es.ts` must stay structurally identical to `en.ts` — the `Translations` type is
+inferred from `en`. **Never hardcode a user-facing string in a page.** A literal
+English word inside `/es` is a bug; it already happened once with an "Updated"
+label sitting next to a localised date.
+
+If you are about to copy a page into its `es/` twin, ask whether the shared part
+belongs in a component instead. The series landing was duplicated four times
+before anyone noticed.
+
+## Series routing
+
+A series lives at exactly one URL, never both:
+
+- `rootLevel: false` (default) → `/notes/series/<id>`
+- `rootLevel: true` → promoted to `/<id>`, sharing the namespace with static
+  pages like `/about`
+
+**Never hardcode a series URL.** Call `seriesPath(id, rootLevel)`. A `rootLevel`
+series whose id hits `RESERVED_ROOT_SLUGS` throws at build time — that guard is
+deliberate, do not soften it.
+
+Series posts always stay at `/notes/<post>` whatever the flag. Only the landing
+moves. If you promote a series that was already linked, add a redirect in
+`vercel.json` for its old URL.
+
+## The series data model
+
+The link between a series and its posts is **by id convention**, not by a list.
+The series JSON does not name its posts; each post declares `series: "<id>"` and
+`seriesOrder: N`. Post count is **derived**, so a series with zero posts renders
+as "coming soon".
+
+Always go through the helpers — `getSeriesIndex`, `getSeriesPosts`,
+`getSeriesRoadmap`. Never re-query the collection ad hoc.
+
+## API routes
+
+Anything under `src/pages/api/` must `export const prerender = false`. They run
+as Vercel functions and read their secrets from env.

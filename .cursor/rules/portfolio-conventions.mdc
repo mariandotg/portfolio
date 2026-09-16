@@ -1,0 +1,47 @@
+---
+description: Core conventions for this repo — stack, commands, rendering model, and the hard don'ts
+alwaysApply: true
+---
+
+# Portfolio conventions
+
+Astro 5 (SSR via the Vercel adapter) + React 19 islands + Tailwind v4 + shadcn/ui
++ MDX. Package manager is **pnpm**. Node >= 22.
+
+`CLAUDE.md` at the repo root is the long-form version of this file. Read it when
+you need detail this rule does not cover. `docs/design/design-system.md` is the
+design system spec and outranks any styling instinct you have.
+
+## Commands
+
+- `pnpm dev` — local dev server.
+- `pnpm build` — runs `generate:pdf` then `astro build`.
+- `pnpm generate:pdf` — regenerates the gitignored CV PDFs.
+- There is **no test runner**. `pnpm test` is a placeholder. Verify by running
+  the app, not by claiming types pass.
+
+## Rendering model
+
+Pages are `.astro` and render on the server. Interactive pieces are React
+islands, hydrated per use with a `client:*` directive. **Never assume a `.tsx`
+component is hydrated** — check for the directive. Some islands are wrapped in a
+`*Island.astro` file so MDX imports the wrapper, not the raw component.
+
+Prefer a static `.astro` component. Reach for an island only when the reader
+must manipulate something.
+
+## Content collections
+
+`notes` (MDX), `series` (JSON), `work` (MDX), `testimonials` (JSON). Always
+filter note listings with `({ data }) => !data.draft`.
+
+## Do not
+
+- Do not add backwards-compat shims, `_unused` renames, or `// removed` comments.
+- Do not write multi-paragraph comments explaining *what* the code does.
+- Do not edit an ADR whose status is `Accepted`. Propose a superseding one.
+- Do not touch `src/legacy/` — it is a frozen renderer with two known consumers.
+- Do not touch `deprecated-nextjs/` — it is a dead prior implementation.
+- Do not run `git reset --hard`, force-push, or delete branches.
+- Do not widen the scope of your ticket. If you find unrelated breakage, note it
+  in your report and leave it alone.

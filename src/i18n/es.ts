@@ -135,6 +135,10 @@ export const es: Translations = {
     related: "Notas Relacionadas",
     backToNotes: "Volver a las notas",
     onThisPage: "En esta página",
+    updated: "Actualizado {date}",
+    viewArchive: "Ver archivo",
+    archiveFilterLabel: "Filtrar notas por colección",
+    archiveEmpty: "No hay notas en esta colección.",
     collections: {
       all: "Todos",
       engineeringNotes: "Notas de Ingeniería",

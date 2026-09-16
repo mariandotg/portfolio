@@ -133,6 +133,10 @@ export const en = {
     related: "Related Notes",
     backToNotes: "Back to notes",
     onThisPage: "On this page",
+    updated: "Updated {date}",
+    viewArchive: "View archive",
+    archiveFilterLabel: "Filter notes by collection",
+    archiveEmpty: "No notes in this collection.",
     collections: {
       all: "All",
       engineeringNotes: "Engineering Notes",

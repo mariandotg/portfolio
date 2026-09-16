@@ -27,3 +27,14 @@ export function localizedSeries(
 ): { title: string; description: string } {
   return { title: data.title[lang], description: data.description[lang] };
 }
+
+export type NoteCollection = "engineering-notes" | "building-in-public";
+
+export function noteCollectionLabel(
+  collection: NoteCollection,
+  t: ReturnType<typeof useTranslations>,
+): string {
+  return collection === "engineering-notes"
+    ? t.notes.collections.engineeringNotes
+    : t.notes.collections.buildingInPublic;
+}

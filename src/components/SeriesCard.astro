@@ -1,5 +1,5 @@
 ---
-import { getLangFromUrl, getLocalizedPath, useTranslations } from "../i18n/utils";
+import { getLangFromUrl, getLocalizedPath } from "../i18n/utils";
 import SeriesBanner from "./effects/SeriesBanner.astro";
 
 interface Props {
@@ -8,24 +8,20 @@ interface Props {
   title: string;
   description: string;
   meta: string;
-  comingSoon?: boolean;
-  featured?: boolean;
   bannerBase?: string;
 }
 
-const { path, title, description, meta, comingSoon = false, featured = false, bannerBase } = Astro.props;
+const { path, title, description, meta, bannerBase } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
-const t = useTranslations(lang);
 const href = getLocalizedPath(path, lang);
 ---
 
 <a href={href} class="sc group">
   <div class="sc-banner" aria-hidden="true">
     <SeriesBanner base={bannerBase} variant="card" class="sc-banner-art" />
-    {featured && <span class="sc-badge">{t.notes.series.featured}</span>}
   </div>
   <div class="sc-body">
-    <span class:list={["sc-meta", { "sc-meta-soon": comingSoon }]}>{meta}</span>
+    <span class="sc-meta">{meta}</span>
     <h3 class="sc-title">
       <span class="sc-title-text">{title}</span>
       <span class="sc-arrow" aria-hidden="true">→</span>
@@ -65,23 +61,6 @@ const href = getLocalizedPath(path, lang);
     transform: scale(1.04);
   }
 
-  .sc-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-family: var(--font-family-mono);
-    font-size: var(--text-micro);
-    line-height: var(--text-micro--line-height);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fff;
-    background: color-mix(in srgb, hsl(var(--primary)) 88%, transparent);
-    border-radius: var(--radius-pill);
-    padding: 2px 8px;
-    line-height: 1.5;
-    backdrop-filter: blur(4px);
-  }
 
   .sc-body {
     display: flex;
@@ -97,10 +76,6 @@ const href = getLocalizedPath(path, lang);
     color: hsl(var(--muted-foreground));
     margin-bottom: 6px;
   }
-  .sc-meta-soon {
-    color: hsl(var(--primary));
-  }
-
   .sc-title {
     font-size: var(--text-subtitle);
     font-weight: 600;

@@ -25,7 +25,6 @@ const t = useTranslations(lang);
 
 const { title, description } = localizedSeries(entry.data, lang);
 const posts = await getSeriesPosts(entry.id);
-const comingSoon = posts.length === 0;
 const roadmap = await getSeriesRoadmap(entry.id, lang);
 const meta = seriesLandingMeta(posts.length, entry.data.status, totalReadingMinutes(roadmap), t);
 const notesHref = getLocalizedPath("/notes", lang);
@@ -37,10 +36,8 @@ const notesHref = getLocalizedPath("/notes", lang);
     description={description}
     bannerBase={seriesBannerBase(entry.id, entry.data.bannerImage)}
     meta={meta}
-    comingSoon={comingSoon}
     roadmap={roadmap}
     notesHref={notesHref}
     backLabel={t.notes.backToNotes}
-    emptyState={t.notes.series.emptyState}
   />
 </PageLayout>

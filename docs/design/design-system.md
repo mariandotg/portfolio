@@ -419,13 +419,14 @@ build-time guards for `seriesOrder` / missing series ids landed in MDG-133.
    `the-cache-break` are not linked from the series landing or the note.
    No `related` list.
 
-### Still to implement (from the decisions above)
+### Implemented (2026-09-16)
 
-- Filter zero-post series out of `getSeriesIndex` / static paths (en + es,
-  standard and rootLevel).
-- Remove `featured` from `SeriesCard` / CV series consumers and i18n strings
-  that only served the badge.
-- Drop `collection` from the series content schema and from every
+- Zero-post series are filtered out of `getSeriesIndex` and of both static-path
+  helpers (en + es, standard and rootLevel). The `comingSoon` / empty-state path
+  is gone; the rootLevel slug-collision guard still checks unpublished series.
+- `featured` is removed from `SeriesCard`, the CV series section, the notes
+  index pages and i18n.
+- `collection` is dropped from the series schema and from every
   `src/content/series/*.json`.
 
 ---

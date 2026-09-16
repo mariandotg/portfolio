@@ -151,12 +151,10 @@ export const en = {
       comingSoon: "Coming soon",
       inProgress: "In progress",
       complete: "Complete",
-      featured: "Featured",
       partOf: "Part {n} of {m}",
       backToSeries: "Back to series",
       prevInSeries: "Previous",
       nextInSeries: "Next",
-      emptyState: "Posts for this series are on the way.",
     },
   },
   notFound: {

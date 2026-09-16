@@ -9,11 +9,9 @@ interface Props {
   description: string;
   bannerBase: string;
   meta: string;
-  comingSoon: boolean;
   roadmap: RoadmapItem[];
   notesHref: string;
   backLabel: string;
-  emptyState: string;
 }
 
 const {
@@ -21,11 +19,9 @@ const {
   description,
   bannerBase,
   meta,
-  comingSoon,
   roadmap,
   notesHref,
   backLabel,
-  emptyState,
 } = Astro.props;
 ---
 
@@ -33,7 +29,7 @@ const {
   <BackLink href={notesHref} label={backLabel} />
 
   <header class="series-header">
-    <span class:list={["series-meta", { "series-meta-soon": comingSoon }]}>{meta}</span>
+    <span class="series-meta">{meta}</span>
     <h1 class="series-title">{title}</h1>
     <p class="series-description">{description}</p>
   </header>
@@ -45,11 +41,7 @@ const {
     class="series-hero w-full"
   />
 
-  {comingSoon ? (
-    <p class="empty-state">{emptyState}</p>
-  ) : (
-    <SeriesRoadmap items={roadmap} />
-  )}
+  <SeriesRoadmap items={roadmap} />
 </div>
 
 <style>
@@ -86,16 +78,5 @@ const {
     line-height: var(--text-meta--line-height);
     letter-spacing: 0.02em;
     color: hsl(var(--muted-foreground));
-  }
-
-  .series-meta-soon {
-    color: hsl(var(--primary));
-  }
-
-  .empty-state {
-    font-size: var(--text-ui);
-    line-height: var(--text-ui--line-height);
-    color: hsl(var(--muted-foreground));
-    padding: 2rem 0;
   }
 </style>

@@ -8,12 +8,10 @@ import type { Translations } from "../i18n/en";
 export interface SeriesCardData {
   slug: string;
   path: string;
-  featured: boolean;
   title: string;
   description: string;
   count: number;
   status: "ongoing" | "complete";
-  comingSoon: boolean;
   bannerBase: string;
   meta: string;
 }
@@ -29,8 +27,15 @@ export function seriesPath(id: string, rootLevel: boolean): string {
   return rootLevel ? `/${id}` : `/notes/series/${id}`;
 }
 
+// A series with no published post is unpublished: no listing, no route. docs/design/design-system.md §7.
+async function publishedSeriesIds(): Promise<Set<string>> {
+  const posts = await getCollection("notes", ({ data }) => !data.draft);
+  return new Set(posts.flatMap((p) => (p.data.series ? [p.data.series] : [])));
+}
+
 export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]> {
   const entries = await getCollection("series", ({ data }) => data.rootLevel);
+  // The collision guard covers unpublished series too, so a slug clash fails before the first post ships.
   for (const entry of entries) {
     if (RESERVED_ROOT_SLUGS.has(entry.id)) {
       throw new Error(
@@ -38,11 +43,13 @@ export async function getRootLevelSeries(): Promise<CollectionEntry<"series">[]>
       );
     }
   }
-  return entries;
+  const published = await publishedSeriesIds();
+  return entries.filter((entry) => published.has(entry.id));
 }
 
-export function getStandardSeries(): Promise<CollectionEntry<"series">[]> {
-  return getCollection("series", ({ data }) => !data.rootLevel);
+export async function getStandardSeries(): Promise<CollectionEntry<"series">[]> {
+  const published = await publishedSeriesIds();
+  return getCollection("series", ({ data, id }) => !data.rootLevel && published.has(id));
 }
 
 function statusLabel(status: "ongoing" | "complete", t: Translations): string {
@@ -50,7 +57,6 @@ function statusLabel(status: "ongoing" | "complete", t: Translations): string {
 }
 
 function metaLabel(count: number, status: "ongoing" | "complete", t: Translations): string {
-  if (count === 0) return t.notes.series.comingSoon;
   const unit = count === 1 ? t.notes.series.partsCountOne : t.notes.series.partsCount;
   return `${statusLabel(status, t)} · ${count} ${unit}`;
 }
@@ -61,7 +67,6 @@ export function seriesLandingMeta(
   totalReadingMinutes: number,
   t: Translations,
 ): string {
-  if (count === 0) return t.notes.series.comingSoon;
   const unit = count === 1 ? t.notes.series.partsCountOne : t.notes.series.partsCount;
   const time = `${totalReadingMinutes} ${t.notes.readingTime}`;
   return `${statusLabel(status, t)} · ${count} ${unit} · ${time}`;
@@ -130,19 +135,18 @@ export async function getSeriesIndex(lang: Lang, t: Translations): Promise<Serie
   ]);
 
   return seriesEntries
-    .sort((a, b) => a.data.order - b.data.order)
-    .map((s) => {
-      const count = postsInSeries(posts, s.id).length;
+    .map((s) => ({ s, count: postsInSeries(posts, s.id).length }))
+    .filter(({ count }) => count > 0)
+    .sort((a, b) => a.s.data.order - b.s.data.order)
+    .map(({ s, count }) => {
       const { title, description } = localizedSeries(s.data, lang);
       return {
         slug: s.id,
         path: seriesPath(s.id, s.data.rootLevel),
-        featured: s.data.rootLevel,
         title,
         description,
         count,
         status: s.data.status,
-        comingSoon: count === 0,
         bannerBase: seriesBannerBase(s.id, s.data.bannerImage),
         meta: metaLabel(count, s.data.status, t),
       };

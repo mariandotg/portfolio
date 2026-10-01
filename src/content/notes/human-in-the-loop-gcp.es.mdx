@@ -1,0 +1,236 @@
+---
+title: "Human-in-the-loop en GCP: callbacks de Workflows vs sensors de Airflow vs una máquina de estados con eventos"
+description: "Esperar a que un usuario apruebe algo durante días no es un problema de cómputo sino de estado. Comparé tres formas de guardarlo en GCP: el motor de Cloud Workflows, la base de metadatos de Airflow y mi propia tabla de corridas con eventos."
+pubDate: 2026-10-01
+tags: ["gcp", "cloud-workflows", "airflow", "pub-sub", "arquitectura", "human-in-the-loop"]
+draft: true
+lang: "es"
+translationKey: "human-in-the-loop-gcp"
+collection: "engineering-notes"
+---
+
+import Callout from "../../components/notes/Callout.astro";
+
+Estoy construyendo un SaaS que todos los días busca ofertas de trabajo, las filtra y las matchea contra el perfil de cada usuario con un LLM. Hoy el flujo corre de punta a punta sin nadie en el medio. En la versión siguiente, eso cambia: el flujo se pausa hasta que el usuario elige a qué ofertas aplicar, y recién ahí genera un CV adaptado para cada una.
+
+El usuario puede tardar diez minutos, dos días o no contestar nunca. Ese hueco es el tema de esta nota.
+
+Diseñé el sistema en dos tracks. El **track oficial** va a producción y tiene que costar cero en reposo: Cloud Scheduler, Pub/Sub, Cloud Run y Postgres en Neon. El estado de cada corrida vive en una tabla `runs` y avanza con eventos. El **track experimental** usa GCP completo: Cloud Composer para el pipeline batch del catálogo de ofertas y Cloud Workflows para la corrida de cada usuario, incluida la aprobación.
+
+Armar los dos me obligó a comparar tres formas de resolver la misma pausa.
+
+<Callout type="note" title="La tesis">
+Esperar a un humano no es un problema de cómputo. Es un problema de **estado**. Las tres opciones guardan ese estado en lugares distintos: el motor de Workflows, la base de metadatos de Airflow o tu propia base de datos. Los trade-offs salen de ahí.
+</Callout>
+
+## El problema: un flujo que espera días un click
+
+La primera idea siempre es la misma: un proceso que llega al paso de aprobación y espera. En Cloud Run eso no funciona, por tres razones.
+
+- **Timeouts.** Un request de Cloud Run tiene un timeout máximo. Un job tiene otro. Ninguno de los dos está pensado para esperar 48 horas a un humano.
+- **Costo.** Un contenedor que espera con la CPU asignada se cobra mientras espera. Pagás cómputo por no hacer nada.
+- **Estado perdido.** Si la instancia se reinicia, por un deploy o por un escalado, la espera en memoria desaparece. No hay forma de saber qué corridas estaban esperando ni desde cuándo.
+
+> TODO(verificar): timeout máximo actual de un request de Cloud Run (servicios) y de una tarea de Cloud Run Jobs, para citar las cifras con link en vez de describirlas.
+
+Lo que necesito no es un proceso que espere. Necesito un lugar donde quede escrito "la corrida 42 espera la decisión del usuario 7 desde el martes a las 9", y algo que reaccione cuando llegue esa decisión o cuando venza el plazo.
+
+## Opción A: Cloud Workflows con callbacks
+
+Cloud Workflows es un orquestador serverless: definís pasos en YAML, y el motor guarda el estado de cada ejecución entre paso y paso. Para esperar a un humano tiene una primitiva directa: los callbacks.
+
+El flujo tiene tres partes. `events.create_callback_endpoint` crea una URL única para esa ejecución. Un paso le manda esa URL a mi servicio de notificaciones, que le avisa al usuario. Después, `events.await_callback` suspende la ejecución hasta que alguien haga un POST a esa URL o venza el timeout.
+
+```yaml
+- create_callback:
+    call: events.create_callback_endpoint
+    args:
+      http_callback_method: "POST"
+    result: callback
+- notify_user:
+    call: http.post
+    args:
+      url: https://notifier-xxxx.run.app/approval-requests
+      auth:
+        type: OIDC
+      body:
+        run_id: ${run.id}
+        callback_url: ${callback.url}
+```
+
+La espera y la ramificación quedan así:
+
+```yaml
+- await_approval:
+    try:
+      call: events.await_callback
+      args:
+        callback: ${callback}
+        timeout: 172800 # 48 h, en segundos
+      result: approval
+    except:
+      as: e
+      steps:
+        - on_timeout:
+            switch:
+              - condition: ${"TimeoutError" in e.tags}
+                return: "expired"
+        - rethrow:
+            raise: ${e}
+- route:
+    switch:
+      - condition: ${approval.http_request.body.decision == "approved"}
+        next: tailor_cvs
+    next: mark_rejected
+```
+
+> TODO(verificar): que el body JSON del callback llegue parseado en `approval.http_request.body`, que el tag del error de timeout sea exactamente `TimeoutError` y cuál es el timeout máximo que acepta `events.await_callback`.
+
+La web no llama al callback desde el navegador. La URL exige un token de IAM: el que hace el POST necesita el permiso `workflows.callbacks.send` sobre el workflow. En mi caso, el backend de la API valida que el usuario sea dueño de la corrida y después hace el POST con su service account:
+
+```bash
+curl -X POST "$CALLBACK_URL" \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  -d '{"decision": "approved", "offer_ids": ["o-81", "o-112"]}'
+```
+
+> TODO(verificar): qué rol predefinido mínimo incluye `workflows.callbacks.send` (creo que `roles/workflows.invoker`).
+
+Lo que me gusta de esta opción es que el código se lee como el proceso. No hay polling, no hay tabla de estados, no hay job de vencimientos. El timeout es un argumento.
+
+El costo de la espera también es casi nulo. Según los [precios de Workflows](https://cloud.google.com/workflows/pricing), los pasos internos cuestan 0,01 USD cada 1.000 (5.000 gratis por mes) y los externos 0,025 USD cada 1.000 (2.000 gratis por mes). **Esperar un callback cuenta como un paso externo, sin importar cuánto dure la espera.** Cada reintento cuenta como un paso más.
+
+Hice la cuenta para 1.000 usuarios con una corrida diaria de unos 15 pasos internos y 1 callback:
+
+- 30.000 ejecuciones por mes × 15 = 450.000 pasos internos. Menos 5.000 gratis: 4,45 USD.
+- 30.000 callbacks. Menos 2.000 gratis: 0,70 USD.
+- Total: unos 5 USD por mes.
+
+> TODO(verificar): si las llamadas HTTP a servicios propios en Cloud Run (`*.run.app`) cuentan como pasos internos o externos. Si son externos, el `http.post` de notificación suma 30.000 pasos externos más y el total sube a unos 5,90 USD por mes.
+
+El límite que importa no es el precio. Las [cuotas de Workflows](https://docs.cloud.google.com/workflows/quotas) fijan 10.000 ejecuciones activas por región y proyecto, con 100.000 más en backlog. Una ejecución que espera un callback está activa. Con 10.000 usuarios que todavía no contestaron, la ejecución 10.001 no arranca: va al backlog hasta que alguien apruebe o venza. La duración máxima de una ejecución es de 1 año, así que el plazo de 48 horas no es un problema. La memoria para variables es de 512 KB por ejecución, así que la lista de ofertas matcheadas tiene que viajar como IDs, no como documentos completos.
+
+> TODO(verificar): si el límite de 10.000 ejecuciones activas se puede ampliar por solicitud de cuota, y si el backlog es automático o hay que habilitarlo.
+
+## Opción B: Airflow (Composer) con sensors
+
+En Airflow, la herramienta para esperar es un sensor: una tarea que pregunta "¿ya pasó?" hasta que la respuesta es sí o vence su timeout. La decisión del usuario queda en la base de la aplicación, y el sensor la consulta.
+
+El detalle crítico es el modo. En `mode="poke"`, el sensor ocupa un worker slot durante toda la espera: duerme entre consultas, pero no suelta el slot. Para una espera de segundos da igual. Para una espera de 48 horas, cada usuario que no contestó es un worker slot bloqueado sin hacer nada. Con cien usuarios ya te quedaste sin workers.
+
+En `mode="reschedule"`, el sensor consulta, y si la respuesta es no, libera el slot y le pide al scheduler que lo vuelva a correr más tarde. Entre consulta y consulta, la espera vive en la base de metadatos de Airflow, no en un proceso.
+
+```python
+from airflow.decorators import task
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.sensors.base import PokeReturnValue
+
+@task.sensor(mode="reschedule", poke_interval=600, timeout=48 * 3600)
+def wait_for_approval(run_id: str) -> PokeReturnValue:
+    row = PostgresHook("app_db").get_first(
+        "SELECT decision FROM approvals WHERE run_id = %s", parameters=(run_id,)
+    )
+    decision = row[0] if row else None
+    return PokeReturnValue(is_done=decision is not None, xcom_value=decision)
+
+@task.branch
+def route(decision: str) -> str:
+    return "tailor_cvs" if decision == "approved" else "mark_rejected"
+```
+
+Cuando vence el timeout, el sensor falla con `AirflowSensorTimeout`. Si preferís tratar el vencimiento como un camino normal, `soft_fail=True` marca la tarea como skipped, pero entonces tenés que cuidar las trigger rules de las tareas siguientes.
+
+> TODO(verificar): las rutas de import en la versión de Airflow que corre mi entorno de Composer. En Airflow 3 los decoradores se mueven a `airflow.sdk`.
+
+La alternativa moderna son los **deferrable operators**. La tarea se suspende y le entrega la espera a un trigger asíncrono que corre en un componente aparte, el triggerer. El triggerer maneja muchas esperas en un solo proceso con `asyncio`, y la tarea vuelve a un worker solo cuando el trigger dispara. Es más eficiente que reschedule para miles de esperas, pero para consultar mi base necesito escribir un trigger propio.
+
+> TODO(verificar): si `SqlSensor` del provider `common.sql` ya soporta `deferrable=True`, o si hace falta un trigger custom.
+
+Hay un detalle de modelado que no aparece en los tutoriales. Si cada corrida de usuario es un DAG run, tengo miles de DAG runs activos esperando a la vez. Airflow limita los DAG runs activos por DAG con `max_active_runs_per_dag`, que por defecto es bajo. Hay que subirlo, y el scheduler tiene que procesar todas esas tareas reprogramadas.
+
+> TODO(medir): cuánta carga agrega al scheduler y a la base de metadatos tener 1.000 sensors en reschedule con `poke_interval=600`. Medirlo en el entorno small de Composer con un DAG sintético: latencia de scheduling y CPU del scheduler durante 24 h.
+
+El costo es lo que más pesa. Composer, renombrado [Managed Service for Apache Airflow](https://cloud.google.com/products/managed-service-for-apache-airflow/pricing), cobra 0,06 USD por DCU-hora en us-central1, y cobra mientras el entorno existe, haga algo o no. Una [estimación de la comunidad](https://discuss.google.dev/t/cloud-composer-3-pricing-explanation/158381), no oficial, calcula unos 12 DCU para un entorno small en reposo: unos 17 USD por día, unos 500 USD por mes. Eso es antes de correr una sola tarea.
+
+> TODO(medir): costo real de una semana de mi entorno de Composer en reposo, sacado del export de billing a BigQuery, para reemplazar la estimación de la comunidad.
+
+## Opción C: una máquina de estados con eventos
+
+Mi track oficial no tiene orquestador. Tiene una tabla.
+
+Cada corrida es una fila en `runs`, y su `status` recorre una máquina de estados: `matched → waiting_approval → tailoring → done`, con dos salidas laterales, `rejected` y `expired`. Ningún proceso espera. Cuando el matcher termina, deja la corrida en `waiting_approval` con un `expires_at` a 48 horas y le avisa al usuario. Después, nada corre hasta que pase algo.
+
+> TODO(verificar): agregar un diagrama de la máquina de estados (`matched → waiting_approval → tailoring → done`, con `rejected` y `expired`). El formato de las notas pide un visual del mecanismo, y esta sección es el lugar.
+
+Pueden pasar dos cosas. El usuario aprueba: la API hace un `UPDATE` y publica un mensaje en Pub/Sub, que despierta al servicio de Cloud Run que genera los CVs. O no contesta: un job horario de Cloud Scheduler marca como `expired` las corridas vencidas.
+
+Las dos cosas pueden pasar casi al mismo tiempo. También puede pasar que el usuario apriete "aprobar" dos veces. Por eso la transición es condicional:
+
+```sql
+-- API: el usuario aprueba
+UPDATE runs
+SET status = 'tailoring',
+    approved_offer_ids = $2,
+    updated_at = now()
+WHERE id = $1
+  AND status = 'waiting_approval'
+  AND expires_at > now()
+RETURNING id;
+
+-- Job horario: vencimientos
+UPDATE runs
+SET status = 'expired', updated_at = now()
+WHERE status = 'waiting_approval'
+  AND expires_at <= now()
+RETURNING id;
+```
+
+La condición `status = 'waiting_approval'` es el lock. Postgres serializa los dos `UPDATE` sobre la misma fila, y el segundo ya no encuentra la fila en ese estado. Solo un actor avanza la corrida. Si el `RETURNING` vuelve vacío, la API no publica nada y le responde al usuario que la corrida ya no acepta cambios.
+
+Esto no termina ahí. Pub/Sub entrega **at-least-once**: el mismo mensaje puede llegar dos veces. El consumidor tiene que ser idempotente. Uso la misma técnica: genera cada CV con un upsert por `(run_id, offer_id)` y cierra la corrida con `UPDATE ... SET status = 'done' WHERE status = 'tailoring'`. Un mensaje duplicado no encuentra nada que hacer.
+
+Queda un hueco que tengo que nombrar: el `UPDATE` y el `publish` no son atómicos. Si la API commitea y se cae antes de publicar, la corrida queda en `tailoring` sin nadie que la procese. Lo resuelvo con el mismo job horario: también republica las corridas que llevan más de un tiempo razonable en `tailoring`. Gracias a la idempotencia del consumidor, republicar es seguro. La versión prolija sería un outbox transaccional, pero el job alcanza para mi volumen.
+
+En reposo, esto cuesta cero o casi cero: Cloud Run escala a cero, Neon suspende el cómputo sin actividad y el job horario es una invocación por hora.
+
+> TODO(verificar): precio de Cloud Scheduler por job y cuántos jobs gratis incluye la cuenta de facturación, para citar el costo del job horario con link.
+
+> TODO(medir): latencia de punta a punta desde el click en "aprobar" hasta el primer CV generado, incluido el arranque en frío de Cloud Run y el resume de Neon. Medirlo con timestamps en `runs` y en el consumidor, sobre 50 aprobaciones reales.
+
+## La comparación
+
+| | A: Workflows + callbacks | B: Composer + sensors | C: tabla de estados + eventos |
+|---|---|---|---|
+| Costo de la espera | 1 paso externo por espera, sin importar la duración | Una consulta por `poke_interval`, pagada dentro del entorno | Cero: nada corre |
+| Costo en reposo | Cero | Unos 500 USD/mes (estimación de la comunidad) | Cero o casi cero |
+| Duración máxima | 1 año por ejecución | Sin límite práctico; la define el `timeout` del sensor | Sin límite; la define `expires_at` |
+| Visibilidad | Consola de Workflows: cada ejecución, su paso actual y sus variables | UI de Airflow: grid, logs y estado de cada tarea | La que construyas: un `SELECT status, count(*)` o un dashboard |
+| Testing local | Limitado: no tengo un emulador del motor | Docker con Airflow local, sin Composer | Postgres local y tests comunes |
+| Operación | Casi nula | Un entorno para mantener, actualizar y pagar | Un job horario y la disciplina de la máquina de estados |
+| Lock-in | Alto: YAML de Workflows | Bajo: Airflow es open source | Bajo: SQL y una cola |
+| 10.000 usuarios esperando | En el límite de 10.000 ejecuciones activas por región y proyecto | 10.000 tareas reprogramadas para el scheduler y DAG runs activos que configurar | 10.000 filas en una tabla |
+
+> TODO(verificar): si existe un emulador oficial o local de Cloud Workflows. No conozco uno, pero no quiero afirmarlo sin confirmarlo.
+
+La última fila es la que más me enseñó. En A, la espera ocupa un cupo del motor. En B, ocupa trabajo del scheduler. En C, ocupa una fila. Cuanto más barato es guardar el estado, más usuarios esperando aguantás.
+
+## Cuál elegí y por qué
+
+**En producción, C.** El producto todavía no factura, y no quiero pagar por usuarios que no contestan. La tabla de estados cuesta cero en reposo, se testea con Postgres local y no me ata a nadie. El precio es que escribo yo las partes que un orquestador me daría gratis: el vencimiento, la transición atómica, la idempotencia y la visibilidad.
+
+**En el track experimental, A.** Es la solución más limpia de las tres. El YAML describe el proceso tal como lo explicaría en una pizarra, y la espera cuesta un paso. Si el límite de 10.000 ejecuciones activas fuera un problema real, ya tendría un negocio que paga la solución.
+
+**B, solo porque ya existe.** No pondría Composer para esperar aprobaciones. Lo uso para el pipeline batch del catálogo: scraping, normalización y deduplicación de ofertas. Es trabajo de datos, con dependencias entre tareas, backfills y reintentos por partición, y ahí Airflow se gana su costo. Si un día el entorno ya existe y la aprobación es una tarea más de un DAG de datos, un sensor deferrable es razonable. Para una corrida por usuario, no.
+
+## La regla
+
+Me quedo con una regla corta: **Workflows orquesta servicios; Composer orquesta datos.** Cuando el problema es "llamá a este servicio, esperá, ramificá según la respuesta", Workflows. Cuando el problema es "procesá esta partición después de aquella", Airflow.
+
+La tercera opción no es la ausencia de orquestador. Una tabla con estados, transiciones condicionales y eventos **es** un orquestador: mínimo, sin consola y sin features, pero entero bajo mi control. Sé dónde está cada corrida porque es una fila que puedo consultar.
+
+Esta comparación tiene límites. No mide latencia ni costo real: los costos son de lista y los TODO marcan lo que falta medir. Tampoco cubre otras opciones del mismo problema, como Cloud Tasks con un ETA o un servicio de workflows durables fuera de GCP.
+
+<Callout type="rule" title="La regla">
+Antes de elegir un orquestador para esperar a un humano, decidí dónde querés que viva el estado de la espera. El costo, los límites y la operación salen de esa decisión.
+</Callout>

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PublishGap from "@/components/notes/hitl/PublishGap.astro";
+
+// Dev-only preview of the human-in-the-loop publish-gap diagram.
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+---
+
+<BaseLayout title="PublishGap · dev" noindex>
+  <main class="max-w-[800px] w-full mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <PublishGap />
+  </main>
+</BaseLayout>

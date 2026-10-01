@@ -1,0 +1,307 @@
+---
+// Static map of three ways to pause a GCP flow until a human approves. One question: where does the wait
+// persist, and what advances it? Every option is a row, every state is visible. The accent sits on one
+// column only — the store — because "the wait is state, and each option keeps it somewhere else" is the thesis.
+import { getLangFromUrl } from "../../../i18n/utils";
+import Figure from "../agent-loop/kit/Figure.astro";
+
+const lang = getLangFromUrl(Astro.url);
+
+const STR = {
+  en: {
+    question: "Where does the wait persist, and what advances it?",
+    columns: { option: "Option", store: "Where the wait lives", decision: "Wakes on: user decision", expiry: "Wakes on: expiry" },
+    tags: { store: "state" },
+    outcomes: { approved: "approved", rejected: "rejected", expired: "expired" },
+    rows: [
+      {
+        key: "A",
+        name: "Cloud Workflows",
+        store: "The execution, inside the Workflows engine",
+        storeCode: "events.await_callback",
+        decision: "The API sends an authenticated (IAM) POST to the callback URL",
+        expiry: "Callback timeout, 48 h",
+      },
+      {
+        key: "B",
+        name: "Airflow (Composer)",
+        store: "The rescheduled task, in the Airflow metadata database",
+        storeCode: 'mode="reschedule"',
+        decision: "The sensor reads the decision from the app database every <code>poke_interval</code>",
+        expiry: "Sensor <code>timeout</code>",
+      },
+      {
+        key: "C",
+        name: "Table + Pub/Sub + Cloud Run",
+        store: "A row in your own table, with an expiry time",
+        storeCode: "runs.status = waiting_approval",
+        decision: "The API runs a conditional UPDATE, then publishes to Pub/Sub",
+        expiry: "An hourly sweep (Cloud Scheduler) marks it <code>expired</code>",
+      },
+    ],
+    a11y: "Table with three rows, one per option. Cloud Workflows keeps the wait in the execution inside the Workflows engine; an authenticated POST from the API to the callback URL approves or rejects it, and the 48-hour timeout expires it. Airflow keeps the wait in the rescheduled sensor task in the Airflow metadata database; the sensor polls the app database for the decision, and its own timeout expires it. The runs table keeps the wait as a row with status waiting_approval and an expires_at time; the API makes a conditional UPDATE and publishes to Pub/Sub, and an hourly Cloud Scheduler sweep marks it expired.",
+    caption: "Proposed design. No measured numbers.",
+  },
+  es: {
+    question: "¿Dónde persiste la espera y qué la hace avanzar?",
+    columns: { option: "Opción", store: "Dónde vive la espera", decision: "La despierta: decisión del usuario", expiry: "La despierta: vencimiento" },
+    tags: { store: "estado" },
+    outcomes: { approved: "aprobada", rejected: "rechazada", expired: "vencida" },
+    rows: [
+      {
+        key: "A",
+        name: "Cloud Workflows",
+        store: "La ejecución, dentro del motor de Workflows",
+        storeCode: "events.await_callback",
+        decision: "La API hace un POST autenticado (IAM) al callback URL",
+        expiry: "Timeout del callback, 48 h",
+      },
+      {
+        key: "B",
+        name: "Airflow (Composer)",
+        store: "La task reprogramada, en la base de metadatos de Airflow",
+        storeCode: 'mode="reschedule"',
+        decision: "El sensor lee la decisión de la base de la app cada <code>poke_interval</code>",
+        expiry: "<code>timeout</code> del sensor",
+      },
+      {
+        key: "C",
+        name: "Tabla + Pub/Sub + Cloud Run",
+        store: "Una fila en tu propia tabla, con fecha de vencimiento",
+        storeCode: "runs.status = waiting_approval",
+        decision: "La API hace un UPDATE condicional y publica en Pub/Sub",
+        expiry: "Un barrido horario (Cloud Scheduler) la marca <code>expired</code>",
+      },
+    ],
+    a11y: "Tabla con tres filas, una por opción. Cloud Workflows guarda la espera en la ejecución dentro del motor de Workflows; un POST autenticado de la API al callback URL la aprueba o la rechaza, y el timeout de 48 horas la vence. Airflow guarda la espera en la task sensor reprogramada, en la base de metadatos de Airflow; el sensor consulta la decisión en la base de la app, y su propio timeout la vence. La tabla runs guarda la espera como una fila con status waiting_approval y una fecha expires_at; la API hace un UPDATE condicional y publica en Pub/Sub, y un barrido horario de Cloud Scheduler la marca expired.",
+    caption: "Diseño propuesto. Sin números medidos.",
+  },
+} as const;
+
+const ui = STR[lang === "es" ? "es" : "en"];
+---
+
+<Figure question={ui.question} basis="assumed">
+  <table class="wm">
+    <thead>
+      <tr>
+        <th scope="col" class="wm-opt">{ui.columns.option}</th>
+        <th scope="col" class="wm-store">{ui.columns.store}</th>
+        <th scope="col">{ui.columns.decision}</th>
+        <th scope="col">{ui.columns.expiry}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        ui.rows.map((r) => (
+          <tr>
+            <th scope="row" class="wm-opt">
+              <span class="wm-key" aria-hidden="true">{r.key}</span>
+              <span class="wm-name">{r.name}</span>
+            </th>
+            <td class="wm-store" data-label={ui.columns.store}>
+              <span class="wm-box">
+                <span class="wm-tag">{ui.tags.store}</span>
+                <span class="wm-store-text">{r.store}</span>
+                <code>{r.storeCode}</code>
+              </span>
+            </td>
+            <td data-label={ui.columns.decision}>
+              <span class="wm-wake">
+                <span class="wm-text" set:html={r.decision} />
+                <span class="wm-out">
+                  <span class="wm-arrow" aria-hidden="true">→</span>
+                  <span class="wm-chip">{ui.outcomes.approved}</span>
+                  <span class="wm-chip">{ui.outcomes.rejected}</span>
+                </span>
+              </span>
+            </td>
+            <td data-label={ui.columns.expiry}>
+              <span class="wm-wake">
+                <span class="wm-text" set:html={r.expiry} />
+                <span class="wm-out">
+                  <span class="wm-arrow" aria-hidden="true">→</span>
+                  <span class="wm-chip">{ui.outcomes.expired}</span>
+                </span>
+              </span>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+
+  <p slot="a11y" class="sr-only">{ui.a11y}</p>
+  <Fragment slot="caption">{ui.caption}</Fragment>
+</Figure>
+
+<style>
+  .wm {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    font-size: var(--text-meta);
+    line-height: 1.45;
+    color: hsl(var(--foreground));
+  }
+  .wm th,
+  .wm td {
+    padding: 0;
+    text-align: left;
+    vertical-align: top;
+    font-weight: 400;
+  }
+  .wm thead th {
+    padding: 0 12px 0 0;
+    font-family: var(--font-family-mono);
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    vertical-align: bottom;
+  }
+  .wm tbody td {
+    height: 1px;
+    padding-right: 12px;
+  }
+  .wm tbody td:last-child,
+  .wm thead th:last-child {
+    padding-right: 0;
+  }
+  .wm-opt {
+    width: 7.5rem;
+    padding-right: 12px !important;
+  }
+  .wm-key {
+    display: inline-block;
+    margin-right: 6px;
+    font-family: var(--font-family-mono);
+    color: hsl(var(--muted-foreground));
+  }
+  .wm-name {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .wm-store {
+    width: 30%;
+  }
+  .wm-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    height: 100%;
+    padding: 10px 12px;
+    border: 1px solid hsl(var(--primary));
+    border-radius: 6px;
+    background: color-mix(in srgb, hsl(var(--primary)) 10%, transparent);
+    color: hsl(var(--foreground));
+  }
+  .wm-tag {
+    padding: 1px 5px;
+    border: 1px solid color-mix(in srgb, hsl(var(--primary)) 55%, transparent);
+    border-radius: 2px;
+    font-family: var(--font-family-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--foreground));
+  }
+  .wm-store-text {
+    font-weight: 600;
+  }
+  .wm-box code {
+    font-family: var(--font-family-mono);
+    font-size: 0.92em;
+    overflow-wrap: anywhere;
+  }
+  .wm-wake {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    height: 100%;
+    padding: 10px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+  }
+  .wm-wake :global(code) {
+    font-family: var(--font-family-mono);
+    font-size: 0.92em;
+    overflow-wrap: anywhere;
+  }
+  .wm-text {
+    color: hsl(var(--foreground));
+  }
+  .wm-out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+  }
+  .wm-arrow {
+    margin-right: 2px;
+    color: hsl(var(--muted-foreground));
+  }
+  .wm-chip {
+    padding: 1px 6px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 2px;
+    font-family: var(--font-family-mono);
+    font-size: 10px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 640px) {
+    .wm,
+    .wm tbody,
+    .wm tr,
+    .wm th,
+    .wm td {
+      display: block;
+    }
+    .wm {
+      border-spacing: 0;
+    }
+    .wm thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    .wm tbody tr {
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid hsl(var(--border));
+      border-radius: 8px;
+    }
+    .wm-opt,
+    .wm-store {
+      width: auto;
+      padding-right: 0 !important;
+    }
+    .wm-opt {
+      margin-bottom: 10px;
+      font-size: var(--text-ui);
+    }
+    .wm tbody td {
+      height: auto;
+      padding: 0 0 10px;
+    }
+    .wm tbody td:last-child {
+      padding-bottom: 0;
+    }
+    .wm tbody td::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--font-family-mono);
+      font-size: 10px;
+      color: hsl(var(--muted-foreground));
+    }
+    .wm-wake,
+    .wm-box {
+      height: auto;
+    }
+  }
+</style>

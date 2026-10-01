@@ -1,0 +1,46 @@
+---
+// Figure 2: the official track. Three entry points (schedule, user, hourly rescue) and the same
+// pieces behind them. Every box scales to zero: with no events, nothing runs.
+import Lanes from "./Lanes.astro";
+import type { Lane } from "./Lanes.astro";
+
+const lanes: Lane[] = [
+  {
+    label: "Programado",
+    steps: [
+      { kind: "step", tag: "Scheduler", title: "Dispara el catálogo", code: "cron" },
+      { kind: "step", tag: "Cloud Run", title: "Dispatcher: parte el trabajo", code: "1 mensaje por fuente" },
+      { kind: "step", tag: "Pub/Sub", title: "Entrega at-least-once", code: "+ DLQ por topic" },
+      { kind: "step", tag: "Cloud Run", title: "Worker: procesa e inserta", code: "ON CONFLICT DO NOTHING" },
+      { kind: "state", tag: "Neon", title: "Postgres", code: "escala a cero" },
+    ],
+  },
+  {
+    label: "Usuario",
+    steps: [
+      { kind: "step", tag: "Firebase Hosting", title: "Web + rewrites", code: "sin Load Balancer" },
+      { kind: "step", tag: "Cloud Run", title: "API: crea la corrida", code: "status = created" },
+      { kind: "step", tag: "Pub/Sub", title: "Avisa", code: "run.created" },
+      { kind: "step", tag: "Cloud Run", title: "Workers: prefiltro y matching", code: "1 mensaje por oferta" },
+      { kind: "state", tag: "Neon", title: "Tabla de corridas", code: "runs" },
+    ],
+  },
+  {
+    label: "Cada hora",
+    steps: [
+      { kind: "step", tag: "Scheduler", title: "Dispara el rescate", code: "cron" },
+      { kind: "step", tag: "Cloud Run", title: "Busca corridas quietas", code: "updated_at viejo" },
+      { kind: "gap", tag: "Pub/Sub", title: "Republica lo que falta", code: "o marca failed" },
+    ],
+  },
+];
+---
+
+<Lanes
+  n={2}
+  question="¿Qué corre cuando no pasa nada?"
+  basis="assumed"
+  lanes={lanes}
+  a11y="Tres secuencias que comparten piezas. Programado: Cloud Scheduler dispara el catálogo; un dispatcher en Cloud Run parte el trabajo en un mensaje por fuente; Pub/Sub lo entrega at-least-once, con un topic de dead letter por topic; un worker en Cloud Run procesa e inserta con ON CONFLICT DO NOTHING; el estado vive en Postgres en Neon, que escala a cero. Usuario: la web está en Firebase Hosting con rewrites, sin Load Balancer; la API en Cloud Run crea la corrida con status created; publica run.created en Pub/Sub; los workers de Cloud Run hacen el prefiltro y el matching, un mensaje por oferta; la corrida vive en la tabla runs en Neon. Cada hora: Cloud Scheduler dispara el rescate; un servicio de Cloud Run busca corridas sin avanzar; republica lo que falta en Pub/Sub o marca la corrida como failed."
+  caption="Diseño propuesto, no desplegado. Sin eventos no corre nada: ni Cloud Run, ni Pub/Sub, ni el cómputo de Neon."
+/>

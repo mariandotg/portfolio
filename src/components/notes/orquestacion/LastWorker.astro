@@ -1,0 +1,54 @@
+---
+// Figure 4: coordination without an orchestrator. Time runs left to right. Each matcher commits its
+// row, then tries to close the run. Only the one that sees every row wins the conditional UPDATE; a
+// redelivered message finds its row already there and the run already closed.
+import Lanes from "./Lanes.astro";
+import type { Lane } from "./Lanes.astro";
+
+const lanes: Lane[] = [
+  {
+    label: "Matcher A",
+    steps: [
+      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
+      { kind: "state", tag: "UPDATE", title: "Ve 1 de 3", code: "0 filas" },
+    ],
+  },
+  {
+    label: "Matcher B",
+    steps: [
+      "skip",
+      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
+      { kind: "state", tag: "UPDATE", title: "Ve 2 de 3", code: "0 filas" },
+    ],
+  },
+  {
+    label: "Matcher C",
+    steps: [
+      "skip",
+      "skip",
+      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
+      { kind: "win", tag: "UPDATE", title: "Ve 3 de 3: gana", code: "status = matched" },
+      { kind: "win", tag: "Pub/Sub", title: "Publica", code: "run.matched" },
+    ],
+  },
+  {
+    label: "B, entregado de nuevo",
+    steps: [
+      "skip",
+      "skip",
+      "skip",
+      { kind: "state", tag: "INSERT", title: "La fila ya existe", code: "ON CONFLICT DO NOTHING" },
+      { kind: "state", tag: "UPDATE", title: "Ya no está en matching", code: "0 filas" },
+    ],
+  },
+];
+---
+
+<Lanes
+  n={4}
+  question="¿Quién cierra la corrida si nadie coordina?"
+  basis="assumed"
+  lanes={lanes}
+  a11y="Cuatro secuencias en el tiempo, para una corrida con 3 candidatos. Matcher A guarda su oferta y hace commit; su UPDATE ve 1 de 3 filas y no cambia nada. Matcher B guarda su oferta y hace commit; su UPDATE ve 2 de 3 y no cambia nada. Matcher C guarda su oferta y hace commit; su UPDATE ve 3 de 3, gana, pasa la corrida a matched y publica run.matched en Pub/Sub. El mensaje de B llega de nuevo: el INSERT no hace nada por ON CONFLICT DO NOTHING, y el UPDATE no cambia nada porque la corrida ya no está en matching."
+  caption="Diseño propuesto, 3 candidatos de ejemplo. Contar filas con UNIQUE, en vez de sumar un contador, hace que un mensaje duplicado no cuente dos veces."
+/>

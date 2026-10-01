@@ -1,0 +1,38 @@
+---
+// Figure 1: the two flows of the pipeline on one axis. Same shape on paper (fan-out, reduce, result),
+// different nature: one is global and scheduled, the other is per user and can stop for days.
+import Lanes from "./Lanes.astro";
+import type { Lane } from "./Lanes.astro";
+
+const lanes: Lane[] = [
+  {
+    label: "Catálogo · global, programado",
+    steps: [
+      { kind: "step", tag: "Scheduler", title: "Dispara una vez por día", code: "cron" },
+      { kind: "step", tag: "Fuentes", title: "Trae ofertas", code: "N fuentes en paralelo" },
+      { kind: "step", tag: "Normaliza", title: "Un solo formato", code: "offers_raw" },
+      { kind: "step", tag: "Dedupe", title: "Une duplicados", code: "UNIQUE" },
+      { kind: "state", tag: "Catálogo", title: "Ofertas del día", code: "offers" },
+    ],
+  },
+  {
+    label: "Corrida · por usuario, por evento",
+    steps: [
+      { kind: "step", tag: "Evento", title: "El usuario pide una corrida", code: "run.created" },
+      { kind: "step", tag: "Prefiltro", title: "Reglas sin LLM", code: "candidates" },
+      { kind: "step", tag: "Matching", title: "Puntúa con un LLM", code: "1 mensaje por oferta" },
+      { kind: "state", tag: "Shortlist", title: "Las mejores ofertas", code: "matched" },
+      { kind: "gap", tag: "Humano", title: "Espera una decisión", code: "minutos o días" },
+    ],
+  },
+];
+---
+
+<Lanes
+  n={1}
+  question="¿Por qué el catálogo y la corrida no son el mismo flujo?"
+  basis="assumed"
+  lanes={lanes}
+  a11y="Dos secuencias. Catálogo, global y programado: 1. Cloud Scheduler lo dispara una vez por día. 2. trae ofertas de varias fuentes en paralelo. 3. las normaliza a un solo formato. 4. une duplicados. 5. queda el catálogo de ofertas del día. Corrida por usuario, disparada por evento: 1. el usuario pide una corrida. 2. un prefiltro con reglas, sin LLM, elige candidatos. 3. un LLM puntúa cada candidato, un mensaje por oferta. 4. queda una shortlist. 5. la corrida espera la decisión de una persona, que puede tardar minutos o días."
+  caption="Diseño propuesto. Mismo dibujo, distinta naturaleza: el de arriba termina solo; el de abajo depende de una persona."
+/>

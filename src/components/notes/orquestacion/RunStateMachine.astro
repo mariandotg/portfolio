@@ -1,0 +1,46 @@
+---
+// Figure 3: the life of a run as rows in my own table. The main lane is the happy path; the other two
+// are the exits. The state lives in Postgres, not in an engine, so the rescue is just another writer.
+import Lanes from "./Lanes.astro";
+import type { Lane } from "./Lanes.astro";
+
+const lanes: Lane[] = [
+  {
+    label: "Camino normal",
+    steps: [
+      { kind: "state", tag: "API", title: "Corrida creada", code: "created" },
+      { kind: "state", tag: "Prefiltro", title: "Candidatos elegidos", code: "prefiltered" },
+      { kind: "state", tag: "Matchers", title: "Puntuando en paralelo", code: "matching" },
+      { kind: "win", tag: "Último worker", title: "Todos terminaron", code: "matched" },
+      { kind: "state", tag: "Notifier", title: "Usuario avisado", code: "notified" },
+    ],
+  },
+  {
+    label: "Sin candidatos",
+    steps: [
+      "skip",
+      "skip",
+      { kind: "state", tag: "Prefiltro", title: "Ninguna oferta pasa las reglas", code: "no_candidates" },
+    ],
+  },
+  {
+    label: "Se cuelga",
+    steps: [
+      "skip",
+      "skip",
+      { kind: "gap", tag: "Neon", title: "No avanza", code: "matching + updated_at viejo" },
+      { kind: "step", tag: "Rescate", title: "Republica lo que falta", code: "attempts + 1" },
+      { kind: "fail", tag: "Rescate", title: "Se rinde", code: "failed" },
+    ],
+  },
+];
+---
+
+<Lanes
+  n={3}
+  question="¿Dónde vive el estado de una corrida?"
+  basis="assumed"
+  lanes={lanes}
+  a11y="Estados de una corrida en la tabla runs. Camino normal: created cuando la API la crea; prefiltered cuando el prefiltro elige candidatos; matching mientras los matchers puntúan en paralelo; matched cuando el último worker ve que todos terminaron; notified cuando el notifier avisa al usuario. Salida sin candidatos: si ninguna oferta pasa las reglas del prefiltro, la corrida pasa a no_candidates. Salida por cuelgue: si la corrida queda en matching con updated_at viejo, el job de rescate republica lo que falta y suma un intento; después de N intentos la marca como failed."
+  caption="Diseño propuesto. Cada flecha es un UPDATE condicional sobre una fila; el job de rescate es un escritor más."
+/>

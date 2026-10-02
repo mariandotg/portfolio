@@ -2,23 +2,54 @@
 // Figure 4: coordination without an orchestrator. Time runs left to right. Each matcher commits its
 // row, then tries to close the run. Only the one that sees every row wins the conditional UPDATE; a
 // redelivered message finds its row already there and the run already closed.
+import { getLangFromUrl } from "../../../i18n/utils";
 import Lanes from "./Lanes.astro";
 import type { Lane } from "./Lanes.astro";
+
+const T = {
+  es: {
+    question: "¿Quién cierra la corrida si nadie coordina?",
+    redelivered: "B, entregado de nuevo",
+    save: "Guarda su oferta",
+    sees: (n: number) => `Ve ${n} de 3`,
+    wins: "Ve 3 de 3: gana",
+    rows: "0 filas",
+    publish: "Publica",
+    exists: "La fila ya existe",
+    closed: "Ya no está en matching",
+    a11y: "Cuatro secuencias en el tiempo, para una corrida con 3 candidatos. Matcher A guarda su oferta y hace commit; su UPDATE ve 1 de 3 filas y no cambia nada. Matcher B guarda su oferta y hace commit; su UPDATE ve 2 de 3 y no cambia nada. Matcher C guarda su oferta y hace commit; su UPDATE ve 3 de 3, gana, pasa la corrida a matched y publica run.matched en Pub/Sub. El mensaje de B llega de nuevo: el INSERT no hace nada por ON CONFLICT DO NOTHING, y el UPDATE no cambia nada porque la corrida ya no está en matching.",
+    caption: "Diseño propuesto, 3 candidatos de ejemplo. Contar filas con UNIQUE, en vez de sumar un contador, hace que un mensaje duplicado no cuente dos veces.",
+  },
+  en: {
+    question: "Who closes the run if nobody coordinates?",
+    redelivered: "B, delivered again",
+    save: "Saves its offer",
+    sees: (n: number) => `Sees ${n} of 3`,
+    wins: "Sees 3 of 3: wins",
+    rows: "0 rows",
+    publish: "Publishes",
+    exists: "The row already exists",
+    closed: "No longer in matching",
+    a11y: "Four sequences over time, for a run with 3 candidates. Matcher A saves its offer and commits; its UPDATE sees 1 of 3 rows and changes nothing. Matcher B saves its offer and commits; its UPDATE sees 2 of 3 and changes nothing. Matcher C saves its offer and commits; its UPDATE sees 3 of 3, wins, moves the run to matched and publishes run.matched to Pub/Sub. B's message arrives again: the INSERT does nothing because of ON CONFLICT DO NOTHING, and the UPDATE changes nothing because the run is no longer in matching.",
+    caption: "Proposed design, 3 example candidates. Counting rows behind a UNIQUE constraint, instead of incrementing a counter, keeps a duplicate message from counting twice.",
+  },
+};
+const t = T[getLangFromUrl(Astro.url) === "en" ? "en" : "es"];
 
 const lanes: Lane[] = [
   {
     label: "Matcher A",
     steps: [
-      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
-      { kind: "state", tag: "UPDATE", title: "Ve 1 de 3", code: "0 filas" },
+      { kind: "step", tag: "INSERT", title: t.save, code: "commit" },
+      { kind: "state", tag: "UPDATE", title: t.sees(1), code: t.rows },
     ],
   },
   {
     label: "Matcher B",
     steps: [
       "skip",
-      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
-      { kind: "state", tag: "UPDATE", title: "Ve 2 de 3", code: "0 filas" },
+      { kind: "step", tag: "INSERT", title: t.save, code: "commit" },
+      { kind: "state", tag: "UPDATE", title: t.sees(2), code: t.rows },
     ],
   },
   {
@@ -26,29 +57,22 @@ const lanes: Lane[] = [
     steps: [
       "skip",
       "skip",
-      { kind: "step", tag: "INSERT", title: "Guarda su oferta", code: "commit" },
-      { kind: "win", tag: "UPDATE", title: "Ve 3 de 3: gana", code: "status = matched" },
-      { kind: "win", tag: "Pub/Sub", title: "Publica", code: "run.matched" },
+      { kind: "step", tag: "INSERT", title: t.save, code: "commit" },
+      { kind: "win", tag: "UPDATE", title: t.wins, code: "status = matched" },
+      { kind: "win", tag: "Pub/Sub", title: t.publish, code: "run.matched" },
     ],
   },
   {
-    label: "B, entregado de nuevo",
+    label: t.redelivered,
     steps: [
       "skip",
       "skip",
       "skip",
-      { kind: "state", tag: "INSERT", title: "La fila ya existe", code: "ON CONFLICT DO NOTHING" },
-      { kind: "state", tag: "UPDATE", title: "Ya no está en matching", code: "0 filas" },
+      { kind: "state", tag: "INSERT", title: t.exists, code: "ON CONFLICT DO NOTHING" },
+      { kind: "state", tag: "UPDATE", title: t.closed, code: t.rows },
     ],
   },
 ];
 ---
 
-<Lanes
-  n={4}
-  question="¿Quién cierra la corrida si nadie coordina?"
-  basis="assumed"
-  lanes={lanes}
-  a11y="Cuatro secuencias en el tiempo, para una corrida con 3 candidatos. Matcher A guarda su oferta y hace commit; su UPDATE ve 1 de 3 filas y no cambia nada. Matcher B guarda su oferta y hace commit; su UPDATE ve 2 de 3 y no cambia nada. Matcher C guarda su oferta y hace commit; su UPDATE ve 3 de 3, gana, pasa la corrida a matched y publica run.matched en Pub/Sub. El mensaje de B llega de nuevo: el INSERT no hace nada por ON CONFLICT DO NOTHING, y el UPDATE no cambia nada porque la corrida ya no está en matching."
-  caption="Diseño propuesto, 3 candidatos de ejemplo. Contar filas con UNIQUE, en vez de sumar un contador, hace que un mensaje duplicado no cuente dos veces."
-/>
+<Lanes n={4} question={t.question} basis="assumed" lanes={lanes} a11y={t.a11y} caption={t.caption} />

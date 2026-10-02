@@ -1,0 +1,232 @@
+---
+title: "Where the state lives: orchestrating an LLM pipeline on GCP at zero idle cost"
+description: "Composer costs about 500 USD a month before it runs a single task; Workflows, about 5 USD for 1,000 users. For a personal project I picked neither: a state table in Postgres driven by Pub/Sub events. Why, and what I pay for it instead."
+pubDate: 2026-10-01
+tags: ["gcp", "cloud-workflows", "airflow", "pub-sub", "architecture", "postgres"]
+draft: false
+collection: "engineering-notes"
+---
+
+import Callout from "../../components/notes/Callout.astro";
+import TwoFlows from "../../components/notes/orquestacion/TwoFlows.astro";
+import OfficialArchitecture from "../../components/notes/orquestacion/OfficialArchitecture.astro";
+import RunStateMachine from "../../components/notes/orquestacion/RunStateMachine.astro";
+import LastWorker from "../../components/notes/orquestacion/LastWorker.astro";
+
+In September I had a technical interview for a GCP-focused role. The case was concrete: a file lands in a bucket, a trigger fires, and RabbitMQ coordinates sending emails. Cloud Composer came up, so did GCP's native orchestration and identity federation. I proposed a simple service on Cloud Run.
+
+I walked out feeling I hadn't justified it. Not because the answer was wrong, but because I didn't know what I was comparing it against.
+
+So I used those questions to design a personal project: an LLM matching pipeline on GCP. The first use case is job offers matched against a CV profile. The pipeline pulls offers from several sources, deduplicates them, prefilters them with rules and scores them with an LLM against the user's profile.
+
+The design is done; the product is being built. None of the numbers in this note are measurements. They are list prices with their links and my own arithmetic, and I say what is still unmeasured.
+
+<Callout type="note" title="The thesis">
+Picking an orchestrator isn't picking a tool. It's deciding where the state of the flow lives, and how much you pay to keep it alive while nothing is happening.
+</Callout>
+
+## Two flows that aren't the same flow
+
+My first mistake was treating "the pipeline" as one thing. It's two.
+
+<TwoFlows />
+
+The catalog is batch. It runs once a day, it's global (the same for every user) and it has clear dependencies: you don't deduplicate before you normalize. If a source fails on Tuesday, I want to reprocess Tuesday. That has a name: backfill.
+
+The run is per entity. An event triggers it: a user asking for results. There is one per user, with its own state. And at the end it can sit for days waiting for that person to pick which offers to apply to.
+
+On paper they look the same: fan out, reduce, result. But they ask different things of whatever coordinates them.
+
+| Flow | Nature | Natural orchestrator |
+|---|---|---|
+| Catalog | Batch, global, scheduled, with dependencies; benefits from backfill | Composer (Airflow) |
+| Per-user run | Per entity, event-driven; can wait days for a person | Workflows |
+
+Workflows orchestrates services; Composer orchestrates data. That sentence sums up the table, and the production decision was neither.
+
+## The constraints
+
+Before comparing anything, I fixed four constraints. Without them, every option wins.
+
+- Zero cost at rest. It's a personal project. If nobody uses it for a month, the bill has to be zero.
+- Unknown scale. It could be 10 users or 10,000. I don't design for either end; I design to avoid paying up front.
+- One person running it. Every piece that needs upgrading, monitoring or paying for is mine.
+- At-least-once delivery. Pub/Sub can deliver the same message twice, and so can any reasonable queue. Exactly-once doesn't exist in this system; you design for at-least-once with idempotency.
+
+## The options
+
+### Just Cloud Run
+
+It was my answer in the interview, and for a single step it's the right one. A file lands, a service processes it, done. Nothing to orchestrate.
+
+It stops being enough when there are several steps that depend on each other, or when a step has to wait. A request has a timeout, and an instance can restart on any deploy. The state can't live in memory.
+
+### A queue: Pub/Sub, not RabbitMQ
+
+Matching fans out hundreds of identical units: one candidate, one LLM call. That isn't orchestration. An orchestrator coordinates; it doesn't hand out work. To hand out thousands of units, use a queue.
+
+The interview case used RabbitMQ. To me, RabbitMQ means a broker that's always on: a VM or a cluster I pay for even with no messages, and that I operate. Pub/Sub is managed and charges by volume. The [GCP free tier](https://cloud.google.com/free) includes 10 GB of messages a month. With one person operating and zero cost at rest, the managed queue wins without a contest.
+
+### Composer
+
+Composer is managed Airflow. Google renamed it [Managed Service for Apache Airflow](https://cloud.google.com/products/managed-service-for-apache-airflow/pricing), though the SKUs still say Composer 3. For the catalog it's the natural tool: DAGs with dependencies, per-task retries and backfill by date.
+
+The problem is the cost model. It charges 0.06 USD per DCU-hour in us-central1, and it charges for as long as the environment exists, used or not. A [community estimate](https://discuss.google.dev/t/cloud-composer-3-pricing-explanation/158381), not an official figure, puts a small environment at about 12 DCU while idle: roughly 17 USD a day, roughly 500 USD a month. That's before running a single task.
+
+### Workflows
+
+Workflows defines steps in YAML, and the engine keeps each execution's state between steps. It fits the per-user run: one execution per run, service calls, branches, and a primitive for waiting on a person (callbacks).
+
+Its [pricing](https://cloud.google.com/workflows/pricing) is per step. Internal steps get 5,000 free a month, then cost 0.01 USD per 1,000. External steps get 2,000 free, then cost 0.025 USD per 1,000. Waiting on a callback counts as one external step, however long the wait. Every retry counts as a step, and billing is in blocks of 1,000, rounded up. At rest, zero.
+
+### A state table with events
+
+The third option is no engine at all. Each run is a row in Postgres, and its `status` moves forward on Pub/Sub events. Every transition is a conditional `UPDATE`. A state table with events is a minimal orchestrator that you control.
+
+## The comparison
+
+| | Composer | Workflows | Table + Pub/Sub |
+|---|---|---|---|
+| Cost model | DCU-hours while the environment exists | Per step, internal or external | Cloud Run requests and CPU, Pub/Sub messages, Neon compute |
+| Cost at rest | About 500 USD/month (community estimate) | Zero | Zero within the free tier |
+| Latency | Airflow's scheduler: built for batch | Steps in sequence inside the engine, plus each HTTP call | Pub/Sub push, plus Cloud Run and Neon cold starts |
+| Waiting on a human | Sensor in `mode="reschedule"` or deferrable | Callback: one external step | Row in `waiting_approval` plus an expiry sweep |
+| Concurrency | Worker slots and active DAG runs per DAG | 10,000 active executions per region and project | Cloud Run instances and Neon connections |
+| Hard limits | Those of the environment size | 1 year per execution, 512 KB of variables, 100,000 steps, 2 MB HTTP responses | Whatever I write |
+| Backfill | Native | No; rerun executions by hand | No; my own script |
+| Local testing | Airflow in Docker, without Composer | No official local emulator: runs and debugs in the cloud | Local Postgres and plain tests |
+| Operations | An environment to upgrade and pay for | Almost none | Rescue, DLQ and visibility, all mine |
+| Lock-in | Low: Airflow is open source | High: Workflows YAML | Medium: the SQL is portable; Pub/Sub and Cloud Run are GCP |
+
+The Workflows limits come from its [quotas](https://docs.cloud.google.com/workflows/quotas).
+
+In money, with one run per user per day, about 15 internal steps and one callback per run (a design assumption, not a measurement), 30-day months:
+
+| Users | Workflows (calculated) | Composer (community estimate) | Table + Pub/Sub |
+|---|---|---|---|
+| 100 | 0.43 USD/month | ~500 USD/month | 0 USD within the free tier |
+| 1,000 | 5.15 USD/month | ~500 USD/month | 0 USD within the free tier |
+| 10,000 | 52.40 USD/month | ~500 USD/month | Not measured |
+
+Here's the 1,000-user row. That's 450,000 internal steps a month: (450,000 − 5,000) / 1,000 = 445 blocks, 4.45 USD. And 30,000 callbacks: 28 blocks, 0.70 USD. Total: 5.15 USD, Workflows only, without Cloud Run or the LLM.
+
+At small scale, the fixed cost decides. Composer starts at about 500 USD with zero users. Workflows and the table start at zero.
+
+## The decision
+
+Cost at rest rules out Composer. It doesn't rule out Workflows: with 1,000 users that's about 5 USD a month.
+
+For v1, two other things rule it out. First, it has no official local emulator. The [documentation](https://docs.cloud.google.com/workflows/docs/overview) only describes running and debugging in the cloud, and I want to run the whole flow on my machine, under tests. Second, I'd rather keep the state in my own database. A run is a row I can query with SQL, not an execution inside an engine.
+
+For waiting on a human, though, I would adopt Workflows. That's where a callback beats a table plus a sweep, and I take it apart in [part two](/notes/human-in-the-loop-gcp).
+
+So the two tracks look like this.
+
+- Official track, the production one: Cloud Scheduler, Pub/Sub, Cloud Run and Postgres on Neon. Each run's state lives in a table and moves forward on events.
+- Experimental track: all-in on GCP. Composer for the catalog's batch pipeline and Workflows for each user's run, approval included. There each tool runs the flow it was built for, and that's where I'll measure what today are estimates.
+
+I didn't choose against Composer: I chose for this scale. The suggestion in the interview made me evaluate the whole range. For the catalog, Composer is the right tool. What I can't justify yet is its fixed cost.
+
+## How the table works
+
+<OfficialArchitecture />
+
+Three entry points share the same pieces: the catalog cron, the user, and an hourly rescue. The web app sits on Firebase Hosting, with rewrites to the API on Cloud Run. That avoids a Load Balancer, which charges a minimum of 0.025 USD an hour (up to 5 forwarding rules) even with no traffic: about 18 USD a month ([Cloud Load Balancing pricing](https://cloud.google.com/load-balancing/pricing)).
+
+<RunStateMachine />
+
+Every arrow in figure 3 is an `UPDATE ... WHERE status = '<previous state>'`. If `RETURNING` comes back empty, another actor already moved the run, and this one does nothing. That's all the coordination there is.
+
+### Idempotency: UNIQUE before logic
+
+Since Pub/Sub delivers at least once, every write has to survive being repeated. The rule is simple: every result has a natural key behind a `UNIQUE` constraint, and it's inserted with `ON CONFLICT DO NOTHING`. For matching, the key is `(run_id, offer_id)`.
+
+`UNIQUE` prevents the duplicate row, not the duplicate work. If a message reaches two workers at once, I pay for two LLM calls on the same offer. At this volume I accept that.
+
+### The last worker closes the run
+
+Matching is a fan-out: one message per candidate, many workers in parallel. Someone has to notice that all of them finished and move the run to `matched`. With no orchestrator, that someone is the last worker.
+
+```sql
+-- Each matcher, in its own transaction: save its result.
+INSERT INTO run_matches (run_id, offer_id, score)
+VALUES ($1, $2, $3)
+ON CONFLICT (run_id, offer_id) DO NOTHING;
+-- COMMIT
+
+-- After the commit: try to close the run.
+UPDATE runs
+SET status = 'matched', updated_at = now()
+WHERE id = $1
+  AND status = 'matching'
+  AND candidates = (SELECT count(*) FROM run_matches
+                    WHERE run_id = $1)
+RETURNING id;
+-- If it returns a row, this worker publishes run.matched.
+```
+
+<LastWorker />
+
+Two details matter.
+
+First: I count rows, I don't increment a counter. A `SET done = done + 1` counts a duplicate message twice, and the run closes early. Counting rows in a table with a `UNIQUE` constraint means the duplicate doesn't count.
+
+Second: the `INSERT` commits before the `UPDATE`. Even so, two workers can finish at the same moment and neither sees the full count, or the last one can die between its commit and its `UPDATE`. Then nobody closes the run, and the rescue job closes it by running the same `UPDATE`. The opposite can't happen: if two workers both see the full count, `WHERE status = 'matching'` lets only one win. Postgres's row lock makes the second one wait, re-check the condition and find nothing ([Postgres isolation docs](https://www.postgresql.org/docs/current/transaction-iso.html)). A run can close late, but never twice.
+
+### DLQ and rescue
+
+A message that always fails can't be retried forever. Each subscription has its own dead-letter topic: after N attempts the message goes there and I get an alert. But a message in the DLQ leaves a run stuck in `matching`, because a row is missing.
+
+That's what the rescue is for. An hourly Cloud Scheduler job looks for runs in `matching` with an old `updated_at`. If they already have all their rows, it runs the closing `UPDATE`. If not, it republishes the candidates with no row in `run_matches`. Republishing is safe: the `INSERT` is idempotent. After N attempts, the run moves to `failed`.
+
+The catalog cron and the rescue are two jobs. [Cloud Scheduler](https://cloud.google.com/scheduler/pricing) gives 3 free jobs per billing account, not per project; after that it charges 0.10 USD per job per month. If other projects on the same account have crons, they share the allowance.
+
+## Waiting on a human
+
+The run doesn't end at `notified`. In the next version, the user picks which offers to apply to, and the flow pauses until they answer. Waiting on a person isn't a compute problem: it's a state problem.
+
+Workflows keeps that state in a callback; Airflow, in a sensor in `mode="reschedule"` or deferrable; my table, in a row in `waiting_approval`. All three, with code and limits, are in [part two](/notes/human-in-the-loop-gcp).
+
+## What zero cost costs
+
+Zero cost at rest isn't zero cost: what you don't pay on the bill, you pay in complexity.
+
+I lose the executions console: I have a `SELECT status, count(*) FROM runs GROUP BY status`. And timeouts, retries and rescue, which are configuration in an engine, are my code here.
+
+Some costs don't show up in the table:
+
+- Neon lives outside GCP. Its [free plan](https://neon.com/pricing) gives 100 CU-hours per project and scales to zero after 5 minutes. In exchange: cold starts, connections over the public internet, and one more third party. [Cloud SQL](https://www.bytebase.com/dbcost/cloudsql-pricing/) starts at about 8 USD a month (third-party source), with no free tier.
+- The rescue wakes Neon up. My estimate, not a measurement: about 5 minutes awake per sweep, 60–70 hours a month, roughly 15–18 of the 100 free CU-hours at 0.25 CU.
+- The region. The Cloud Storage free tier only applies in `us-east1`, `us-west1` and `us-central1` ([free tier](https://docs.cloud.google.com/free/docs/free-cloud-features)). EU data residency means losing it.
+- The budget alert warns you, but it doesn't stop the spend.
+
+### Security: no keys
+
+The identity federation from the interview fits here too. Deploys use Workload Identity Federation: CI authenticates to GCP with its own token, and no service account key is stored anywhere. Each service runs with its own service account, with least privilege. The dispatcher can publish to its topic; the worker can read its subscription and write to the database. Neither can do the other's job.
+
+## What I haven't measured yet
+
+The numbers in this note are list prices or calculations. Three things have to replace them, and this is how I'll measure them:
+
+- End-to-end latency, from the event to the shortlist. With timestamps in `runs` at every transition, over 50 synthetic runs, I'll report p50 and p95, Cloud Run and Neon cold starts included. On the experimental track, the same from the Workflows execution history.
+- The real cost of a month. From the billing export to BigQuery: one month at rest and one under synthetic load, split into infrastructure and LLM.
+- The volume at which it stops costing 0. Under increasing synthetic load, I'll watch which allowance runs out first: Cloud Run's 2 million requests, Pub/Sub's 10 GB or Neon's 100 CU-hours.
+
+## When I'd change the decision
+
+This decision holds at this scale. It changes if any of these happens:
+
+- Volume pushes me out of the free tier. Then the table stops being free, and Workflows (about 52 USD a month at 10,000 users) competes with my time maintaining the rescue.
+- I need real backfill. Reprocessing weeks of catalog with my own script is exactly what Airflow already solves.
+- A data team that already uses Airflow joins. Composer's cost gets shared, and its UI becomes a shared tool.
+- I need EU data residency. I lose part of the free tier, and Neon becomes a different conversation.
+
+## The rule of thumb
+
+<Callout type="rule" title="The rule">
+One step? Cloud Run. Thousands of identical units to hand out? A queue. A per-entity flow, or waiting on a person? Workflows. Batch data with backfill? Composer. Need zero cost at rest and willing to build your own state? A state table with events.
+</Callout>
+
+This note has limits. It doesn't measure latency or real cost: the costs are list prices, and "What I haven't measured yet" says what's missing. It also doesn't evaluate Cloud Tasks, Eventarc or durable-workflow engines outside GCP.
+
+In the interview I said "a simple service on Cloud Run". I'd say the same today for that case: one file, one step. What changed is that now I know where it stops being enough, and what to ask before picking its replacement: where will the state live, and how much will I pay to keep it alive while nothing is happening.

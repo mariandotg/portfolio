@@ -1,38 +1,56 @@
 ---
 // Figure 1: the two flows of the pipeline on one axis. Same shape on paper (fan-out, reduce, result),
 // different nature: one is global and scheduled, the other is per user and can stop for days.
+import { getLangFromUrl } from "../../../i18n/utils";
 import Lanes from "./Lanes.astro";
 import type { Lane } from "./Lanes.astro";
 
+const T = {
+  es: {
+    question: "¿Por qué el catálogo y la corrida no son el mismo flujo?",
+    catalog: "Catálogo · global, programado",
+    run: "Corrida · por usuario, por evento",
+    s: ["Dispara una vez por día", "Trae ofertas", "N fuentes en paralelo", "Un solo formato", "Une duplicados", "Ofertas del día"],
+    r: ["El usuario pide una corrida", "Reglas sin LLM", "Puntúa con un LLM", "1 mensaje por oferta", "Las mejores ofertas", "Espera una decisión", "minutos o días"],
+    tags: { sources: "Fuentes", normalize: "Normaliza", catalog: "Catálogo", event: "Evento", prefilter: "Prefiltro", human: "Humano" },
+    a11y: "Dos secuencias. Catálogo, global y programado: 1. Cloud Scheduler lo dispara una vez por día. 2. trae ofertas de varias fuentes en paralelo. 3. las normaliza a un solo formato. 4. une duplicados. 5. queda el catálogo de ofertas del día. Corrida por usuario, disparada por evento: 1. el usuario pide una corrida. 2. un prefiltro con reglas, sin LLM, elige candidatos. 3. un LLM puntúa cada candidato, un mensaje por oferta. 4. queda una shortlist. 5. la corrida espera la decisión de una persona, que puede tardar minutos o días.",
+    caption: "Diseño propuesto. Mismo dibujo, distinta naturaleza: el de arriba termina solo; el de abajo depende de una persona.",
+  },
+  en: {
+    question: "Why are the catalog and the run not the same flow?",
+    catalog: "Catalog · global, scheduled",
+    run: "Run · per user, per event",
+    s: ["Fires once a day", "Fetches offers", "N sources in parallel", "One format", "Merges duplicates", "Today's offers"],
+    r: ["A user asks for a run", "Rules, no LLM", "An LLM scores it", "1 message per offer", "The best offers", "Waits for a decision", "minutes or days"],
+    tags: { sources: "Sources", normalize: "Normalize", catalog: "Catalog", event: "Event", prefilter: "Prefilter", human: "Human" },
+    a11y: "Two sequences. Catalog, global and scheduled: 1. Cloud Scheduler fires it once a day. 2. it fetches offers from several sources in parallel. 3. it normalizes them to one format. 4. it merges duplicates. 5. the result is the catalog of the day's offers. Run per user, triggered by an event: 1. a user asks for a run. 2. a rule-based prefilter, with no LLM, picks candidates. 3. an LLM scores each candidate, one message per offer. 4. a shortlist remains. 5. the run waits for a person's decision, which can take minutes or days.",
+    caption: "Proposed design. Same drawing, different nature: the top one finishes on its own; the bottom one depends on a person.",
+  },
+};
+const t = T[getLangFromUrl(Astro.url) === "en" ? "en" : "es"];
+
 const lanes: Lane[] = [
   {
-    label: "Catálogo · global, programado",
+    label: t.catalog,
     steps: [
-      { kind: "step", tag: "Scheduler", title: "Dispara una vez por día", code: "cron" },
-      { kind: "step", tag: "Fuentes", title: "Trae ofertas", code: "N fuentes en paralelo" },
-      { kind: "step", tag: "Normaliza", title: "Un solo formato", code: "offers_raw" },
-      { kind: "step", tag: "Dedupe", title: "Une duplicados", code: "UNIQUE" },
-      { kind: "state", tag: "Catálogo", title: "Ofertas del día", code: "offers" },
+      { kind: "step", tag: "Scheduler", title: t.s[0], code: "cron" },
+      { kind: "step", tag: t.tags.sources, title: t.s[1], code: t.s[2] },
+      { kind: "step", tag: t.tags.normalize, title: t.s[3], code: "offers_raw" },
+      { kind: "step", tag: "Dedupe", title: t.s[4], code: "UNIQUE" },
+      { kind: "state", tag: t.tags.catalog, title: t.s[5], code: "offers" },
     ],
   },
   {
-    label: "Corrida · por usuario, por evento",
+    label: t.run,
     steps: [
-      { kind: "step", tag: "Evento", title: "El usuario pide una corrida", code: "run.created" },
-      { kind: "step", tag: "Prefiltro", title: "Reglas sin LLM", code: "candidates" },
-      { kind: "step", tag: "Matching", title: "Puntúa con un LLM", code: "1 mensaje por oferta" },
-      { kind: "state", tag: "Shortlist", title: "Las mejores ofertas", code: "matched" },
-      { kind: "gap", tag: "Humano", title: "Espera una decisión", code: "minutos o días" },
+      { kind: "step", tag: t.tags.event, title: t.r[0], code: "run.created" },
+      { kind: "step", tag: t.tags.prefilter, title: t.r[1], code: "candidates" },
+      { kind: "step", tag: "Matching", title: t.r[2], code: t.r[3] },
+      { kind: "state", tag: "Shortlist", title: t.r[4], code: "matched" },
+      { kind: "gap", tag: t.tags.human, title: t.r[5], code: t.r[6] },
     ],
   },
 ];
 ---
 
-<Lanes
-  n={1}
-  question="¿Por qué el catálogo y la corrida no son el mismo flujo?"
-  basis="assumed"
-  lanes={lanes}
-  a11y="Dos secuencias. Catálogo, global y programado: 1. Cloud Scheduler lo dispara una vez por día. 2. trae ofertas de varias fuentes en paralelo. 3. las normaliza a un solo formato. 4. une duplicados. 5. queda el catálogo de ofertas del día. Corrida por usuario, disparada por evento: 1. el usuario pide una corrida. 2. un prefiltro con reglas, sin LLM, elige candidatos. 3. un LLM puntúa cada candidato, un mensaje por oferta. 4. queda una shortlist. 5. la corrida espera la decisión de una persona, que puede tardar minutos o días."
-  caption="Diseño propuesto. Mismo dibujo, distinta naturaleza: el de arriba termina solo; el de abajo depende de una persona."
-/>
+<Lanes n={1} question={t.question} basis="assumed" lanes={lanes} a11y={t.a11y} caption={t.caption} />

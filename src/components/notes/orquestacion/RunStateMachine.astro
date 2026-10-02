@@ -1,46 +1,60 @@
 ---
 // Figure 3: the life of a run as rows in my own table. The main lane is the happy path; the other two
 // are the exits. The state lives in Postgres, not in an engine, so the rescue is just another writer.
+import { getLangFromUrl } from "../../../i18n/utils";
 import Lanes from "./Lanes.astro";
 import type { Lane } from "./Lanes.astro";
 
+const T = {
+  es: {
+    question: "¿Dónde vive el estado de una corrida?",
+    lanes: ["Camino normal", "Sin candidatos", "Se cuelga"],
+    tags: { prefilter: "Prefiltro", last: "Último worker", rescue: "Rescate" },
+    n: ["Corrida creada", "Candidatos elegidos", "Puntuando en paralelo", "Todos terminaron", "Usuario avisado"],
+    none: "Ninguna oferta pasa las reglas",
+    stuck: ["No avanza", "matching + updated_at viejo", "Republica lo que falta", "Se rinde"],
+    a11y: "Estados de una corrida en la tabla runs. Camino normal: created cuando la API la crea; prefiltered cuando el prefiltro elige candidatos; matching mientras los matchers puntúan en paralelo; matched cuando el último worker ve que todos terminaron; notified cuando el notifier avisa al usuario. Salida sin candidatos: si ninguna oferta pasa las reglas del prefiltro, la corrida pasa a no_candidates. Salida por cuelgue: si la corrida queda en matching con updated_at viejo, el job de rescate republica lo que falta y suma un intento; después de N intentos la marca como failed.",
+    caption: "Diseño propuesto. Cada flecha es un UPDATE condicional sobre una fila; el job de rescate es un escritor más.",
+  },
+  en: {
+    question: "Where does the state of a run live?",
+    lanes: ["Happy path", "No candidates", "Stalls"],
+    tags: { prefilter: "Prefilter", last: "Last worker", rescue: "Rescue" },
+    n: ["Run created", "Candidates picked", "Scoring in parallel", "All finished", "User notified"],
+    none: "No offer passes the rules",
+    stuck: ["Stops advancing", "matching + old updated_at", "Republishes what is missing", "Gives up"],
+    a11y: "States of a run in the runs table. Happy path: created when the API creates it; prefiltered when the prefilter picks candidates; matching while the matchers score in parallel; matched when the last worker sees that all of them finished; notified when the notifier tells the user. No-candidates exit: if no offer passes the prefilter rules, the run moves to no_candidates. Stall exit: if the run stays in matching with an old updated_at, the rescue job republishes what is missing and adds an attempt; after N attempts it marks the run as failed.",
+    caption: "Proposed design. Every arrow is a conditional UPDATE on one row; the rescue job is just another writer.",
+  },
+};
+const t = T[getLangFromUrl(Astro.url) === "en" ? "en" : "es"];
+
 const lanes: Lane[] = [
   {
-    label: "Camino normal",
+    label: t.lanes[0],
     steps: [
-      { kind: "state", tag: "API", title: "Corrida creada", code: "created" },
-      { kind: "state", tag: "Prefiltro", title: "Candidatos elegidos", code: "prefiltered" },
-      { kind: "state", tag: "Matchers", title: "Puntuando en paralelo", code: "matching" },
-      { kind: "win", tag: "Último worker", title: "Todos terminaron", code: "matched" },
-      { kind: "state", tag: "Notifier", title: "Usuario avisado", code: "notified" },
+      { kind: "state", tag: "API", title: t.n[0], code: "created" },
+      { kind: "state", tag: t.tags.prefilter, title: t.n[1], code: "prefiltered" },
+      { kind: "state", tag: "Matchers", title: t.n[2], code: "matching" },
+      { kind: "win", tag: t.tags.last, title: t.n[3], code: "matched" },
+      { kind: "state", tag: "Notifier", title: t.n[4], code: "notified" },
     ],
   },
   {
-    label: "Sin candidatos",
-    steps: [
-      "skip",
-      "skip",
-      { kind: "state", tag: "Prefiltro", title: "Ninguna oferta pasa las reglas", code: "no_candidates" },
-    ],
+    label: t.lanes[1],
+    steps: ["skip", "skip", { kind: "state", tag: t.tags.prefilter, title: t.none, code: "no_candidates" }],
   },
   {
-    label: "Se cuelga",
+    label: t.lanes[2],
     steps: [
       "skip",
       "skip",
-      { kind: "gap", tag: "Neon", title: "No avanza", code: "matching + updated_at viejo" },
-      { kind: "step", tag: "Rescate", title: "Republica lo que falta", code: "attempts + 1" },
-      { kind: "fail", tag: "Rescate", title: "Se rinde", code: "failed" },
+      { kind: "gap", tag: "Neon", title: t.stuck[0], code: t.stuck[1] },
+      { kind: "step", tag: t.tags.rescue, title: t.stuck[2], code: "attempts + 1" },
+      { kind: "fail", tag: t.tags.rescue, title: t.stuck[3], code: "failed" },
     ],
   },
 ];
 ---
 
-<Lanes
-  n={3}
-  question="¿Dónde vive el estado de una corrida?"
-  basis="assumed"
-  lanes={lanes}
-  a11y="Estados de una corrida en la tabla runs. Camino normal: created cuando la API la crea; prefiltered cuando el prefiltro elige candidatos; matching mientras los matchers puntúan en paralelo; matched cuando el último worker ve que todos terminaron; notified cuando el notifier avisa al usuario. Salida sin candidatos: si ninguna oferta pasa las reglas del prefiltro, la corrida pasa a no_candidates. Salida por cuelgue: si la corrida queda en matching con updated_at viejo, el job de rescate republica lo que falta y suma un intento; después de N intentos la marca como failed."
-  caption="Diseño propuesto. Cada flecha es un UPDATE condicional sobre una fila; el job de rescate es un escritor más."
-/>
+<Lanes n={3} question={t.question} basis="assumed" lanes={lanes} a11y={t.a11y} caption={t.caption} />

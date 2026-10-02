@@ -306,7 +306,6 @@ blockquote {
 
 /* Note body — prose measure + figure bleed (docs/design/design-system.md §4) */
 .note {
-  display: grid;
   grid-template-columns:
     [bleed-start] minmax(0, 1fr)
     [text-start] min(var(--measure), 100%) [text-end]

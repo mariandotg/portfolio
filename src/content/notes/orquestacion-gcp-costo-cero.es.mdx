@@ -44,7 +44,7 @@ En papel se dibujan igual: abanico, reducción, resultado. Pero piden cosas dist
 | Catálogo | Batch, global, programado, con dependencias; se beneficia del backfill | Composer (Airflow) |
 | Corrida por usuario | Por entidad, disparada por evento; puede esperar días a una persona | Workflows |
 
-Workflows orquesta servicios; Composer orquesta datos. Esa frase resume la tabla, y la decisión de producción no fue ninguno de los dos.
+Workflows orquesta servicios; Composer orquesta datos. Esa frase resume la tabla, y para el track oficial no elegí ninguno de los dos.
 
 ## Las restricciones
 
@@ -187,7 +187,7 @@ El cron del catálogo y el rescate son dos jobs. [Cloud Scheduler](https://cloud
 
 ## La espera humana
 
-La corrida no termina en `notified`. En la versión siguiente, el usuario elige a qué ofertas aplicar, y el flujo se pausa hasta que conteste. Esperar a una persona no es un problema de cómputo: es un problema de estado.
+La corrida no termina en `notified`. En una versión posterior, el usuario elige a qué ofertas aplicar, y el flujo se pausa hasta que conteste. Esperar a una persona no es un problema de cómputo: es un problema de estado.
 
 Workflows guarda ese estado en un callback; Airflow, en un sensor en `mode="reschedule"` o deferrable; mi tabla, en una fila en `waiting_approval`. Las tres, con código y límites, van en una segunda parte.
 

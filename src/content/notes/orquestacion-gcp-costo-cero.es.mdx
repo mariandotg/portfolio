@@ -1,6 +1,6 @@
 ---
 title: "Dónde vive el estado: orquestar un pipeline de LLMs en GCP con costo cero en reposo"
-description: "Composer cuesta unos 500 USD por mes antes de correr una tarea; Workflows, unos 5 USD con 1.000 usuarios. Para un proyecto personal elegí ninguno de los dos: una tabla de estados en Postgres con eventos de Pub/Sub. Por qué, y qué pago a cambio."
+description: "Composer cuesta unos 500 USD por mes antes de correr una tarea; Workflows, unos 5 USD con 1.000 usuarios. Para la versión cloud de argospipe, un proyecto personal, elegí ninguno de los dos: una tabla de estados en Postgres con eventos de Pub/Sub. Por qué, y qué pago a cambio."
 pubDate: 2026-10-01
 tags: ["gcp", "cloud-workflows", "airflow", "pub-sub", "arquitectura", "postgres"]
 draft: false
@@ -15,11 +15,13 @@ import OfficialArchitecture from "../../components/notes/orquestacion/OfficialAr
 import RunStateMachine from "../../components/notes/orquestacion/RunStateMachine.astro";
 import LastWorker from "../../components/notes/orquestacion/LastWorker.astro";
 
-Un caso típico de GCP: un archivo cae en un bucket, se dispara un trigger y RabbitMQ coordina el envío de emails. Mi reflejo es un servicio simple en Cloud Run. Hace poco me preguntaron por qué no Cloud Composer, o la orquestación nativa de GCP, y no tenía una respuesta mejor que "es más simple". No porque la respuesta fuera mala, sino porque no sabía contra qué la estaba comparando.
+Estoy construyendo [argospipe](https://github.com/mariandotg/argospipe), un proyecto personal: un pipeline de matching con LLMs que trae ofertas laborales de varias fuentes, las deduplica, descarta con reglas lo que no aplica y evalúa el resto contra un CV. Hoy es un CLI local y open source: corre en tu máquina, con SQLite y tu propia API key.
 
-Así que usé esa pregunta para diseñar un proyecto personal: un pipeline de matching con LLMs. El primer caso de uso son ofertas laborales contra el perfil de un CV. El pipeline trae ofertas de varias fuentes, las deduplica, las prefiltra con reglas y las puntúa con un LLM contra el perfil del usuario.
+El paso siguiente es llevarlo a la nube, en GCP, para que lo use alguien que no instala un CLI. Mi reflejo para eso era el de siempre: servicios simples en Cloud Run. Hace poco me preguntaron por qué no Cloud Composer, o la orquestación nativa de GCP, y no tenía una respuesta mejor que "es más simple". No sabía contra qué estaba comparando.
 
-La idea la estoy validando primero con una versión local y open source: [argospipe](https://github.com/mariandotg/argospipe), un CLI que corre en tu máquina con SQLite y tu propia API key. Esta nota es sobre la versión en GCP, que está diseñada pero no construida. Ningún número de esta nota es una medición: son precios de lista con su link y cuentas propias, y marco lo que falta medir.
+Esta nota es esa comparación, aplicada a la versión cloud de argospipe. Las dos versiones comparten el núcleo: fuentes, dedupe, prefiltro y matching. Cambia quién coordina y dónde vive el estado. En local, un proceso y SQLite alcanzan; con muchos usuarios en la nube, aparece el problema de orquestación.
+
+La versión cloud está diseñada, no construida. Empecé por la local a propósito: antes de pagar infraestructura, quiero saber si las fuentes y el matching sirven. Ningún número de esta nota es una medición: son precios de lista con su link y cuentas propias, y marco lo que falta medir.
 
 <Callout type="note" title="La tesis">
 Elegir orquestador no es elegir una herramienta. Es decidir dónde vive el estado del flujo y cuánto pagás por tenerlo vivo cuando no pasa nada.
@@ -57,7 +59,7 @@ Antes de comparar, fijé cuatro restricciones. Sin ellas, cualquier opción gana
 
 ### Cloud Run solo
 
-Es mi respuesta por reflejo, y para un único paso es la correcta. Un archivo cae, un servicio lo procesa, fin. No hace falta orquestar nada.
+Es mi respuesta por reflejo, y para un único paso es la correcta. Un archivo cae en un bucket, un servicio lo procesa, fin. No hace falta orquestar nada.
 
 Deja de alcanzar cuando hay varios pasos que dependen entre sí, o cuando un paso tiene que esperar. Un request tiene timeout y una instancia puede reiniciarse en cualquier deploy. El estado no puede vivir en memoria.
 
@@ -65,7 +67,7 @@ Deja de alcanzar cuando hay varios pasos que dependen entre sí, o cuando un pas
 
 El matching reparte cientos de unidades iguales: un candidato, una llamada al LLM. Eso no es orquestación. Un orquestador coordina; no reparte trabajo. Para repartir miles de unidades, una cola.
 
-El caso del bucket usaba RabbitMQ. Para mí, RabbitMQ significa un broker prendido: una VM o un cluster que pago aunque no haya mensajes, y que opero yo. Pub/Sub es administrado y cobra por volumen. El [free tier de GCP](https://cloud.google.com/free) incluye 10 GB de mensajes por mes. Con una persona operando y costo cero en reposo, la cola administrada gana sin discusión.
+La alternativa clásica es RabbitMQ. Para mí, RabbitMQ significa un broker prendido: una VM o un cluster que pago aunque no haya mensajes, y que opero yo. Pub/Sub es administrado y cobra por volumen. El [free tier de GCP](https://cloud.google.com/free) incluye 10 GB de mensajes por mes. Con una persona operando y costo cero en reposo, la cola administrada gana sin discusión.
 
 ### Composer
 
@@ -120,7 +122,7 @@ El costo en reposo descarta a Composer. A Workflows no lo descarta el costo: con
 
 Para la v1 lo descartan dos cosas. La primera: no tiene un emulador local oficial. La [documentación](https://docs.cloud.google.com/workflows/docs/overview) solo describe ejecutar y depurar en la nube, y yo quiero correr el flujo entero en mi máquina, con tests. La segunda: prefiero el estado en mi base. Una corrida es una fila que consulto con SQL, no una ejecución dentro de un motor.
 
-Para la espera humana, en cambio, sí adoptaría Workflows. Ahí un callback le gana a una tabla con barrido, y lo desarmo en una segunda parte.
+Para la espera humana, en cambio, Workflows es la opción más limpia: un callback le gana a una tabla con barrido. Por eso lo uso ahí en el track experimental, y en el oficial me quedo con la tabla. La comparación completa va en una segunda parte.
 
 Así quedan los dos tracks.
 
@@ -173,13 +175,13 @@ Dos detalles importan.
 
 Primero: cuento filas, no sumo un contador. Un `SET done = done + 1` cuenta dos veces un mensaje duplicado, y la corrida se cierra antes de tiempo. Contar filas de una tabla con `UNIQUE` hace que el duplicado no cuente.
 
-Segundo: el `INSERT` hace commit antes del `UPDATE`. Aun así, puede pasar que dos workers terminen a la vez y ninguno vea el conteo completo, o que el último muera entre su commit y su `UPDATE`. En ese caso nadie cierra la corrida, y la cierra el job de rescate, que corre el mismo `UPDATE`. El caso contrario no puede pasar: si dos ven el conteo completo, el `WHERE status = 'matching'` deja ganar a uno solo. El lock de fila de Postgres hace esperar al segundo, que reevalúa la condición y no encuentra nada ([doc de aislamiento de Postgres](https://www.postgresql.org/docs/current/transaction-iso.html)). Una corrida puede cerrarse tarde, pero nunca dos veces.
+Segundo: el `INSERT` hace commit antes del `UPDATE`. Así, el último worker en hacer commit siempre ve el conteo completo. Si los dos fueran en la misma transacción, los dos últimos podrían contar sin ver la fila del otro, y nadie cerraría. Lo que sí puede pasar es que el último muera entre su commit y su `UPDATE`: nadie cierra la corrida, y la cierra el job de rescate, que corre el mismo `UPDATE`. El doble cierre no puede pasar: si dos ven el conteo completo, el `WHERE status = 'matching'` deja ganar a uno solo. El lock de fila de Postgres hace esperar al segundo, que reevalúa la condición y no encuentra nada ([doc de aislamiento de Postgres](https://www.postgresql.org/docs/current/transaction-iso.html)). Una corrida puede cerrarse tarde, pero nunca dos veces.
 
 ### DLQ y rescate
 
 Un mensaje que falla siempre no puede reintentarse para siempre. Cada suscripción tiene su topic de dead letter: después de N intentos, el mensaje va ahí y me llega una alerta. Pero un mensaje en la DLQ deja una corrida en `matching` para siempre, porque falta una fila.
 
-Para eso está el rescate. Un job horario de Cloud Scheduler busca corridas en `matching` con `updated_at` viejo. Si ya tienen todas sus filas, corre el `UPDATE` de cierre. Si no, republica los candidatos que no tienen fila en `run_matches`. Republicar es seguro: el `INSERT` es idempotente. Después de N intentos, la corrida pasa a `failed`.
+Para eso está el rescate. Un job horario de Cloud Scheduler busca corridas en `matching` con `updated_at` viejo. Si ya tienen todas sus filas, corre el `UPDATE` de cierre. Si no, republica los candidatos que no tienen fila en `run_matches`. Republicar es seguro: el `INSERT` es idempotente. Después de N intentos, la corrida pasa a `failed`. También busca corridas en `matched` con `updated_at` viejo: el worker ganador pudo morir entre el `UPDATE` y el publish de `run.matched`. Las republica, y el notifier las avanza con otro `UPDATE` condicional, así que un evento repetido no avisa dos veces.
 
 El cron del catálogo y el rescate son dos jobs. [Cloud Scheduler](https://cloud.google.com/scheduler/pricing) da 3 jobs gratis por cuenta de facturación, no por proyecto; después cobra 0,10 USD por job por mes. Si tengo otros proyectos con crons en la misma cuenta, el cupo se comparte.
 
@@ -232,4 +234,4 @@ Esta decisión vale para esta escala. Cambia si pasa alguna de estas cosas:
 
 Esta nota tiene límites. No mide latencia ni costo real: los costos son de lista, y "Lo que todavía no medí" dice qué falta. Tampoco evalúa Cloud Tasks, Eventarc ni motores de workflows durables fuera de GCP.
 
-Mi reflejo era "un servicio simple en Cloud Run". Para el caso del bucket sigue siendo la respuesta: un archivo, un paso. Lo que cambió es que ahora sé dónde deja de alcanzar, y qué pregunta hacer antes de elegir el reemplazo: dónde va a vivir el estado, y cuánto voy a pagar por tenerlo vivo cuando no pasa nada.
+Mi reflejo era "un servicio simple en Cloud Run". Para un solo paso sigue siendo la respuesta. Lo que cambió es que ahora sé dónde deja de alcanzar, y qué pregunta hacer antes de elegir el reemplazo: dónde va a vivir el estado, y cuánto voy a pagar por tenerlo vivo cuando no pasa nada.

@@ -1,6 +1,6 @@
 ---
 title: "Where the state lives: orchestrating an LLM pipeline on GCP at zero idle cost"
-description: "Composer costs about 500 USD a month before it runs a single task; Workflows, about 5 USD for 1,000 users. For a personal project I picked neither: a state table in Postgres driven by Pub/Sub events. Why, and what I pay for it instead."
+description: "Composer costs about 500 USD a month before it runs a single task; Workflows, about 5 USD for 1,000 users. For the cloud version of argospipe, a personal project, I picked neither: a state table in Postgres driven by Pub/Sub events. Why, and what I pay for it instead."
 pubDate: 2026-10-01
 tags: ["gcp", "cloud-workflows", "airflow", "pub-sub", "architecture", "postgres"]
 draft: false
@@ -13,11 +13,13 @@ import OfficialArchitecture from "../../components/notes/orquestacion/OfficialAr
 import RunStateMachine from "../../components/notes/orquestacion/RunStateMachine.astro";
 import LastWorker from "../../components/notes/orquestacion/LastWorker.astro";
 
-A typical GCP case: a file lands in a bucket, a trigger fires, and RabbitMQ coordinates sending emails. My reflex is a simple service on Cloud Run. Recently someone asked me why not Cloud Composer, or GCP's native orchestration, and I had no better answer than "it's simpler". Not because the answer was wrong, but because I didn't know what I was comparing it against.
+I'm building [argospipe](https://github.com/mariandotg/argospipe), a personal project: an LLM matching pipeline that pulls job offers from several sources, deduplicates them, drops what doesn't fit with rules and scores the rest against a CV. Today it's a local, open-source CLI: it runs on your machine, with SQLite and your own API key.
 
-So I used that question to design a personal project: an LLM matching pipeline. The first use case is job offers matched against a CV profile. The pipeline pulls offers from several sources, deduplicates them, prefilters them with rules and scores them with an LLM against the user's profile.
+The next step is taking it to the cloud, on GCP, so people who won't install a CLI can use it. My reflex for that was the usual one: simple services on Cloud Run. Recently someone asked me why not Cloud Composer, or GCP's native orchestration, and I had no better answer than "it's simpler". I didn't know what I was comparing it against.
 
-I'm validating the idea first with a local, open-source version: [argospipe](https://github.com/mariandotg/argospipe), a CLI that runs on your machine with SQLite and your own API key. This note is about the GCP version, which is designed but not built. None of the numbers in this note are measurements: they are list prices with their links and my own arithmetic, and I say what is still unmeasured.
+This note is that comparison, applied to the cloud version of argospipe. Both versions share the core: sources, dedupe, prefilter and matching. What changes is who coordinates and where the state lives. Locally, one process and SQLite are enough; with many users in the cloud, the orchestration problem shows up.
+
+The cloud version is designed, not built. I started with the local one on purpose: before paying for infrastructure, I want to know whether the sources and the matching are any good. None of the numbers in this note are measurements: they are list prices with their links and my own arithmetic, and I say what is still unmeasured.
 
 <Callout type="note" title="The thesis">
 Picking an orchestrator isn't picking a tool. It's deciding where the state of the flow lives, and how much you pay to keep it alive while nothing is happening.
@@ -55,7 +57,7 @@ Before comparing anything, I fixed four constraints. Without them, every option 
 
 ### Just Cloud Run
 
-It's my reflex answer, and for a single step it's the right one. A file lands, a service processes it, done. Nothing to orchestrate.
+It's my reflex answer, and for a single step it's the right one. A file lands in a bucket, a service processes it, done. Nothing to orchestrate.
 
 It stops being enough when there are several steps that depend on each other, or when a step has to wait. A request has a timeout, and an instance can restart on any deploy. The state can't live in memory.
 
@@ -63,7 +65,7 @@ It stops being enough when there are several steps that depend on each other, or
 
 Matching fans out hundreds of identical units: one candidate, one LLM call. That isn't orchestration. An orchestrator coordinates; it doesn't hand out work. To hand out thousands of units, use a queue.
 
-The bucket case used RabbitMQ. To me, RabbitMQ means a broker that's always on: a VM or a cluster I pay for even with no messages, and that I operate. Pub/Sub is managed and charges by volume. The [GCP free tier](https://cloud.google.com/free) includes 10 GB of messages a month. With one person operating and zero cost at rest, the managed queue wins without a contest.
+The classic alternative is RabbitMQ. To me, RabbitMQ means a broker that's always on: a VM or a cluster I pay for even with no messages, and that I operate. Pub/Sub is managed and charges by volume. The [GCP free tier](https://cloud.google.com/free) includes 10 GB of messages a month. With one person operating and zero cost at rest, the managed queue wins without a contest.
 
 ### Composer
 
@@ -118,7 +120,7 @@ Cost at rest rules out Composer. It doesn't rule out Workflows: with 1,000 users
 
 For v1, two other things rule it out. First, it has no official local emulator. The [documentation](https://docs.cloud.google.com/workflows/docs/overview) only describes running and debugging in the cloud, and I want to run the whole flow on my machine, under tests. Second, I'd rather keep the state in my own database. A run is a row I can query with SQL, not an execution inside an engine.
 
-For waiting on a human, though, I would adopt Workflows. That's where a callback beats a table plus a sweep, and I take it apart in a second part.
+For waiting on a human, though, Workflows is the cleanest option: a callback beats a table plus a sweep. That's why I use it there on the experimental track, while the official one keeps the table. The full comparison goes in a second part.
 
 So the two tracks look like this.
 
@@ -171,13 +173,13 @@ Two details matter.
 
 First: I count rows, I don't increment a counter. A `SET done = done + 1` counts a duplicate message twice, and the run closes early. Counting rows in a table with a `UNIQUE` constraint means the duplicate doesn't count.
 
-Second: the `INSERT` commits before the `UPDATE`. Even so, two workers can finish at the same moment and neither sees the full count, or the last one can die between its commit and its `UPDATE`. Then nobody closes the run, and the rescue job closes it by running the same `UPDATE`. The opposite can't happen: if two workers both see the full count, `WHERE status = 'matching'` lets only one win. Postgres's row lock makes the second one wait, re-check the condition and find nothing ([Postgres isolation docs](https://www.postgresql.org/docs/current/transaction-iso.html)). A run can close late, but never twice.
+Second: the `INSERT` commits before the `UPDATE`. That way, the last worker to commit always sees the full count. If both ran in the same transaction, the last two could count without seeing each other's row, and nobody would close the run. What can happen is that the last one dies between its commit and its `UPDATE`: nobody closes the run, and the rescue job closes it by running the same `UPDATE`. A double close can't happen: if two workers both see the full count, `WHERE status = 'matching'` lets only one win. Postgres's row lock makes the second one wait, re-check the condition and find nothing ([Postgres isolation docs](https://www.postgresql.org/docs/current/transaction-iso.html)). A run can close late, but never twice.
 
 ### DLQ and rescue
 
 A message that always fails can't be retried forever. Each subscription has its own dead-letter topic: after N attempts the message goes there and I get an alert. But a message in the DLQ leaves a run stuck in `matching`, because a row is missing.
 
-That's what the rescue is for. An hourly Cloud Scheduler job looks for runs in `matching` with an old `updated_at`. If they already have all their rows, it runs the closing `UPDATE`. If not, it republishes the candidates with no row in `run_matches`. Republishing is safe: the `INSERT` is idempotent. After N attempts, the run moves to `failed`.
+That's what the rescue is for. An hourly Cloud Scheduler job looks for runs in `matching` with an old `updated_at`. If they already have all their rows, it runs the closing `UPDATE`. If not, it republishes the candidates with no row in `run_matches`. Republishing is safe: the `INSERT` is idempotent. After N attempts, the run moves to `failed`. It also looks for runs in `matched` with an old `updated_at`: the winning worker may have died between the `UPDATE` and publishing `run.matched`. It republishes them, and the notifier advances them with another conditional `UPDATE`, so a repeated event doesn't notify twice.
 
 The catalog cron and the rescue are two jobs. [Cloud Scheduler](https://cloud.google.com/scheduler/pricing) gives 3 free jobs per billing account, not per project; after that it charges 0.10 USD per job per month. If other projects on the same account have crons, they share the allowance.
 
@@ -230,4 +232,4 @@ One step? Cloud Run. Thousands of identical units to hand out? A queue. A per-en
 
 This note has limits. It doesn't measure latency or real cost: the costs are list prices, and "What I haven't measured yet" says what's missing. It also doesn't evaluate Cloud Tasks, Eventarc or durable-workflow engines outside GCP.
 
-My reflex was "a simple service on Cloud Run". For the bucket case it's still the answer: one file, one step. What changed is that now I know where it stops being enough, and what to ask before picking its replacement: where will the state live, and how much will I pay to keep it alive while nothing is happening.
+My reflex was "a simple service on Cloud Run". For a single step it's still the answer. What changed is that now I know where it stops being enough, and what to ask before picking its replacement: where will the state live, and how much will I pay to keep it alive while nothing is happening.

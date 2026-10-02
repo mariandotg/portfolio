@@ -13,13 +13,11 @@ import OfficialArchitecture from "../../components/notes/orquestacion/OfficialAr
 import RunStateMachine from "../../components/notes/orquestacion/RunStateMachine.astro";
 import LastWorker from "../../components/notes/orquestacion/LastWorker.astro";
 
-In September I had a technical interview for a GCP-focused role. The case was concrete: a file lands in a bucket, a trigger fires, and RabbitMQ coordinates sending emails. Cloud Composer came up, so did GCP's native orchestration and identity federation. I proposed a simple service on Cloud Run.
+A typical GCP case: a file lands in a bucket, a trigger fires, and RabbitMQ coordinates sending emails. My reflex is a simple service on Cloud Run. Recently someone asked me why not Cloud Composer, or GCP's native orchestration, and I had no better answer than "it's simpler". Not because the answer was wrong, but because I didn't know what I was comparing it against.
 
-I walked out feeling I hadn't justified it. Not because the answer was wrong, but because I didn't know what I was comparing it against.
+So I used that question to design a personal project: an LLM matching pipeline. The first use case is job offers matched against a CV profile. The pipeline pulls offers from several sources, deduplicates them, prefilters them with rules and scores them with an LLM against the user's profile.
 
-So I used those questions to design a personal project: an LLM matching pipeline on GCP. The first use case is job offers matched against a CV profile. The pipeline pulls offers from several sources, deduplicates them, prefilters them with rules and scores them with an LLM against the user's profile.
-
-The design is done; the product is being built. None of the numbers in this note are measurements. They are list prices with their links and my own arithmetic, and I say what is still unmeasured.
+I'm validating the idea first with a local, open-source version: [argospipe](https://github.com/mariandotg/argospipe), a CLI that runs on your machine with SQLite and your own API key. This note is about the GCP version, which is designed but not built. None of the numbers in this note are measurements: they are list prices with their links and my own arithmetic, and I say what is still unmeasured.
 
 <Callout type="note" title="The thesis">
 Picking an orchestrator isn't picking a tool. It's deciding where the state of the flow lives, and how much you pay to keep it alive while nothing is happening.
@@ -57,7 +55,7 @@ Before comparing anything, I fixed four constraints. Without them, every option 
 
 ### Just Cloud Run
 
-It was my answer in the interview, and for a single step it's the right one. A file lands, a service processes it, done. Nothing to orchestrate.
+It's my reflex answer, and for a single step it's the right one. A file lands, a service processes it, done. Nothing to orchestrate.
 
 It stops being enough when there are several steps that depend on each other, or when a step has to wait. A request has a timeout, and an instance can restart on any deploy. The state can't live in memory.
 
@@ -65,7 +63,7 @@ It stops being enough when there are several steps that depend on each other, or
 
 Matching fans out hundreds of identical units: one candidate, one LLM call. That isn't orchestration. An orchestrator coordinates; it doesn't hand out work. To hand out thousands of units, use a queue.
 
-The interview case used RabbitMQ. To me, RabbitMQ means a broker that's always on: a VM or a cluster I pay for even with no messages, and that I operate. Pub/Sub is managed and charges by volume. The [GCP free tier](https://cloud.google.com/free) includes 10 GB of messages a month. With one person operating and zero cost at rest, the managed queue wins without a contest.
+The bucket case used RabbitMQ. To me, RabbitMQ means a broker that's always on: a VM or a cluster I pay for even with no messages, and that I operate. Pub/Sub is managed and charges by volume. The [GCP free tier](https://cloud.google.com/free) includes 10 GB of messages a month. With one person operating and zero cost at rest, the managed queue wins without a contest.
 
 ### Composer
 
@@ -112,20 +110,22 @@ Here's the 1,000-user row. That's 450,000 internal steps a month: (450,000 − 5
 
 At small scale, the fixed cost decides. Composer starts at about 500 USD with zero users. Workflows and the table start at zero.
 
+None of these figures include the cost that dominates: the LLM. Claude Haiku 4.5 costs 1 USD per million input tokens and 5 USD per million output tokens ([Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing)). A match of about 3,000 input and 300 output tokens (the assumption in the [argospipe spec](https://github.com/mariandotg/argospipe/blob/main/docs/spec.md)) costs about 0.0045 USD. At 15 matches per run, that's 0.07 USD per run. With 1,000 users and one run a day, about 2,000 USD a month, or half that with the Batch API. Next to that, the gap between Workflows and the table is noise. What the orchestrator decides is something else: how much I pay when there are no runs. With no runs, the LLM costs zero; Composer doesn't.
+
 ## The decision
 
 Cost at rest rules out Composer. It doesn't rule out Workflows: with 1,000 users that's about 5 USD a month.
 
 For v1, two other things rule it out. First, it has no official local emulator. The [documentation](https://docs.cloud.google.com/workflows/docs/overview) only describes running and debugging in the cloud, and I want to run the whole flow on my machine, under tests. Second, I'd rather keep the state in my own database. A run is a row I can query with SQL, not an execution inside an engine.
 
-For waiting on a human, though, I would adopt Workflows. That's where a callback beats a table plus a sweep, and I take it apart in [part two](/notes/human-in-the-loop-gcp).
+For waiting on a human, though, I would adopt Workflows. That's where a callback beats a table plus a sweep, and I take it apart in a second part.
 
 So the two tracks look like this.
 
-- Official track, the production one: Cloud Scheduler, Pub/Sub, Cloud Run and Postgres on Neon. Each run's state lives in a table and moves forward on events.
+- Official track, the one I'd take to production: Cloud Scheduler, Pub/Sub, Cloud Run and Postgres. Each run's state lives in a table and moves forward on events.
 - Experimental track: all-in on GCP. Composer for the catalog's batch pipeline and Workflows for each user's run, approval included. There each tool runs the flow it was built for, and that's where I'll measure what today are estimates.
 
-I didn't choose against Composer: I chose for this scale. The suggestion in the interview made me evaluate the whole range. For the catalog, Composer is the right tool. What I can't justify yet is its fixed cost.
+I didn't choose against Composer: I chose for this scale. The question about Composer made me evaluate the whole range. For the catalog, Composer is the right tool. What I can't justify yet is its fixed cost.
 
 ## How the table works
 
@@ -185,7 +185,7 @@ The catalog cron and the rescue are two jobs. [Cloud Scheduler](https://cloud.go
 
 The run doesn't end at `notified`. In the next version, the user picks which offers to apply to, and the flow pauses until they answer. Waiting on a person isn't a compute problem: it's a state problem.
 
-Workflows keeps that state in a callback; Airflow, in a sensor in `mode="reschedule"` or deferrable; my table, in a row in `waiting_approval`. All three, with code and limits, are in [part two](/notes/human-in-the-loop-gcp).
+Workflows keeps that state in a callback; Airflow, in a sensor in `mode="reschedule"` or deferrable; my table, in a row in `waiting_approval`. All three, with code and limits, go in a second part.
 
 ## What zero cost costs
 
@@ -202,7 +202,7 @@ Some costs don't show up in the table:
 
 ### Security: no keys
 
-The identity federation from the interview fits here too. Deploys use Workload Identity Federation: CI authenticates to GCP with its own token, and no service account key is stored anywhere. Each service runs with its own service account, with least privilege. The dispatcher can publish to its topic; the worker can read its subscription and write to the database. Neither can do the other's job.
+Deploys use Workload Identity Federation: CI authenticates to GCP with its own token, and no service account key is stored anywhere. Each service runs with its own service account, with least privilege. The dispatcher can publish to its topic; the worker can read its subscription and write to the database. Neither can do the other's job.
 
 ## What I haven't measured yet
 
@@ -216,6 +216,7 @@ The numbers in this note are list prices or calculations. Three things have to r
 
 This decision holds at this scale. It changes if any of these happens:
 
+- There are real users. Then I pay for Cloud SQL, about 8 USD a month, instead of depending on a third party, and Neon stays for dev and test.
 - Volume pushes me out of the free tier. Then the table stops being free, and Workflows (about 52 USD a month at 10,000 users) competes with my time maintaining the rescue.
 - I need real backfill. Reprocessing weeks of catalog with my own script is exactly what Airflow already solves.
 - A data team that already uses Airflow joins. Composer's cost gets shared, and its UI becomes a shared tool.
@@ -229,4 +230,4 @@ One step? Cloud Run. Thousands of identical units to hand out? A queue. A per-en
 
 This note has limits. It doesn't measure latency or real cost: the costs are list prices, and "What I haven't measured yet" says what's missing. It also doesn't evaluate Cloud Tasks, Eventarc or durable-workflow engines outside GCP.
 
-In the interview I said "a simple service on Cloud Run". I'd say the same today for that case: one file, one step. What changed is that now I know where it stops being enough, and what to ask before picking its replacement: where will the state live, and how much will I pay to keep it alive while nothing is happening.
+My reflex was "a simple service on Cloud Run". For the bucket case it's still the answer: one file, one step. What changed is that now I know where it stops being enough, and what to ask before picking its replacement: where will the state live, and how much will I pay to keep it alive while nothing is happening.

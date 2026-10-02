@@ -15,13 +15,11 @@ import OfficialArchitecture from "../../components/notes/orquestacion/OfficialAr
 import RunStateMachine from "../../components/notes/orquestacion/RunStateMachine.astro";
 import LastWorker from "../../components/notes/orquestacion/LastWorker.astro";
 
-En septiembre tuve una entrevista técnica para un puesto con foco en GCP. El caso era concreto: un archivo cae en un bucket, se dispara un trigger y RabbitMQ coordina el envío de emails. En la charla aparecieron Cloud Composer, la orquestación nativa de GCP e identity federation. Yo propuse un servicio simple en Cloud Run.
+Un caso típico de GCP: un archivo cae en un bucket, se dispara un trigger y RabbitMQ coordina el envío de emails. Mi reflejo es un servicio simple en Cloud Run. Hace poco me preguntaron por qué no Cloud Composer, o la orquestación nativa de GCP, y no tenía una respuesta mejor que "es más simple". No porque la respuesta fuera mala, sino porque no sabía contra qué la estaba comparando.
 
-Salí con la sensación de no haberlo justificado. No porque la respuesta fuera mala, sino porque no sabía contra qué la estaba comparando.
+Así que usé esa pregunta para diseñar un proyecto personal: un pipeline de matching con LLMs. El primer caso de uso son ofertas laborales contra el perfil de un CV. El pipeline trae ofertas de varias fuentes, las deduplica, las prefiltra con reglas y las puntúa con un LLM contra el perfil del usuario.
 
-Así que usé esas preguntas para diseñar un proyecto personal: un pipeline de matching con LLMs sobre GCP. El primer caso de uso son ofertas laborales contra el perfil de un CV. El pipeline trae ofertas de varias fuentes, las deduplica, las prefiltra con reglas y las puntúa con un LLM contra el perfil del usuario.
-
-El diseño está hecho; el producto está en construcción. Ningún número de esta nota es una medición. Son precios de lista con su link y cuentas propias, y marco lo que falta medir.
+La idea la estoy validando primero con una versión local y open source: [argospipe](https://github.com/mariandotg/argospipe), un CLI que corre en tu máquina con SQLite y tu propia API key. Esta nota es sobre la versión en GCP, que está diseñada pero no construida. Ningún número de esta nota es una medición: son precios de lista con su link y cuentas propias, y marco lo que falta medir.
 
 <Callout type="note" title="La tesis">
 Elegir orquestador no es elegir una herramienta. Es decidir dónde vive el estado del flujo y cuánto pagás por tenerlo vivo cuando no pasa nada.
@@ -59,7 +57,7 @@ Antes de comparar, fijé cuatro restricciones. Sin ellas, cualquier opción gana
 
 ### Cloud Run solo
 
-Fue mi respuesta en la entrevista, y para un único paso es la correcta. Un archivo cae, un servicio lo procesa, fin. No hace falta orquestar nada.
+Es mi respuesta por reflejo, y para un único paso es la correcta. Un archivo cae, un servicio lo procesa, fin. No hace falta orquestar nada.
 
 Deja de alcanzar cuando hay varios pasos que dependen entre sí, o cuando un paso tiene que esperar. Un request tiene timeout y una instancia puede reiniciarse en cualquier deploy. El estado no puede vivir en memoria.
 
@@ -67,7 +65,7 @@ Deja de alcanzar cuando hay varios pasos que dependen entre sí, o cuando un pas
 
 El matching reparte cientos de unidades iguales: un candidato, una llamada al LLM. Eso no es orquestación. Un orquestador coordina; no reparte trabajo. Para repartir miles de unidades, una cola.
 
-El caso de la entrevista usaba RabbitMQ. Para mí, RabbitMQ significa un broker prendido: una VM o un cluster que pago aunque no haya mensajes, y que opero yo. Pub/Sub es administrado y cobra por volumen. El [free tier de GCP](https://cloud.google.com/free) incluye 10 GB de mensajes por mes. Con una persona operando y costo cero en reposo, la cola administrada gana sin discusión.
+El caso del bucket usaba RabbitMQ. Para mí, RabbitMQ significa un broker prendido: una VM o un cluster que pago aunque no haya mensajes, y que opero yo. Pub/Sub es administrado y cobra por volumen. El [free tier de GCP](https://cloud.google.com/free) incluye 10 GB de mensajes por mes. Con una persona operando y costo cero en reposo, la cola administrada gana sin discusión.
 
 ### Composer
 
@@ -114,20 +112,22 @@ La fila de 1.000 usuarios sale así. Son 450.000 pasos internos por mes: (450.00
 
 El costo fijo es lo que decide a escala chica. Composer arranca en unos 500 USD con cero usuarios. Workflows y la tabla arrancan en cero.
 
+Ninguna de estas cifras incluye el costo que domina: el LLM. Claude Haiku 4.5 cuesta 1 USD por millón de tokens de entrada y 5 USD por millón de salida ([precios de Anthropic](https://platform.claude.com/docs/en/about-claude/pricing)). Un match de unos 3.000 tokens de entrada y 300 de salida (el supuesto de la [spec de argospipe](https://github.com/mariandotg/argospipe/blob/main/docs/spec.md)) cuesta unos 0,0045 USD. Con 15 matches por corrida, son 0,07 USD por corrida. Con 1.000 usuarios y una corrida diaria, unos 2.000 USD por mes, o la mitad con la Batch API. Al lado de eso, la diferencia entre Workflows y la tabla es ruido. Lo que decide el orquestador es otra cosa: cuánto pago cuando no hay corridas. Sin corridas, el LLM cuesta cero; Composer, no.
+
 ## La decisión
 
 El costo en reposo descarta a Composer. A Workflows no lo descarta el costo: con 1.000 usuarios son unos 5 USD por mes.
 
 Para la v1 lo descartan dos cosas. La primera: no tiene un emulador local oficial. La [documentación](https://docs.cloud.google.com/workflows/docs/overview) solo describe ejecutar y depurar en la nube, y yo quiero correr el flujo entero en mi máquina, con tests. La segunda: prefiero el estado en mi base. Una corrida es una fila que consulto con SQL, no una ejecución dentro de un motor.
 
-Para la espera humana, en cambio, sí adoptaría Workflows. Ahí un callback le gana a una tabla con barrido, y lo desarmo en la [segunda parte](/es/notes/human-in-the-loop-gcp).
+Para la espera humana, en cambio, sí adoptaría Workflows. Ahí un callback le gana a una tabla con barrido, y lo desarmo en una segunda parte.
 
 Así quedan los dos tracks.
 
-- Track oficial, el de producción: Cloud Scheduler, Pub/Sub, Cloud Run y Postgres en Neon. El estado de cada corrida vive en una tabla y avanza con eventos.
+- Track oficial, el que llevaría a producción: Cloud Scheduler, Pub/Sub, Cloud Run y Postgres. El estado de cada corrida vive en una tabla y avanza con eventos.
 - Track experimental: GCP completo. Composer para el pipeline batch del catálogo y Workflows para la corrida de cada usuario, aprobación incluida. Ahí uso cada herramienta en el flujo para el que existe, y es donde voy a medir lo que hoy son estimaciones.
 
-No elegí en contra de Composer: elegí para esta escala. La sugerencia de la entrevista me obligó a evaluar el abanico completo. Para el catálogo, Composer es la herramienta correcta. Lo que no puedo justificar todavía es su costo fijo.
+No elegí en contra de Composer: elegí para esta escala. La pregunta por Composer me obligó a evaluar el abanico completo. Para el catálogo, Composer es la herramienta correcta. Lo que no puedo justificar todavía es su costo fijo.
 
 ## Cómo funciona la tabla
 
@@ -187,7 +187,7 @@ El cron del catálogo y el rescate son dos jobs. [Cloud Scheduler](https://cloud
 
 La corrida no termina en `notified`. En la versión siguiente, el usuario elige a qué ofertas aplicar, y el flujo se pausa hasta que conteste. Esperar a una persona no es un problema de cómputo: es un problema de estado.
 
-Workflows guarda ese estado en un callback; Airflow, en un sensor en `mode="reschedule"` o deferrable; mi tabla, en una fila en `waiting_approval`. Las tres, con código y límites, están en la [segunda parte](/es/notes/human-in-the-loop-gcp).
+Workflows guarda ese estado en un callback; Airflow, en un sensor en `mode="reschedule"` o deferrable; mi tabla, en una fila en `waiting_approval`. Las tres, con código y límites, van en una segunda parte.
 
 ## Lo que cuesta el costo cero
 
@@ -204,7 +204,7 @@ Hay costos que no aparecen en la tabla:
 
 ### Seguridad: sin keys
 
-La identity federation de la entrevista también entra. El deploy usa Workload Identity Federation: el CI se autentica contra GCP con su propio token, sin service account keys guardadas en ningún lado. Y cada servicio corre con su propia service account, con el mínimo privilegio. El dispatcher puede publicar en su topic; el worker puede leer su suscripción y escribir en la base. Ninguno puede hacer lo del otro.
+El deploy usa Workload Identity Federation: el CI se autentica contra GCP con su propio token, sin service account keys guardadas en ningún lado. Y cada servicio corre con su propia service account, con el mínimo privilegio. El dispatcher puede publicar en su topic; el worker puede leer su suscripción y escribir en la base. Ninguno puede hacer lo del otro.
 
 ## Lo que todavía no medí
 
@@ -218,6 +218,7 @@ Los números de esta nota son de lista o calculados. Tres cosas los tienen que r
 
 Esta decisión vale para esta escala. Cambia si pasa alguna de estas cosas:
 
+- Hay usuarios reales. Ahí pago Cloud SQL, unos 8 USD por mes, en vez de depender de un tercero, y Neon queda para dev y test.
 - El volumen me saca del free tier. Ahí el costo de la tabla deja de ser cero, y Workflows (unos 52 USD por mes con 10.000 usuarios) se compara con mi tiempo de mantener el rescate.
 - Necesito backfill en serio. Reprocesar semanas del catálogo con un script propio es justo lo que Airflow ya resuelve.
 - Se suma un equipo de datos que ya usa Airflow. El costo de Composer se reparte y su UI pasa a ser compartida.
@@ -231,4 +232,4 @@ Esta decisión vale para esta escala. Cambia si pasa alguna de estas cosas:
 
 Esta nota tiene límites. No mide latencia ni costo real: los costos son de lista, y "Lo que todavía no medí" dice qué falta. Tampoco evalúa Cloud Tasks, Eventarc ni motores de workflows durables fuera de GCP.
 
-En la entrevista dije "un servicio simple en Cloud Run". Hoy diría lo mismo para ese caso: un archivo, un paso. Lo que cambió es que ahora sé dónde deja de alcanzar, y qué pregunta hacer antes de elegir el reemplazo: dónde va a vivir el estado, y cuánto voy a pagar por tenerlo vivo cuando no pasa nada.
+Mi reflejo era "un servicio simple en Cloud Run". Para el caso del bucket sigue siendo la respuesta: un archivo, un paso. Lo que cambió es que ahora sé dónde deja de alcanzar, y qué pregunta hacer antes de elegir el reemplazo: dónde va a vivir el estado, y cuánto voy a pagar por tenerlo vivo cuando no pasa nada.

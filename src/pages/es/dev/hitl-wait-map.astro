@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import WaitStateMap from "@/components/notes/hitl/WaitStateMap.astro";
+
+// Dev-only preview of the human-in-the-loop hero diagram.
+if (!import.meta.env.DEV) return new Response(null, { status: 404 });
+---
+
+<BaseLayout title="WaitStateMap · dev" noindex>
+  <main class="max-w-[800px] w-full mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <WaitStateMap />
+  </main>
+</BaseLayout>
